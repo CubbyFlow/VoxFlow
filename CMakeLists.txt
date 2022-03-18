@@ -109,3 +109,4 @@ include_directories(Dependencies/src/ImGuizmo/src)
 
 # Project modules
 add_subdirectory(Sources)
+add_subdirectory(Tests/UnitTests)
