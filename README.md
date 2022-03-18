@@ -1,5 +1,9 @@
 # VoxFlow
 
+![Ubuntu github action](https://github.com/snowapril/VoxFlow/actions/workflows/ubuntu.yml/badge.svg?branch=main)
+![Window github action](https://github.com/snowapril/VoxFlow/actions/workflows/window.yml/badge.svg?branch=main)
+![MacOS github action](https://github.com/snowapril/VoxFlow/actions/workflows/macos.yml/badge.svg?branch=main)
+
 VoxFlow is fluid visualization project with Voxel GI for [CubbyFlow](https://github.com/utilforever/cubbyflow) 
 
 ## How To Contribute
