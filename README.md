@@ -1,5 +1,6 @@
 # VoxFlow
 
+[![CodeFactor](https://www.codefactor.io/repository/github/snowapril/voxflow/badge)](https://www.codefactor.io/repository/github/snowapril/voxflow)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/90e2f5ae01084c8b8e0a16adf00a7e8d)](https://www.codacy.com/gh/Snowapril/VoxFlow/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Snowapril/VoxFlow&amp;utm_campaign=Badge_Grade)
 ![Ubuntu github action](https://github.com/snowapril/VoxFlow/actions/workflows/ubuntu.yml/badge.svg?branch=main)
 ![Window github action](https://github.com/snowapril/VoxFlow/actions/workflows/window.yml/badge.svg?branch=main)
