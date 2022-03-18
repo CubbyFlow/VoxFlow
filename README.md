@@ -18,6 +18,23 @@ cd build
 cmake .. && cmake --build .
 ```
 
+## Dependencies
+*   [cubbyflow](https://github.com/CubbyFlow/CubbyFlow)
+*   [vulkan-hpp](https://github.com/KhronosGroup/Vulkan-Hpp)
+*   [glfw](https://github.com/glfw/glfw)
+*   [glm](https://github.com/g-truc/glm)
+*   [imgui](https://github.com/ocornut/imgui)
+*   [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
+*   [stb](https://github.com/nothings/stb)
+*   [assimp](https://github.com/assimp/assimp)
+*   [etc2comp](https://github.com/google/etc2comp)
+*   [taskflow](https://github.com/taskflow/taskflow)
+*   [meshoptimizer](https://github.com/zeux/meshoptimizer)
+*   [volk](https://github.com/zeux/volk)
+*   [glslang](https://github.com/KhronosGroup/glslang)
+*   [volk](https://github.com/zeux/volk)
+*   [doctest](https://github.com/doctest/doctest)
+
 ## How To Contribute
 
 Contributions are always welcome, either reporting issues/bugs or forking the repository and then issuing pull requests when you have completed some additional coding that you feel will be beneficial to the main project. If you are interested in contributing in a more dedicated capacity, then please contact me.
