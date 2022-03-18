@@ -1,0 +1,53 @@
+name: Window
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-window:
+    env:
+      build_type: "Release"
+      vulkan_sdk: "C:/VulkanSDK"
+      vulkan_version: "1.3.204.1"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Windows Server 2019 + Visual Studio 2019"
+            os: windows-2019
+          - name: "Windows Server 2016 + Visual Studio 2017"
+            os: windows-2016
+
+    runs-on: ${{matrix.os}}
+    name: ${{matrix.name}}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Install Vulkan SDK
+      run: |
+        choco install --yes vulkan-sdk --version=${{env.vulkan_version}}
+    - name: Configure CMake
+      shell: bash
+      run: |
+        echo "VULKAN_SDK=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}" >> $GITHUB_ENV
+        echo "VK_SDK_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}" >> $GITHUB_ENV
+        echo "${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/Bin" >> $GITHUB_PATH
+        echo "LD_LIBRARY_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/Lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+    - name: Install Conan Package Manager
+      run: |
+        pip install conan
+    - name: Configure Build
+      run: |
+        mkdir build
+        conan install . -if build --build missing -s build_type=${{env.build_type}}
+        cd build && cmake .. -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=${{env.build_type}}
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Build
+      run: cd build && MSBuild.exe VoxFlow.sln /p:Configuration=${{env.build_type}}
+    - name: Run Unit Test
+      run: /a/VoxFlow/VoxFlow/build/bin/${{env.build_type}}/UnitTests.exe

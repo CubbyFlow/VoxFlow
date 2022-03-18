@@ -1,0 +1,88 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntu:
+    env:
+      build_type: "Release"
+      vulkan_sdk: "$GITHUB_WORKSPACE/vulkan_sdk"
+      vulkan_version: "1.3.204.1"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ubuntu 18.04 + GCC-8"
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "8"
+          - name: "Ubuntu 20.04 + GCC-9"
+            os: ubuntu-20.04
+            compiler: gcc
+            version: "9"
+          - name: "Ubuntu 18.04 + Clang-10"
+            os: ubuntu-18.04
+            compiler: clang
+            version: "10"
+          - name: "Ubuntu 20.04 + Clang-11"
+            os: ubuntu-20.04
+            compiler: clang
+            version: "11"
+
+    runs-on: ${{matrix.os}}
+    name: ${{matrix.name}}
+
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Install Dependency
+      run: |
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt-get update && sudo apt-get upgrade && sudo apt-get dist-upgrade
+        sudo apt-get install xorg-dev build-essential libgl-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev python3-setuptools
+        if [ "${{ matrix.compiler }}" = "gcc" ]; then
+          sudo apt-get install cmake gcc-${{ matrix.version }} g++-${{ matrix.version }}
+        else
+          sudo apt-get install cmake clang-${{ matrix.version }} clang++-${{ matrix.version }}
+        fi
+    - name: Configure Compiler
+      run: |
+        if [ "${{ matrix.compiler }}" = "gcc" ]; then
+          echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
+          echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
+        else
+          echo "CC=clang-${{ matrix.version }}" >> $GITHUB_ENV
+          echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
+        fi
+    - name: Install Vulkan SDK
+      shell: bash
+      run: |
+        # Download Vulkan SDK
+        curl -LS -o vulkansdk.tar.gz \
+          https://sdk.lunarg.com/sdk/download/${{ env.vulkan_version }}/linux/vulkansdk-linux-x86_64-${{ env.vulkan_version }}.tar.gz
+        # Create Vulkan SDK directory and extract
+        mkdir "${{ env.vulkan_sdk }}"
+        tar -xzf vulkansdk.tar.gz -C "${{ env.vulkan_sdk }}"
+        echo "VULKAN_SDK=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/x86_64" >> $GITHUB_ENV
+        echo "VK_SDK_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/x86_64" >> $GITHUB_ENV
+        echo "${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/x86_64/bin" >> $GITHUB_PATH
+        echo "LD_LIBRARY_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/x86_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        echo "VK_LAYER_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/x86_64/etc/vulkan/explicit_layer.d" >> $GITHUB_ENV
+    - name: Install Conan Package Manager
+      shell: bash
+      run: |
+        pip3 install conan
+    - name: Configure Build
+      run: |
+        mkdir build
+        conan install . -if build --build missing -s build_type=${{env.build_type}}
+        cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}}
+    - name: Build
+      run: cd build && make
+    - name: Run Unit Test
+      run: /home/runner/work/VoxFlow/VoxFlow/build/bin/UnitTests
