@@ -30,6 +30,13 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DDEBUG)
 endif()
 
+option(BUILD_COVERAGE "Build code coverage" OFF)
+if (CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX AND BUILD_COVERAGE)
+    include(CodeCoverage)
+    setup_target_for_coverage(${PROJECT_NAME}_coverage UnitTests coverage)
+endif()
+
+
 # Overrides
 set(CMAKE_MACOSX_RPATH ON)
 
