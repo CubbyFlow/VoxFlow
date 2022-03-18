@@ -8,6 +8,16 @@
 
 VoxFlow is fluid visualization project with Voxel GI for [CubbyFlow](https://github.com/utilforever/cubbyflow) 
 
+## QuickStart
+```bash
+git clone https://github.com/snowapril/VoxFlow.git
+cd VoxFlow
+python bootstrap.py
+mkdir build
+cd build
+cmake .. && cmake --build .
+```
+
 ## How To Contribute
 
 Contributions are always welcome, either reporting issues/bugs or forking the repository and then issuing pull requests when you have completed some additional coding that you feel will be beneficial to the main project. If you are interested in contributing in a more dedicated capacity, then please contact me.
