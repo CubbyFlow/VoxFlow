@@ -51,14 +51,13 @@ jobs:
         echo "VK_ICD_FILENAMES=${{ env.vulkan_sdk }}/macOS/etc/vulkan/icd.d/MoltenVK_icd.json" >> $GITHUB_ENV
         echo "${{ env.vulkan_sdk }}/macOS/bin" >> $GITHUB_PATH
         echo "LD_LIBRARY_PATH=${{ env.vulkan_sdk }}/macOS/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-    - name: Install Conan Package Manager
+    - name: Execute bootstrap script
       shell: bash
       run: |
-        brew install conan
+        python3 bootstrap.py
     - name: Configure Build
       run: |
         mkdir build
-        conan install . -if build --build missing -s build_type=${{env.build_type}}
         cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}}
     - name: Build
       run: cd build && make

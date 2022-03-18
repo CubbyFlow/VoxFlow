@@ -37,13 +37,12 @@ jobs:
         echo "VK_SDK_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}" >> $GITHUB_ENV
         echo "${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/Bin" >> $GITHUB_PATH
         echo "LD_LIBRARY_PATH=${{ env.vulkan_sdk }}/${{ env.vulkan_version }}/Lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-    - name: Install Conan Package Manager
+    - name: Execute bootstrap script
       run: |
-        pip install conan
+        python bootstrap.py
     - name: Configure Build
       run: |
         mkdir build
-        conan install . -if build --build missing -s build_type=${{env.build_type}}
         cd build && cmake .. -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=${{env.build_type}}
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
