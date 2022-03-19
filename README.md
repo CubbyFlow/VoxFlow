@@ -30,9 +30,7 @@ cmake .. && cmake --build .
 *   [etc2comp](https://github.com/google/etc2comp)
 *   [taskflow](https://github.com/taskflow/taskflow)
 *   [meshoptimizer](https://github.com/zeux/meshoptimizer)
-*   [volk](https://github.com/zeux/volk)
 *   [glslang](https://github.com/KhronosGroup/glslang)
-*   [volk](https://github.com/zeux/volk)
 *   [doctest](https://github.com/doctest/doctest)
 
 ## How To Contribute

@@ -80,7 +80,6 @@ endif()
 add_subdirectory(Dependencies/src/glfw)
 add_subdirectory(Dependencies/src/assimp)
 add_subdirectory(Dependencies/src/meshoptimizer)
-add_subdirectory(Dependencies/src/volk)
 
 set(ENABLE_GLSLANG_BINARIES  OFF  CACHE BOOL "")
 set(ENABLE_HLSL              OFF  CACHE BOOL "")
