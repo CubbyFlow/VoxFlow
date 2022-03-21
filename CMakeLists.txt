@@ -81,8 +81,9 @@ add_subdirectory(Dependencies/src/glfw)
 add_subdirectory(Dependencies/src/assimp)
 add_subdirectory(Dependencies/src/meshoptimizer)
 
-set(CUBBYFLOW_BUILD_TESTS OFF CACHE BOOL "")
-set(CUBBYFLOW_BUILD_EXAMPLES OFF CACHE BOOL "")
+set(BUILD_TESTS OFF CACHE BOOL "")
+set(BUILD_EXAMPLES OFF CACHE BOOL "")
+set(USE_CUDA OFF CACHE BOOL "")
 add_subdirectory(Dependencies/src/cubbyflow)
 
 set(ENABLE_GLSLANG_BINARIES  OFF  CACHE BOOL "")
