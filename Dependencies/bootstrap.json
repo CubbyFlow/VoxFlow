@@ -16,6 +16,14 @@
     }
   },
   {
+    "name": "vma",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
+      "revision": "v2.3.0"
+    }
+  },
+  {
     "name": "glfw",
     "source": {
       "type": "git",
