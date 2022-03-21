@@ -4,17 +4,29 @@ set(ROOT_DIR ${PROJECT_SOURCE_DIR})
 set(PUBLIC_HDR_DIR ${PROJECT_SOURCE_DIR}/Includes)
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Set OpenGL3 public headers
+# Set public headers
 set(PUBLIC_HDRS
 )
 
-# Set OpenGL3 Sources
+# Set Sources
 set(SRCS
     ${SRC_DIR}/VoxFlow.cpp
 )
 
 # Build library
 add_library(${target} ${SRCS})
+
+# Speed up builds
+cotire(${target})
+
+# Set precompiled header
+set(PRECOMPILED_HEADERS
+    ${PUBLIC_HDR_DIR}/Utils/pch.hpp
+)
+set_target_properties(${target}
+    PROPERTIES
+    COTIRE_CXX_PREFIX_HEADER_INIT ${PRECOMPILED_HEADERS}
+)
 
 # Project options
 set_target_properties(${target}

@@ -22,6 +22,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Compile options
 include(Builds/CMake/CompileOptions.cmake)
 
+# Precompiled headers
+include(Builds/CMake/cotire.cmake)
+
 # Build type - Release by default
 message("CMake build type: " ${CMAKE_BUILD_TYPE})
 if(NOT CMAKE_BUILD_TYPE)
