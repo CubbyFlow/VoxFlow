@@ -12,13 +12,13 @@ Queue::Queue(const LogicalDevice& device, uint32_t familyIndex,
     vkGetDeviceQueue(device.get(), familyIndex, queueIndex, &_queue);
 }
 
-Queue::Queue(Queue&& other)
+Queue::Queue(Queue&& other) noexcept
     : _queue(std::move(other._queue)), _familyIndex(other._familyIndex)
 {
     // Do nothing
 }
 
-Queue& Queue::operator=(Queue&& other)
+Queue& Queue::operator=(Queue&& other) noexcept
 {
     if (this != &other)
     {

@@ -10,7 +10,7 @@ Context::Context(bool useValidation /* true */)
     // Do nothing
 }
 
-void Context::setVersion(uint32_t major, uint32_t minor)
+void Context::setVersion(const uint32_t major, const uint32_t minor)
 {
     majorVersion = major;
     minorVersion = minor;
@@ -32,5 +32,12 @@ void Context::addDeviceExtension(const char* name, bool isOptional /* false */,
                                  uint32_t version /* 0 */)
 {
     deviceExtensions.emplace_back(name, isOptional, pFeatureStruct, version);
+}
+
+void Context::addRequiredQueue(std::string&& queueName, VkQueueFlags queueFlag,
+                      uint32_t queueCount, float queuePriority)
+{
+    requiredQueues.emplace_back(std::move(queueName), queueFlag, queueCount,
+                                queuePriority);
 }
 }  // namespace VoxFlow

@@ -98,13 +98,13 @@ LogicalDevice::~LogicalDevice()
     release();
 }
 
-LogicalDevice::LogicalDevice(LogicalDevice&& other)
+LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept
     : _device(std::move(other._device)), _queueMap(std::move(other._queueMap))
 {
     // Do nothing
 }
 
-LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other)
+LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other) noexcept
 {
     if (this != &other)
     {

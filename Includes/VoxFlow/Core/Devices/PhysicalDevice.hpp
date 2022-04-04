@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -15,18 +16,17 @@ class PhysicalDevice : NonCopyable
     PhysicalDevice(const Instance& instance);
     ~PhysicalDevice() override = default;
 
-    [[nodiscard]] std::vector<VkExtensionProperties> getPossibleExtensions()
-        const;
-    [[nodiscard]] VkPhysicalDeviceMemoryProperties getMemoryProperty() const;
-    [[nodiscard]] std::vector<VkQueueFamilyProperties> getQueueFamilyProperties() const;
+    [[nodiscard]] std::vector<VkExtensionProperties>    getPossibleExtensions() const;
+    [[nodiscard]] VkPhysicalDeviceMemoryProperties      getMemoryProperty() const;
+    [[nodiscard]] std::vector<VkQueueFamilyProperties>  getQueueFamilyProperties() const;
 
-    [[nodiscard]] VkPhysicalDevice get() const
+    [[nodiscard]] VkPhysicalDevice get() const noexcept
     {
         return _physicalDevice;
     }
 
  private:
-    VkPhysicalDevice _physicalDevice{ VK_NULL_HANDLE };
+    VkPhysicalDevice _physicalDevice { VK_NULL_HANDLE };
 };
 }  // namespace VoxFlow
 

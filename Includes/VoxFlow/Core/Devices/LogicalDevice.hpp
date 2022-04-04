@@ -21,7 +21,7 @@ class LogicalDevice : NonCopyable
     LogicalDevice(LogicalDevice&& other) noexcept;
     LogicalDevice& operator=(LogicalDevice&& other) noexcept;
 
-    [[nodiscard]] VkDevice get() const
+    [[nodiscard]] VkDevice get() const noexcept
     {
         return _device;
     }

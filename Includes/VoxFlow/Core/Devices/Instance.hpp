@@ -3,30 +3,31 @@
 #ifndef VOXEL_FLOW_INSTANCE_HPP
 #define VOXEL_FLOW_INSTANCE_HPP
 
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {
-    class Instance : NonCopyable
+class Instance : NonCopyable
+{
+ public:
+    explicit Instance(const Context& ctx);
+    ~Instance() override;
+    Instance(Instance&& instance) noexcept;
+    Instance& operator=(Instance&& instance) noexcept;
+
+    [[nodiscard]] VkInstance get() const noexcept
     {
-     public:
-        Instance(const Context& ctx);
-        ~Instance() override;
-        Instance(Instance&& instance) noexcept;
-        Instance& operator=(Instance&& instance) noexcept;
+        return _instance;
+    }
 
-        VkInstance get() const
-        {
-            return _instance;
-        }
-    protected:
-        void release() const;
+ protected:
+    void release() const;
 
-    private:
-        VkInstance _instance{ VK_NULL_HANDLE };
-    };
-}
+ private:
+    VkInstance _instance{ VK_NULL_HANDLE };
+};
+}  // namespace VoxFlow
 
 #endif

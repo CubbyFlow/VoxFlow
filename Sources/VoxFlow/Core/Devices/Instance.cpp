@@ -59,12 +59,13 @@ Instance::~Instance()
     release();
 }
 
-Instance::Instance(Instance&& instance) : _instance(std::move(instance._instance))
+Instance::Instance(Instance&& instance) noexcept
+    : _instance(std::move(instance._instance))
 {
     // Do nothing
 }
 
-Instance& Instance::operator=(Instance && instance)
+Instance& Instance::operator=(Instance && instance) noexcept
 {
     if (this != &instance)
     {

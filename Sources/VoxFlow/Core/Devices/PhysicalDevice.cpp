@@ -35,8 +35,7 @@ VkPhysicalDeviceMemoryProperties PhysicalDevice::getMemoryProperty() const
     return memoryProperties;
 }
 
-std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilyProperties()
-    const
+std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilyProperties() const
 {
     uint32_t familyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount,
