@@ -18,8 +18,12 @@ class PhysicalDevice : NonCopyable
     [[nodiscard]] std::vector<VkExtensionProperties> getPossibleExtensions()
         const;
     [[nodiscard]] VkPhysicalDeviceMemoryProperties getMemoryProperty() const;
-    [[nodiscard]] std::vector<VkQueueFamilyProperties>
-    getQueueFamilyProperties() const;
+    [[nodiscard]] std::vector<VkQueueFamilyProperties> getQueueFamilyProperties() const;
+
+    [[nodiscard]] VkPhysicalDevice get() const
+    {
+        return _physicalDevice;
+    }
 
  private:
     VkPhysicalDevice _physicalDevice{ VK_NULL_HANDLE };
