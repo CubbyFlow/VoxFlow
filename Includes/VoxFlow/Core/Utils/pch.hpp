@@ -4,11 +4,7 @@
 #define VOXEL_FLOW_PCH_HPP
 
 #define VK_NO_PROTOTYPES
-#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC
-#define VULKAN_HPP_NO_CONSTRUCTORS
-#define VULKAN_HPP_NO_EXCEPTIONS
-#define VULKAN_HPP_USE_REFLECT
-#include <vulkan/vulkan.hpp>
+#include <volk/volk.h>
 
 #define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_RADIANS
