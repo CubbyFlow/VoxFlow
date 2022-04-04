@@ -12,13 +12,12 @@ VkResult DecisionMaker::pickLayers(
 {
     for (const auto& entry : requested)
     {
-        auto iter =
-            std::find_if(properties.begin(), properties.end(),
-                         [entry](const VkLayerProperties& p) {
-                             return strcmp(entry.entryName, p.layerName) == 0;
-                         });
-
-        if (iter != properties.end())
+        if (auto ranges = std::ranges::find_if(
+                properties.begin(), properties.end(),
+                [&entry](const VkLayerProperties& p) {
+                    return strcmp(entry.entryName, p.layerName) == 0;
+                });
+            ranges != properties.end())
         {
             used.emplace_back(entry.entryName);
         }
@@ -40,13 +39,12 @@ VkResult DecisionMaker::pickExtensions(
 {
     for (const auto& entry : requested)
     {
-        auto iter = std::find_if(properties.begin(), properties.end(),
-                                 [entry](const VkExtensionProperties& p) {
-                                     return strcmp(entry.entryName,
-                                                   p.extensionName) == 0;
-                                 });
-
-        if (iter != properties.end())
+        if (auto ranges = std::ranges::find_if(
+                properties.begin(), properties.end(),
+                [&entry](const VkExtensionProperties& p) {
+                    return strcmp(entry.entryName, p.extensionName) == 0;
+                });
+            ranges != properties.end())
         {
             used.emplace_back(entry.entryName);
             if (entry.pFeatureStruct != nullptr)
