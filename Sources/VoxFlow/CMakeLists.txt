@@ -10,6 +10,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Instance.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.cpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.cpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.cpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
@@ -21,6 +22,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/Instance.cpp
     ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
+    ${SRC_DIR}/Core/Devices/Queue.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
 )
 
