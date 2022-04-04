@@ -6,11 +6,22 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set public headers
 set(PUBLIC_HDRS
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Context.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Instance.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.cpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.cpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
 )
 
 # Set Sources
 set(SRCS
-    ${SRC_DIR}/VoxFlow.cpp
+    ${SRC_DIR}/Core/Devices/Context.cpp
+    ${SRC_DIR}/Core/Devices/Instance.cpp
+    ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
+    ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
+    ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
 )
 
 # Build library

@@ -76,6 +76,8 @@ add_subdirectory(Dependencies/src/assimp)
 add_subdirectory(Dependencies/src/meshoptimizer)
 add_subdirectory(Dependencies/src/glslang)
 add_subdirectory(Dependencies/src/etc2comp)
+add_subdirectory(Dependencies/src/volk)
+add_subdirectory(Dependencies/src/spdlog)
 
 set(BUILD_TESTS     OFF CACHE BOOL "")
 set(BUILD_EXAMPLES  OFF CACHE BOOL "")
@@ -84,7 +86,6 @@ set(BUILD_SONARCLOUD ON CACHE BOOL "")
 add_subdirectory(Dependencies/src/cubbyflow)
 
 # Includes
-include_directories(Includes)
 include_directories(Dependencies/src)
 include_directories(Dependencies/src/vulkan/include)
 include_directories(Dependencies/src/vma/src)
@@ -101,7 +102,8 @@ include_directories(Dependencies/src/glslang)
 include_directories(Dependencies/src/glslang/StandAlone)
 include_directories(Dependencies/src/glslang/src)
 include_directories(Dependencies/src/ImGuizmo/src)
+include_directories(Dependencies/src/spdlog/include)
 
 # Project modules
-add_subdirectory(Sources)
+add_subdirectory(Sources/VoxFlow)
 add_subdirectory(Tests/UnitTests)
