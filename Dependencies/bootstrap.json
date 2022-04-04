@@ -112,6 +112,14 @@
     }
   },
   {
+    "name": "spdlog",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/gabime/spdlog.git",
+      "revision": "v1.9.2"
+    }
+  },
+  {
     "name": "doctest",
     "source": {
       "type": "git",
