@@ -78,6 +78,7 @@ add_subdirectory(Dependencies/src/glslang)
 add_subdirectory(Dependencies/src/etc2comp)
 add_subdirectory(Dependencies/src/volk)
 add_subdirectory(Dependencies/src/spdlog)
+add_subdirectory(Dependencies/src/backward-cpp)
 
 set(BUILD_TESTS     OFF CACHE BOOL "")
 set(BUILD_EXAMPLES  OFF CACHE BOOL "")

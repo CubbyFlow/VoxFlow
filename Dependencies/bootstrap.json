@@ -126,5 +126,13 @@
       "url": "https://github.com/doctest/doctest",
       "revision": "7b9885133108ae301ddd16e2651320f54cafeba7"
     }
+  },
+  {
+    "name": "backward-cpp",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/bombela/backward-cpp",
+      "revision": "v1.6"
+    }
   }
 ]

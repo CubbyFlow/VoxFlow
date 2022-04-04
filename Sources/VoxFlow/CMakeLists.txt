@@ -25,10 +25,13 @@ set(SRCS
 )
 
 # Build library
-add_library(${target} ${SRCS})
+add_library(${target} ${SRCS} ${BACKWARD_ENABLE})
 
 # Speed up builds
 cotire(${target})
+
+# Enable backward-cpp stack-trace for this build
+add_backward(${target})
 
 # Set precompiled header
 set(PRECOMPILED_HEADERS
