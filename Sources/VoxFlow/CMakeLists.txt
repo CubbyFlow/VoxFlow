@@ -8,12 +8,13 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Context.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Instance.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.cpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.cpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.cpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/VoxFlow.hpp
 )
 
 # Set Sources
