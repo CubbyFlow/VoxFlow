@@ -5,11 +5,10 @@
 
 namespace VoxFlow
 {
-Queue::Queue(const LogicalDevice& device, uint32_t familyIndex,
-             uint32_t queueIndex /* 0 */)
-    : _familyIndex(familyIndex)
+Queue::Queue(VkQueue queueHandle, uint32_t familyIndex) noexcept
+    : _queue(queueHandle), _familyIndex(familyIndex)
 {
-    vkGetDeviceQueue(device.get(), familyIndex, queueIndex, &_queue);
+    // Do nothing
 }
 
 Queue::Queue(Queue&& other) noexcept

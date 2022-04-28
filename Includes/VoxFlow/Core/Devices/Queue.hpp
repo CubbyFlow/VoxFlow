@@ -3,7 +3,6 @@
 #ifndef VOXEL_FLOW_QUEUE_HPP
 #define VOXEL_FLOW_QUEUE_HPP
 
-#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
 #include <cstdint>
@@ -13,8 +12,7 @@ namespace VoxFlow
 class Queue : NonCopyable
 {
  public:
-    explicit Queue(const LogicalDevice& device, uint32_t familyIndex,
-                   uint32_t queueIndex = 0);
+    explicit Queue(VkQueue queueHandle, uint32_t familyIndex) noexcept;
     ~Queue() override = default;
     Queue(Queue&& other) noexcept;
     Queue& operator=(Queue&& other) noexcept;

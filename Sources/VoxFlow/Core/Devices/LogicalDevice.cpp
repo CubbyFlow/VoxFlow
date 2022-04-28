@@ -87,9 +87,11 @@ LogicalDevice::LogicalDevice(const Context& ctx,
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {
+        VkQueue queueHandle;
+        vkGetDeviceQueue(_device, queueFamilyIndices[i], 0, &queueHandle);
         _queueMap.emplace(
             ctx.requiredQueues[i].queueName,
-            std::make_shared<Queue>(*this, queueFamilyIndices[i], 0));
+            std::make_shared<Queue>(queueHandle, queueFamilyIndices[i]));
     }
 }
 
