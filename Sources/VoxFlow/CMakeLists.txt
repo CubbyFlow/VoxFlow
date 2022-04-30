@@ -1,6 +1,7 @@
 # Target name
 set(target VoxFlow)
 set(ROOT_DIR ${PROJECT_SOURCE_DIR})
+set(LIBRARY_DIR ${PROJECT_SOURCE_DIR}/Dependencies/src)
 set(PUBLIC_HDR_DIR ${PROJECT_SOURCE_DIR}/Includes)
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -57,11 +58,12 @@ target_include_directories(${target}
     PUBLIC
     $<BUILD_INTERFACE:${PUBLIC_HDR_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
-    # ${glm_INCLUDE_DIR}
-    # ${tinyobjloader_INCLUDE_DIR}
-    # ${glfw_INCLUDE_DIR}
     PRIVATE
     ${PUBLIC_HDR_DIR}
+    ${LIBRARY_DIR}/glfw/include
+    ${LIBRARY_DIR}/volk
+    ${LIBRARY_DIR}/glslang
+    ${LIBRARY_DIR}/assimp/include
 )
 
 # Compile options
@@ -75,7 +77,13 @@ target_compile_options(${target}
 target_link_libraries(${target}
     PUBLIC
     ${DEFAULT_LINKER_OPTIONS}
-	${DEFAULT_LIBRARIES}    
+	${DEFAULT_LIBRARIES}
+    PRIVATE
+    glfw
+    volk
+    glslang
+    SPIRV
+    assimp
 )
 
 # Compile definitions
@@ -86,7 +94,10 @@ target_compile_definitions(${target}
 )
 
 # Install
-install(TARGETS  ${target}
+install(TARGETS  
+        ${target} glfw volk glslang 
+        OGLCompiler OSDependent MachineIndependent 
+        GenericCodeGen SPIRV assimp IrrXML
         EXPORT   ${target}-config
         RUNTIME  DESTINATION bin
         LIBRARY  DESTINATION lib
