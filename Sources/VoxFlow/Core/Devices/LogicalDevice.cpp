@@ -16,7 +16,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     std::vector<void*> featureStructs;
     VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
                                             ctx.deviceExtensions,
-                                            featureStructs));
+                                            featureStructs) == VK_SUCCESS);
 
     const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
@@ -82,8 +82,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         .pEnabledFeatures = nullptr
     };
 
-    VK_ASSERT(
-        vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr, &_device));
+    VK_ASSERT(vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr,
+                             &_device) == VK_SUCCESS);
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {

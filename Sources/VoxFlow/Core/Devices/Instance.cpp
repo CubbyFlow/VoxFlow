@@ -8,7 +8,7 @@ namespace VoxFlow
 {
 Instance::Instance(const Context& ctx)
 {
-    VK_ASSERT(volkInitialize());
+    VK_ASSERT(volkInitialize() == VK_SUCCESS);
 
     VkApplicationInfo appInfo = { .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                                   .pNext = nullptr,
@@ -29,7 +29,7 @@ Instance::Instance(const Context& ctx)
     std::vector<void*> featureStructs;
     VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
                                             ctx.instanceExtensions,
-                                            featureStructs));
+                                            featureStructs) == VK_SUCCESS);
 
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -38,7 +38,7 @@ Instance::Instance(const Context& ctx)
 
     std::vector<const char*> usedLayers;
     VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
-                                        ctx.instanceLayers));
+                                        ctx.instanceLayers) == VK_SUCCESS);
 
     const VkInstanceCreateInfo instanceInfo = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -51,7 +51,8 @@ Instance::Instance(const Context& ctx)
         .ppEnabledExtensionNames = usedExtensions.data()
     };
 
-    VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance));
+    VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance) ==
+              VK_SUCCESS);
 }
 
 Instance::~Instance()
