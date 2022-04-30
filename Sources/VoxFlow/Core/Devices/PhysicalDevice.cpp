@@ -2,7 +2,6 @@
 
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include "VoxFlow/Core/Utils/DecisionMaker.hpp"
 
 namespace VoxFlow
 {
@@ -10,10 +9,11 @@ PhysicalDevice::PhysicalDevice(const Instance& instance)
 {
     uint32_t numPhysicalDevices;
     vkEnumeratePhysicalDevices(instance.get(), &numPhysicalDevices, nullptr);
-    std::vector<VkPhysicalDevice> deviceCandidates;
+    std::vector<VkPhysicalDevice> deviceCandidates(numPhysicalDevices);
     vkEnumeratePhysicalDevices(instance.get(), &numPhysicalDevices,
                                deviceCandidates.data());
 
+    // TODO(snowapril) : enable physical device selection between external gpu and internal gpu
     _physicalDevice = deviceCandidates[0];
 }
 
