@@ -3,6 +3,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 
 #include "UnitTestUtils.hpp"
+VoxFlow::Context gVulkanContext;
 
 int main()
 {
