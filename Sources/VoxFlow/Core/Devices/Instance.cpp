@@ -3,11 +3,14 @@
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
+#include <VoxFlow/Core/Utils/pch.hpp>
+#include <glslang_c_interface.h>
 
 namespace VoxFlow
 {
 Instance::Instance(const Context& ctx)
 {
+    glslang_initialize_process();
     VK_ASSERT(volkInitialize() == VK_SUCCESS);
 
     VkApplicationInfo appInfo = { .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -59,6 +62,7 @@ Instance::Instance(const Context& ctx)
 Instance::~Instance()
 {
     release();
+    glslang_finalize_process();
 }
 
 Instance::Instance(Instance&& instance) noexcept
