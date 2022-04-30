@@ -1,6 +1,7 @@
 // Author : snowapril
 
-#include <doctest/doctest_proxy.hpp>
+#include "../../UnitTestUtils.hpp"
+#include <VoxFlow/Core/Devices/Instance.hpp>
 
 TEST_CASE("Vulkan Instance Initialization")
 {
