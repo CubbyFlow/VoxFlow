@@ -53,6 +53,7 @@ Instance::Instance(const Context& ctx)
 
     VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance) ==
               VK_SUCCESS);
+    volkLoadInstance(_instance);
 }
 
 Instance::~Instance()
