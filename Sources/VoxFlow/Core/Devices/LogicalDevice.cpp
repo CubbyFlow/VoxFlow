@@ -123,8 +123,12 @@ std::weak_ptr<Queue> LogicalDevice::getQueuePtr(const std::string& queueName)
     return iter->second;
 }
 
-void LogicalDevice::release() const
+void LogicalDevice::release()
 {
-    vkDestroyDevice(_device, nullptr);
+    if (_device != VK_NULL_HANDLE)
+    {
+        vkDestroyDevice(_device, nullptr);
+        _device = VK_NULL_HANDLE;
+    }
 }
 }  // namespace VoxFlow

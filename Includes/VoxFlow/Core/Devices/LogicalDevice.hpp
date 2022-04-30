@@ -29,7 +29,7 @@ class LogicalDevice : NonCopyable
         const std::string& queueName);
 
  private:
-    void release() const;
+    void release();
 
  private:
     VkDevice _device{ VK_NULL_HANDLE };

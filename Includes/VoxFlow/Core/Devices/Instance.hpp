@@ -23,7 +23,7 @@ class Instance : NonCopyable
     }
 
  protected:
-    void release() const;
+    void release();
 
  private:
     VkInstance _instance{ VK_NULL_HANDLE };

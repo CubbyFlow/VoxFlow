@@ -76,8 +76,12 @@ Instance& Instance::operator=(Instance && instance) noexcept
     return *this;
 }
 
-void Instance::release() const
+void Instance::release()
 {
-    vkDestroyInstance(_instance, nullptr);
+    if (_instance != VK_NULL_HANDLE)
+    {
+        vkDestroyInstance(_instance, nullptr);
+        _instance = VK_NULL_HANDLE;
+    }
 }
 }
