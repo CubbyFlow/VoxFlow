@@ -30,7 +30,7 @@ message("CMake build type: " ${CMAKE_BUILD_TYPE})
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 elseif(CMAKE_BUILD_TYPE MATCHES "Debug")
-    add_definitions(-DDEBUG)
+    add_definitions(-DVOXFLOW_DEBUG)
 endif()
 
 option(BUILD_COVERAGE "Build code coverage" OFF)
