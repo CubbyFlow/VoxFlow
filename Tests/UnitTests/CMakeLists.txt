@@ -5,10 +5,12 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Includes
 set(PUBLIC_HDRS 
+    ${PUBLIC_HDR_DIR}/UnitTestUnits.hpp
 )
 
 # Sources
 set(SRCS
+    ${SRC_DIR}/Core/Devices/InstanceTests.cpp
     ${SRC_DIR}/UnitTests.cpp
 )
 
