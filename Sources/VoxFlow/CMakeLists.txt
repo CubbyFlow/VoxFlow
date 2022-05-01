@@ -15,6 +15,9 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
+    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/BasePipeline.hpp
+    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.hpp
+    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/ComputePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/VoxFlow.hpp
 )
 
@@ -25,6 +28,9 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
     ${SRC_DIR}/Core/Devices/Queue.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
 )
 
