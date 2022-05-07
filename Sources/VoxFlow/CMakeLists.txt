@@ -12,6 +12,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
@@ -30,6 +31,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
     ${SRC_DIR}/Core/Devices/Queue.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtil.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
