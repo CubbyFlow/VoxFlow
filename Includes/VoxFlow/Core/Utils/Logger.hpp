@@ -22,14 +22,8 @@ namespace VoxFlow
 #define VK_ASSERT(x) ((void)0)
 #endif
 
-#ifdef VOXFLOW_DEBUG
-#define ABORT_WITH_MSG(msg)                                        \
-    {                                                              \
-        spdlog::error("\"{}\" at {}:{}", msg, __FILE__, __LINE__); \
-    }
-#else
-#define ABORT_WITH_MSG(msg) ((void)msg)
-#endif
+
+
 }  // namespace VoxFlow
 
 #endif

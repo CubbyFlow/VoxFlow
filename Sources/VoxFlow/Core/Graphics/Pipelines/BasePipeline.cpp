@@ -7,7 +7,6 @@
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
 #include <fstream>
-#include <string_view>
 
 namespace VoxFlow
 {
@@ -65,8 +64,8 @@ glslang_stage_t getStageFromFilename(const std::string_view filename)
     if (filename.ends_with(".tese"))
         return GLSLANG_STAGE_TESSEVALUATION;
 
-    ABORT_WITH_MSG("Undefined shader extension is given");
-    return GLSLANG_STAGE_COUNT;
+    spdlog::error("Undefined shader extension is given");
+    std::abort();
 }
 
 bool readShaderFile(const std::string& filename, std::vector<char>* dst)
@@ -74,7 +73,7 @@ bool readShaderFile(const std::string& filename, std::vector<char>* dst)
     std::ifstream file(filename, std::ios::in | std::ios::ate);
     if (!file.is_open())
     {
-        ABORT_WITH_MSG("Failed to find shader file {}", filename);
+        spdlog::error("Failed to find shader file {}", filename);
         return false;
     }
 
