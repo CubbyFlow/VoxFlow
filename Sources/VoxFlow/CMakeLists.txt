@@ -12,12 +12,13 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
-    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/BasePipeline.hpp
-    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.hpp
-    ${PUBLIC_HDR_DIR}/Core/Graphics/Pipelines/ComputePipeline.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/VoxFlow.hpp
 )
 
@@ -32,6 +33,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
+    ${SRC_DIR}/Core/Utils/DebugUtil.cpp
 )
 
 # Build library
