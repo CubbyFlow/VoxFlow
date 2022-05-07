@@ -5,8 +5,11 @@
 
 namespace VoxFlow
 {
-GraphicsPipeline::GraphicsPipeline(const std::shared_ptr<LogicalDevice>& device)
-    : BasePipeline(device)
+GraphicsPipeline::GraphicsPipeline(
+    const std::shared_ptr<LogicalDevice>& device,
+    const std::vector<const char*>& shaderFilenames,
+    const PipelineCreateInfo& createInfo)
+    : BasePipeline(device, shaderFilenames, createInfo)
 {
 }
 

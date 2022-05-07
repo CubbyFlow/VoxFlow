@@ -1,22 +1,71 @@
 // Author : snowapril
 
-#include <glslang_c_interface.h>
 #include <spdlog/spdlog.h>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
-#include <fstream>
 
 namespace VoxFlow
 {
-glslang_stage_t getStageFromFilename(const std::string_view filename);
-bool readShaderFile(const std::string& filename, std::vector<char>* dst);
-
-BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device)
+BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device,
+                           const std::vector<const char*>& shaderFilenames,
+                           const PipelineCreateInfo& createInfo)
     : _device(device)
 {
-    // Do nothing
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    for (const auto& filename : shaderFilenames)
+    {
+        const glslang_stage_t glslangStage =
+            GlslangUtil::GlslangStageFromFilename(filename);
+        std::vector<unsigned int> spirvBinary;
+        VK_ASSERT(
+            GlslangUtil::CompileShader(glslangStage, filename, &spirvBinary));
+
+        auto moduleInfo = Initializer::MakeInfo<VkShaderModuleCreateInfo>();
+        moduleInfo.codeSize = spirvBinary.size() * sizeof(unsigned int);
+        moduleInfo.pCode = spirvBinary.data();
+
+        VkShaderModule module;
+        VK_ASSERT(vkCreateShaderModule(device->get(), &moduleInfo, nullptr,
+                                       &module) == VK_SUCCESS);
+
+        auto stageCreateInfo =
+            Initializer::MakeInfo<VkPipelineShaderStageCreateInfo>();
+        stageCreateInfo.stage =
+            GlslangUtil::GlslangStageToVulkanStage(glslangStage);
+        stageCreateInfo.module = module;
+        shaderStages.emplace_back(stageCreateInfo);
+    }
+
+    // TODO(snowapril) : replace layout, renderPass to parameters
+    const VkGraphicsPipelineCreateInfo pipelineInfo = {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<unsigned int>(shaderStages.size()),
+        .pStages = shaderStages.data(),
+        .pVertexInputState = &createInfo.vertexInputState,
+        .pInputAssemblyState = &createInfo.inputAssemblyState,
+        .pTessellationState = &createInfo.tessellationState,
+        .pViewportState = &createInfo.viewportState,
+        .pRasterizationState = &createInfo.rasterizationState,
+        .pMultisampleState = &createInfo.multisampleState,
+        .pDepthStencilState = &createInfo.depthStencilState,
+        .pColorBlendState = &createInfo.colorBlendState,
+        .pDynamicState = &createInfo.dynamicState,
+        .layout = createInfo.layout,
+        .renderPass = createInfo.renderPass,
+        .subpass = createInfo.subpass,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1
+    };
+
+    VK_ASSERT(vkCreateGraphicsPipelines(_device->get(), VK_NULL_HANDLE, 1,
+                                        &pipelineInfo, nullptr,
+                                        &_pipeline) == VK_SUCCESS);
 }
 
 BasePipeline::~BasePipeline()
@@ -40,6 +89,11 @@ BasePipeline& BasePipeline::operator=(BasePipeline&& other) noexcept
     return *this;
 }
 
+void BasePipeline::bindPipeline(const CommandBuffer& cmdBuffer) const noexcept
+{
+    vkCmdBindPipeline(cmdBuffer.get(), getBindPoint(), _pipeline);
+}
+
 void BasePipeline::release()
 {
     if (_pipeline != VK_NULL_HANDLE)
@@ -47,43 +101,5 @@ void BasePipeline::release()
         vkDestroyPipeline(_device->get(), _pipeline, nullptr);
         _pipeline = VK_NULL_HANDLE;
     }
-}
-
-glslang_stage_t getStageFromFilename(const std::string_view filename)
-{
-    if (filename.ends_with(".vert"))
-        return GLSLANG_STAGE_VERTEX;
-    if (filename.ends_with(".frag"))
-        return GLSLANG_STAGE_FRAGMENT;
-    if (filename.ends_with(".geom"))
-        return GLSLANG_STAGE_GEOMETRY;
-    if (filename.ends_with(".comp"))
-        return GLSLANG_STAGE_COMPUTE;
-    if (filename.ends_with(".tesc"))
-        return GLSLANG_STAGE_TESSCONTROL;
-    if (filename.ends_with(".tese"))
-        return GLSLANG_STAGE_TESSEVALUATION;
-
-    spdlog::error("Undefined shader extension is given");
-    std::abort();
-}
-
-bool readShaderFile(const std::string& filename, std::vector<char>* dst)
-{
-    std::ifstream file(filename, std::ios::in | std::ios::ate);
-    if (!file.is_open())
-    {
-        spdlog::error("Failed to find shader file {}", filename);
-        return false;
-    }
-
-    const size_t fileSize = file.tellg();
-    dst->resize(fileSize);
-
-    file.seekg(std::ios::beg);
-    file.read(dst->data(), static_cast<std::streamsize>(fileSize));
-
-    file.close();
-    return true;
 }
 }  // namespace VoxFlow

@@ -9,13 +9,20 @@ namespace VoxFlow
 {
 class LogicalDevice;
 
-class ComputePipeline : BasePipeline
+class ComputePipeline : public BasePipeline
 {
  public:
-    explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& device);
+    explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
+                             const std::vector<const char*>& shaderFilenames,
+                             const PipelineCreateInfo& createInfo);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;
+
+    [[nodiscard]] VkPipelineBindPoint getBindPoint() const noexcept override
+    {
+        return VK_PIPELINE_BIND_POINT_COMPUTE;
+    }
 };
 }  // namespace VoxFlow
 
