@@ -15,6 +15,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Initializer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
