@@ -100,7 +100,7 @@
     "source": {
       "type": "git",
       "url": "https://github.com/KhronosGroup/glslang.git",
-      "revision": "6fe560f74f472726027e4059692c6eb1e7d972dc"
+      "revision": "9bb8cfffb0eed010e07132282c41d73064a7a609"
     }
   },
   {
