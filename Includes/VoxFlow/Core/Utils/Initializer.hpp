@@ -3,11 +3,6 @@
 #ifndef VOXEL_FLOW_INITIALIZER_HPP
 #define VOXEL_FLOW_INITIALIZER_HPP
 
-#include <VoxFlow/Core/Devices/Context.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
-#include <string>
-#include <vector>
-
 namespace VoxFlow
 {
 class Initializer
@@ -16,7 +11,7 @@ class Initializer
     Initializer() = delete;
 
     template <typename InfoType>
-    [[nodiscard]] static InfoType MakeInfo();
+    [[nodiscard]] static InfoType MakeInfo() noexcept;
 };
 }  // namespace VoxFlow
 

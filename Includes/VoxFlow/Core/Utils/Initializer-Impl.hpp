@@ -8,7 +8,7 @@
 namespace VoxFlow
 {
 template <>
-inline VkPipelineVertexInputStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineVertexInputStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -20,7 +20,7 @@ inline VkPipelineVertexInputStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkShaderModuleCreateInfo Initializer::MakeInfo()
+inline VkShaderModuleCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
              .pNext = nullptr,
@@ -30,7 +30,7 @@ inline VkShaderModuleCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineShaderStageCreateInfo Initializer::MakeInfo()
+inline VkPipelineShaderStageCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
              .pNext = nullptr,
@@ -42,7 +42,7 @@ inline VkPipelineShaderStageCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineInputAssemblyStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineInputAssemblyStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType =
                  VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
@@ -53,17 +53,16 @@ inline VkPipelineInputAssemblyStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineTessellationStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineTessellationStateCreateInfo Initializer::MakeInfo() noexcept
 {
-    return { .sType =
-                 VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
+    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
              .pNext = nullptr,
              .flags = 0,
              .patchControlPoints = 3 };
 }
 
 template <>
-inline VkPipelineViewportStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineViewportStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -75,7 +74,7 @@ inline VkPipelineViewportStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineRasterizationStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineRasterizationStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -93,7 +92,7 @@ inline VkPipelineRasterizationStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineMultisampleStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineMultisampleStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -107,7 +106,7 @@ inline VkPipelineMultisampleStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineDepthStencilStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineDepthStencilStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -124,7 +123,7 @@ inline VkPipelineDepthStencilStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineColorBlendStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineColorBlendStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -137,7 +136,7 @@ inline VkPipelineColorBlendStateCreateInfo Initializer::MakeInfo()
 }
 
 template <>
-inline VkPipelineDynamicStateCreateInfo Initializer::MakeInfo()
+inline VkPipelineDynamicStateCreateInfo Initializer::MakeInfo() noexcept
 {
     return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
              .pNext = nullptr,
@@ -146,7 +145,5 @@ inline VkPipelineDynamicStateCreateInfo Initializer::MakeInfo()
              .pDynamicStates = nullptr };
 }
 }  // namespace VoxFlow
-
-#include <VoxFlow/Core/Utils/Initializer-Impl.hpp>
 
 #endif

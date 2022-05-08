@@ -5,14 +5,13 @@
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
-#include <cstdint>
 
 namespace VoxFlow
 {
 class Queue : NonCopyable
 {
  public:
-    explicit Queue(VkQueue queueHandle, uint32_t familyIndex) noexcept;
+    explicit Queue(VkQueue queueHandle, unsigned int familyIndex) noexcept;
     ~Queue() override = default;
     Queue(Queue&& other) noexcept;
     Queue& operator=(Queue&& other) noexcept;
@@ -21,14 +20,14 @@ class Queue : NonCopyable
     {
         return _queue;
     }
-    [[nodiscard]] uint32_t getFamilyIndex() const noexcept
+    [[nodiscard]] unsigned int getFamilyIndex() const noexcept
     {
         return _familyIndex;
     }
 
  private:
-    VkQueue     _queue       { VK_NULL_HANDLE };
-    uint32_t    _familyIndex { 0 };
+    VkQueue         _queue       { VK_NULL_HANDLE };
+    unsigned int    _familyIndex { 0 };
 };
 }  // namespace VoxFlow
 
