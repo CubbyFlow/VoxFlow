@@ -18,11 +18,14 @@ BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device,
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
     for (const auto& filename : shaderFilenames)
     {
+        std::vector<char> shaderSource;
+        VK_ASSERT(GlslangUtil::ReadShaderFile(filename, &shaderSource) == true);
+
         const glslang_stage_t glslangStage =
             GlslangUtil::GlslangStageFromFilename(filename);
         std::vector<unsigned int> spirvBinary;
-        VK_ASSERT(
-            GlslangUtil::CompileShader(glslangStage, filename, &spirvBinary));
+        VK_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
+                                             &spirvBinary));
 
         auto moduleInfo = Initializer::MakeInfo<VkShaderModuleCreateInfo>();
         moduleInfo.codeSize = spirvBinary.size() * sizeof(unsigned int);

@@ -71,7 +71,7 @@ bool GlslangUtil::ReadShaderFile(const char* filename, std::vector<char>* dst)
     return true;
 }
 
-bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* filename,
+bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
                                 std::vector<unsigned int>* pSpirvBinary)
 {
     const TBuiltInResource defaultResource = GetDefaultGlslangResource();
@@ -83,7 +83,7 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* filename,
         .client_version = GLSLANG_TARGET_VULKAN_1_1,
         .target_language = GLSLANG_TARGET_SPV,
         .target_language_version = GLSLANG_TARGET_SPV_1_3,
-        .code = filename,
+        .code = shaderSource,
         .default_version = 100,
         .default_profile = GLSLANG_NO_PROFILE,
         .force_default_version_and_profile = false,
@@ -141,17 +141,18 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* filename,
     return true;
 }
 
+// Referenced on https://github.com/KhronosGroup/glslang/issues/2207
 TBuiltInResource GetDefaultGlslangResource()
 {
-    const TLimits limits = { .nonInductiveForLoops = 1,
-                             .whileLoops = 1,
-                             .doWhileLoops = 1,
-                             .generalUniformIndexing = 1,
-                             .generalAttributeMatrixVectorIndexing = 1,
-                             .generalVaryingIndexing = 1,
-                             .generalSamplerIndexing = 1,
-                             .generalVariableIndexing = 1,
-                             .generalConstantMatrixVectorIndexing = 1 };
+    const TLimits limits = { .nonInductiveForLoops = true,
+                             .whileLoops = true,
+                             .doWhileLoops = true,
+                             .generalUniformIndexing = true,
+                             .generalAttributeMatrixVectorIndexing = true,
+                             .generalVaryingIndexing = true,
+                             .generalSamplerIndexing = true,
+                             .generalVariableIndexing = true,
+                             .generalConstantMatrixVectorIndexing = true };
 
     return {
         .maxLights = 32,

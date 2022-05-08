@@ -22,7 +22,7 @@ class GlslangUtil
     [[nodiscard]] static bool ReadShaderFile(const char* filename,
                                              std::vector<char>* dst);
     [[nodiscard]] static bool CompileShader(
-        glslang_stage_t stage, const char* filename,
+        glslang_stage_t stage, const char* shaderSource,
         std::vector<unsigned int>* pSpirvBinary);
 };
 }  // namespace VoxFlow
