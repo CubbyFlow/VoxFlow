@@ -23,19 +23,17 @@ struct PipelineCreateInfo
     VkPipelineDepthStencilStateCreateInfo depthStencilState;
     VkPipelineColorBlendStateCreateInfo colorBlendState;
     VkPipelineDynamicStateCreateInfo dynamicState;
-    VkPipelineLayout layout;
     VkRenderPass renderPass;
     unsigned int subpass;
-    VkPipeline basePipelineHandle;
-    int basePipelineIndex;
+
+    static PipelineCreateInfo CreateDefault() noexcept;
 };
 
 class BasePipeline : NonCopyable
 {
  public:
     explicit BasePipeline(const std::shared_ptr<LogicalDevice>& device,
-                          const std::vector<const char*>& shaderFilenames,
-                          const PipelineCreateInfo& createInfo);
+                          VkPipelineLayout layout);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;
@@ -47,14 +45,22 @@ class BasePipeline : NonCopyable
         return _pipeline;
     }
 
+    [[nodiscard]] VkPipelineLayout getLayout() const noexcept
+    {
+        return _layout;
+    }
+
     [[nodiscard]] virtual VkPipelineBindPoint getBindPoint() const noexcept = 0;
 
  protected:
+    [[nodiscard]] VkPipelineShaderStageCreateInfo compileToShaderStage(
+        const char* filename);
     void release();
 
  protected:
     std::shared_ptr<LogicalDevice> _device;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
+    VkPipelineLayout _layout{ VK_NULL_HANDLE };
 };
 }  // namespace VoxFlow
 

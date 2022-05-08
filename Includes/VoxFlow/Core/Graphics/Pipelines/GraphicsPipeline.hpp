@@ -14,7 +14,8 @@ class GraphicsPipeline : public BasePipeline
  public:
     explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& device,
                               const std::vector<const char*>& shaderFilenames,
-                              const PipelineCreateInfo& createInfo);
+                              const PipelineCreateInfo& createInfo,
+                              VkPipelineLayout layout);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;

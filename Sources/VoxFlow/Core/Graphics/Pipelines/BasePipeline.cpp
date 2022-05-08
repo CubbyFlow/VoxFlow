@@ -10,65 +10,36 @@
 
 namespace VoxFlow
 {
-BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device,
-                           const std::vector<const char*>& shaderFilenames,
-                           const PipelineCreateInfo& createInfo)
-    : _device(device)
+PipelineCreateInfo PipelineCreateInfo::CreateDefault() noexcept
 {
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    for (const auto& filename : shaderFilenames)
-    {
-        std::vector<char> shaderSource;
-        VK_ASSERT(GlslangUtil::ReadShaderFile(filename, &shaderSource) == true);
-
-        const glslang_stage_t glslangStage =
-            GlslangUtil::GlslangStageFromFilename(filename);
-        std::vector<unsigned int> spirvBinary;
-        VK_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
-                                             &spirvBinary));
-
-        auto moduleInfo = Initializer::MakeInfo<VkShaderModuleCreateInfo>();
-        moduleInfo.codeSize = spirvBinary.size() * sizeof(unsigned int);
-        moduleInfo.pCode = spirvBinary.data();
-
-        VkShaderModule module;
-        VK_ASSERT(vkCreateShaderModule(device->get(), &moduleInfo, nullptr,
-                                       &module) == VK_SUCCESS);
-
-        auto stageCreateInfo =
-            Initializer::MakeInfo<VkPipelineShaderStageCreateInfo>();
-        stageCreateInfo.stage =
-            GlslangUtil::GlslangStageToVulkanStage(glslangStage);
-        stageCreateInfo.module = module;
-        shaderStages.emplace_back(stageCreateInfo);
-    }
-
-    // TODO(snowapril) : replace layout, renderPass to parameters
-    const VkGraphicsPipelineCreateInfo pipelineInfo = {
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<unsigned int>(shaderStages.size()),
-        .pStages = shaderStages.data(),
-        .pVertexInputState = &createInfo.vertexInputState,
-        .pInputAssemblyState = &createInfo.inputAssemblyState,
-        .pTessellationState = &createInfo.tessellationState,
-        .pViewportState = &createInfo.viewportState,
-        .pRasterizationState = &createInfo.rasterizationState,
-        .pMultisampleState = &createInfo.multisampleState,
-        .pDepthStencilState = &createInfo.depthStencilState,
-        .pColorBlendState = &createInfo.colorBlendState,
-        .pDynamicState = &createInfo.dynamicState,
-        .layout = createInfo.layout,
-        .renderPass = createInfo.renderPass,
-        .subpass = createInfo.subpass,
-        .basePipelineHandle = VK_NULL_HANDLE,
-        .basePipelineIndex = -1
+    return {
+        .vertexInputState =
+            Initializer::MakeInfo<VkPipelineVertexInputStateCreateInfo>(),
+        .inputAssemblyState =
+            Initializer::MakeInfo<VkPipelineInputAssemblyStateCreateInfo>(),
+        .tessellationState =
+            Initializer::MakeInfo<VkPipelineTessellationStateCreateInfo>(),
+        .viewportState =
+            Initializer::MakeInfo<VkPipelineViewportStateCreateInfo>(),
+        .rasterizationState =
+            Initializer::MakeInfo<VkPipelineRasterizationStateCreateInfo>(),
+        .multisampleState =
+            Initializer::MakeInfo<VkPipelineMultisampleStateCreateInfo>(),
+        .depthStencilState =
+            Initializer::MakeInfo<VkPipelineDepthStencilStateCreateInfo>(),
+        .colorBlendState =
+            Initializer::MakeInfo<VkPipelineColorBlendStateCreateInfo>(),
+        .dynamicState =
+            Initializer::MakeInfo<VkPipelineDynamicStateCreateInfo>(),
+        .renderPass = VK_NULL_HANDLE,
+        .subpass = 0
     };
+}
 
-    VK_ASSERT(vkCreateGraphicsPipelines(_device->get(), VK_NULL_HANDLE, 1,
-                                        &pipelineInfo, nullptr,
-                                        &_pipeline) == VK_SUCCESS);
+BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device, VkPipelineLayout layout)
+    : _device(device), _layout(layout)
+{
+    // Do nothing
 }
 
 BasePipeline::~BasePipeline()
@@ -104,5 +75,39 @@ void BasePipeline::release()
         vkDestroyPipeline(_device->get(), _pipeline, nullptr);
         _pipeline = VK_NULL_HANDLE;
     }
+    if (_layout != VK_NULL_HANDLE)
+    {
+        vkDestroyPipelineLayout(_device->get(), _layout, nullptr);
+        _layout = VK_NULL_HANDLE;
+    }
+}
+
+VkPipelineShaderStageCreateInfo BasePipeline::compileToShaderStage(
+    const char* filename)
+{
+    std::vector<char> shaderSource;
+    VK_ASSERT(GlslangUtil::ReadShaderFile(filename, &shaderSource) == true);
+
+    const glslang_stage_t glslangStage =
+        GlslangUtil::GlslangStageFromFilename(filename);
+    std::vector<unsigned int> spirvBinary;
+    VK_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
+                                         &spirvBinary));
+
+    [[maybe_unused]] auto moduleInfo =
+        Initializer::MakeInfo<VkShaderModuleCreateInfo>();
+    moduleInfo.codeSize = spirvBinary.size() * sizeof(unsigned int);
+    moduleInfo.pCode = spirvBinary.data();
+
+    VkShaderModule module = VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateShaderModule(_device->get(), &moduleInfo, nullptr,
+                                   &module) == VK_SUCCESS);
+
+    auto stageCreateInfo =
+        Initializer::MakeInfo<VkPipelineShaderStageCreateInfo>();
+    stageCreateInfo.stage =
+        GlslangUtil::GlslangStageToVulkanStage(glslangStage);
+    stageCreateInfo.module = module;
+    return stageCreateInfo;
 }
 }  // namespace VoxFlow

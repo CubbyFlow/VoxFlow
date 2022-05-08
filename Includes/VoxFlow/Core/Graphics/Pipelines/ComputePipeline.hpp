@@ -13,8 +13,8 @@ class ComputePipeline : public BasePipeline
 {
  public:
     explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
-                             const std::vector<const char*>& shaderFilenames,
-                             const PipelineCreateInfo& createInfo);
+                             const char* shaderFilename,
+                             VkPipelineLayout layout);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;
