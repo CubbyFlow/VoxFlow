@@ -2,15 +2,14 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
 ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
                                  const char* shaderFilename,
-                                 VkPipelineLayout layout)
+                                 const std::shared_ptr<PipelineLayout>& layout)
     : BasePipeline(device, layout)
 {
     [[maybe_unused]] const VkComputePipelineCreateInfo pipelineInfo = {
@@ -18,7 +17,7 @@ ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
         .pNext = nullptr,
         .flags = 0,
         .stage = compileToShaderStage(shaderFilename),
-        .layout = _layout,
+        .layout = _layout->get(),
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1
     };
@@ -26,6 +25,8 @@ ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
     VK_ASSERT(vkCreateComputePipelines(_device->get(), VK_NULL_HANDLE, 1,
                                        &pipelineInfo, nullptr,
                                        &_pipeline) == VK_SUCCESS);
+
+    _shaderStageInfos.emplace_back(pipelineInfo.stage);
 }
 
 ComputePipeline::~ComputePipeline()

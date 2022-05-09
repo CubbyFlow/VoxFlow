@@ -14,7 +14,7 @@ class ComputePipeline : public BasePipeline
  public:
     explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
                              const char* shaderFilename,
-                             VkPipelineLayout layout);
+                             const std::shared_ptr<PipelineLayout>& layout);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;

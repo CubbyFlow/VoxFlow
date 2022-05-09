@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
@@ -36,7 +37,8 @@ PipelineCreateInfo PipelineCreateInfo::CreateDefault() noexcept
     };
 }
 
-BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device, VkPipelineLayout layout)
+BasePipeline::BasePipeline(const std::shared_ptr<LogicalDevice>& device,
+                           const std::shared_ptr<PipelineLayout>& layout)
     : _device(device), _layout(layout)
 {
     // Do nothing
@@ -70,20 +72,17 @@ void BasePipeline::bindPipeline(const CommandBuffer& cmdBuffer) const noexcept
 
 void BasePipeline::release()
 {
+    _layout.reset();
     if (_pipeline != VK_NULL_HANDLE)
     {
         vkDestroyPipeline(_device->get(), _pipeline, nullptr);
         _pipeline = VK_NULL_HANDLE;
     }
-    if (_layout != VK_NULL_HANDLE)
-    {
-        vkDestroyPipelineLayout(_device->get(), _layout, nullptr);
-        _layout = VK_NULL_HANDLE;
-    }
+    _device.reset();
 }
 
 VkPipelineShaderStageCreateInfo BasePipeline::compileToShaderStage(
-    const char* filename)
+    const char* filename) const
 {
     std::vector<char> shaderSource;
     VK_ASSERT(GlslangUtil::ReadShaderFile(filename, &shaderSource) == true);
