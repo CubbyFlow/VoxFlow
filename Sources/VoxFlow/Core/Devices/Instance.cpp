@@ -15,14 +15,15 @@ Instance::Instance(const Context& ctx)
     glslang_initialize_process();
     VK_ASSERT(volkInitialize() == VK_SUCCESS);
 
-    VkApplicationInfo appInfo = { .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                                  .pNext = nullptr,
-                                  .pApplicationName = ctx.appTitle.c_str(),
-                                  .applicationVersion = VK_MAKE_VERSION(
-                                      ctx.majorVersion, ctx.minorVersion, 0),
-                                  .pEngineName = ctx.appEngine.c_str(),
-                                  .engineVersion = 0,
-                                  .apiVersion = 0 };
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = ctx.appTitle.c_str(),
+        .applicationVersion = VK_MAKE_VERSION(0, 0, 0),
+        .pEngineName = ctx.appEngine.c_str(),
+        .engineVersion = 0,
+        .apiVersion = VK_MAKE_VERSION(ctx.majorVersion, ctx.minorVersion, 0)
+    };
 
     uint32_t extensionCount;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
