@@ -3,6 +3,7 @@
 #ifndef VOXEL_FLOW_INITIALIZER_IMPL_HPP
 #define VOXEL_FLOW_INITIALIZER_IMPL_HPP
 
+#include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
@@ -76,7 +77,8 @@ inline VkPipelineViewportStateCreateInfo Initializer::MakeInfo() noexcept
 template <>
 inline VkPipelineRasterizationStateCreateInfo Initializer::MakeInfo() noexcept
 {
-    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+    return { .sType =
+                 VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
              .pNext = nullptr,
              .flags = 0,
              .depthClampEnable = VK_FALSE,
@@ -94,7 +96,7 @@ inline VkPipelineRasterizationStateCreateInfo Initializer::MakeInfo() noexcept
 template <>
 inline VkPipelineMultisampleStateCreateInfo Initializer::MakeInfo() noexcept
 {
-    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
              .pNext = nullptr,
              .flags = 0,
              .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
@@ -138,11 +140,39 @@ inline VkPipelineColorBlendStateCreateInfo Initializer::MakeInfo() noexcept
 template <>
 inline VkPipelineDynamicStateCreateInfo Initializer::MakeInfo() noexcept
 {
-    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
              .pNext = nullptr,
              .flags = 0,
              .dynamicStateCount = 0,
              .pDynamicStates = nullptr };
+}
+
+template <>
+inline VkDebugUtilsMessengerCreateInfoEXT Initializer::MakeInfo() noexcept
+{
+    return {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .flags = 0,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = DebugUtil::DebugCallback,
+        .pUserData = nullptr,
+    };
+}
+
+template <>
+inline VkPipelineLayoutCreateInfo Initializer::MakeInfo() noexcept
+{
+    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+             .pNext = nullptr,
+             .flags = 0,
+             .setLayoutCount = 0,
+             .pSetLayouts = nullptr,
+             .pushConstantRangeCount = 0,
+             .pPushConstantRanges = nullptr };
 }
 }  // namespace VoxFlow
 
