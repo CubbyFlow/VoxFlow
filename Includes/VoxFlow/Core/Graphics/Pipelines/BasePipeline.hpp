@@ -11,6 +11,7 @@
 namespace VoxFlow
 {
 class LogicalDevice;
+class PipelineLayout;
 
 struct PipelineCreateInfo
 {
@@ -33,7 +34,7 @@ class BasePipeline : NonCopyable
 {
  public:
     explicit BasePipeline(const std::shared_ptr<LogicalDevice>& device,
-                          VkPipelineLayout layout);
+                          const std::shared_ptr<PipelineLayout>& layout);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;
@@ -45,7 +46,7 @@ class BasePipeline : NonCopyable
         return _pipeline;
     }
 
-    [[nodiscard]] VkPipelineLayout getLayout() const noexcept
+    [[nodiscard]] std::shared_ptr<PipelineLayout> getLayoutPtr() const noexcept
     {
         return _layout;
     }
@@ -54,13 +55,14 @@ class BasePipeline : NonCopyable
 
  protected:
     [[nodiscard]] VkPipelineShaderStageCreateInfo compileToShaderStage(
-        const char* filename);
+        const char* filename) const;
     void release();
 
  protected:
     std::shared_ptr<LogicalDevice> _device;
+    std::shared_ptr<PipelineLayout> _layout;
+    std::vector<VkPipelineShaderStageCreateInfo> _shaderStageInfos;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
-    VkPipelineLayout _layout{ VK_NULL_HANDLE };
 };
 }  // namespace VoxFlow
 
