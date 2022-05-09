@@ -7,7 +7,11 @@ namespace VoxFlow
 Context::Context(bool useValidation /* true */)
     : useValidationLayer(useValidation)
 {
-    // Do nothing
+    if (useValidationLayer)
+    {
+        addInstanceLayer("VK_LAYER_KHRONOS_validation", false);
+        addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
+    }
 }
 
 void Context::setVersion(const uint32_t major, const uint32_t minor)

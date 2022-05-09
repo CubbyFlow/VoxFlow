@@ -10,8 +10,17 @@ namespace VoxFlow
 LogicalDevice::LogicalDevice(const Context& ctx,
                              const PhysicalDevice& physicalDevice)
 {
+    const std::vector<VkLayerProperties> layerProperties =
+        physicalDevice.getPossibleLayers();
+
+    std::vector<const char*> usedLayers;
+    // As instance layers are same with device layers, we can use it again
+    VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
+                                        ctx.instanceLayers) == VK_SUCCESS);
+
     const std::vector<VkExtensionProperties> extensionProperties =
         physicalDevice.getPossibleExtensions();
+
     std::vector<const char*> usedExtensions;
     std::vector<void*> featureStructs;
     VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
@@ -75,8 +84,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         .flags = 0,
         .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
         .pQueueCreateInfos = queueInfos.data(),
-        .enabledLayerCount = 0u,
-        .ppEnabledLayerNames = nullptr,
+        .enabledLayerCount = static_cast<uint32_t>(usedLayers.size()),
+        .ppEnabledLayerNames = usedLayers.data(),
         .enabledExtensionCount = static_cast<uint32_t>(usedExtensions.size()),
         .ppEnabledExtensionNames = usedExtensions.data(),
         .pEnabledFeatures = nullptr
@@ -101,7 +110,7 @@ LogicalDevice::~LogicalDevice()
 }
 
 LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept
-    : _device(std::move(other._device)), _queueMap(std::move(other._queueMap))
+    : _device(other._device), _queueMap(std::move(other._queueMap))
 {
     // Do nothing
 }
@@ -110,7 +119,7 @@ LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other) noexcept
 {
     if (this != &other)
     {
-        _device = std::move(other._device);
+        _device = other._device;
         _queueMap = std::move(other._queueMap);
     }
     return *this;
@@ -118,7 +127,7 @@ LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other) noexcept
 
 std::weak_ptr<Queue> LogicalDevice::getQueuePtr(const std::string& queueName)
 {
-    auto iter = _queueMap.find(queueName);
+    const auto iter = _queueMap.find(queueName);
     assert(iter != _queueMap.end());
     return iter->second;
 }

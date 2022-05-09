@@ -17,6 +17,16 @@ PhysicalDevice::PhysicalDevice(const Instance& instance)
     _physicalDevice = deviceCandidates[0];
 }
 
+std::vector<VkLayerProperties> PhysicalDevice::getPossibleLayers() const
+{
+    uint32_t layerCount;
+    vkEnumerateDeviceLayerProperties(_physicalDevice, &layerCount, nullptr);
+    std::vector<VkLayerProperties> layerProperties(layerCount);
+    vkEnumerateDeviceLayerProperties(_physicalDevice, &layerCount,
+                                     layerProperties.data());
+    return layerProperties;
+}
+
 std::vector<VkExtensionProperties> PhysicalDevice::getPossibleExtensions() const
 {
     uint32_t extensionCount;
