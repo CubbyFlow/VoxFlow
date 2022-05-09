@@ -14,6 +14,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/PhysicalDeviceTests.cpp
     ${SRC_DIR}/Core/Devices/LogicalDeviceTests.cpp
     ${SRC_DIR}/Core/Devices/QueueTests.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayoutTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipelineTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipelineTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtilTests.cpp
