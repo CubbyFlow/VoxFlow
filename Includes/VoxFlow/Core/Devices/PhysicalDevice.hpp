@@ -16,6 +16,7 @@ class PhysicalDevice : NonCopyable
     PhysicalDevice(const Instance& instance);
     ~PhysicalDevice() override = default;
 
+    [[nodiscard]] std::vector<VkLayerProperties>        getPossibleLayers() const;
     [[nodiscard]] std::vector<VkExtensionProperties>    getPossibleExtensions() const;
     [[nodiscard]] VkPhysicalDeviceMemoryProperties      getMemoryProperty() const;
     [[nodiscard]] std::vector<VkQueueFamilyProperties>  getQueueFamilyProperties() const;

@@ -1,9 +1,11 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/Instance.hpp>
-#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
+#include <VoxFlow/Core/Utils/Initializer.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
+
 #include <glslang_c_interface.h>
 
 namespace VoxFlow
@@ -43,7 +45,7 @@ Instance::Instance(const Context& ctx)
     VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
                                         ctx.instanceLayers) == VK_SUCCESS);
 
-    const VkInstanceCreateInfo instanceInfo = {
+    [[maybe_unused]] VkInstanceCreateInfo instanceInfo = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -54,9 +56,25 @@ Instance::Instance(const Context& ctx)
         .ppEnabledExtensionNames = usedExtensions.data()
     };
 
+    if (ctx.useValidationLayer)
+    {
+        const auto debugInfo =
+            Initializer::MakeInfo<VkDebugUtilsMessengerCreateInfoEXT>();
+        instanceInfo.pNext = &debugInfo;
+    }
+
     VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance) ==
               VK_SUCCESS);
     volkLoadInstance(_instance);
+
+    if (ctx.useValidationLayer)
+    {
+        [[maybe_unused]] const auto debugInfo =
+            Initializer::MakeInfo<VkDebugUtilsMessengerCreateInfoEXT>();
+        VK_ASSERT(vkCreateDebugUtilsMessengerEXT(_instance, &debugInfo, nullptr,
+                                                 &_debugMessenger) ==
+                  VK_SUCCESS);
+    }
 }
 
 Instance::~Instance()
@@ -65,27 +83,32 @@ Instance::~Instance()
     glslang_finalize_process();
 }
 
-Instance::Instance(Instance&& instance) noexcept
-    : _instance(std::move(instance._instance))
+Instance::Instance(Instance&& instance) noexcept : _instance(instance._instance)
 {
     // Do nothing
 }
 
-Instance& Instance::operator=(Instance && instance) noexcept
+Instance& Instance::operator=(Instance&& instance) noexcept
 {
     if (this != &instance)
     {
-        _instance = std::move(instance._instance);
+        _instance = instance._instance;
     }
     return *this;
 }
 
 void Instance::release()
 {
+    if (_debugMessenger != VK_NULL_HANDLE)
+    {
+        vkDestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
+        _debugMessenger = VK_NULL_HANDLE;
+    }
+
     if (_instance != VK_NULL_HANDLE)
     {
         vkDestroyInstance(_instance, nullptr);
         _instance = VK_NULL_HANDLE;
     }
 }
-}
+}  // namespace VoxFlow

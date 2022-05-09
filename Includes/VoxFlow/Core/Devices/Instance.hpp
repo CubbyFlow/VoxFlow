@@ -27,6 +27,7 @@ class Instance : NonCopyable
 
  private:
     VkInstance _instance{ VK_NULL_HANDLE };
+    VkDebugUtilsMessengerEXT _debugMessenger{ VK_NULL_HANDLE };
 };
 }  // namespace VoxFlow
 
