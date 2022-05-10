@@ -174,6 +174,21 @@ inline VkPipelineLayoutCreateInfo Initializer::MakeInfo() noexcept
              .pushConstantRangeCount = 0,
              .pPushConstantRanges = nullptr };
 }
+
+template <>
+inline VkSubpassDescription Initializer::MakeInfo() noexcept
+{
+    return { .flags = 0,
+             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+             .inputAttachmentCount = 0,
+             .pInputAttachments = nullptr,
+             .colorAttachmentCount = 0,
+             .pColorAttachments = nullptr,
+             .pResolveAttachments = nullptr,
+             .pDepthStencilAttachment = nullptr,
+             .preserveAttachmentCount = 0,
+             .pPreserveAttachments = nullptr };
+}
 }  // namespace VoxFlow
 
 #endif
