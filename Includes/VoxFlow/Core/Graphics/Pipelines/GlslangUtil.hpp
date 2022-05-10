@@ -10,6 +10,8 @@
 
 namespace VoxFlow
 {
+// TODO(snowapril): `CompileShader` needs to be moved into Instance or LogicalDevice
+// as it only success when they are already constructed 
 class GlslangUtil
 {
  public:

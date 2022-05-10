@@ -14,7 +14,8 @@ class DebugUtil
 {
  public:
     DebugUtil() = default;
-    DebugUtil(const std::shared_ptr<LogicalDevice>& device) : _device(device){};
+    explicit DebugUtil(const std::shared_ptr<LogicalDevice>& device)
+        : _device(device){};
 
  public:
     static VKAPI_ATTR VkBool32 VKAPI_CALL

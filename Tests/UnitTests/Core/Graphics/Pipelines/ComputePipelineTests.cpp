@@ -19,7 +19,7 @@ TEST_CASE("Vulkan Compute Pipeline Initialization")
         std::make_shared<VoxFlow::PipelineLayout>(logicalDevice);
 
     VoxFlow::ComputePipeline testPipeline(
-        logicalDevice, { RESOURCES_DIR "/Shaders/test_shader.comp" },
+        logicalDevice, RESOURCES_DIR "/Shaders/test_shader.comp",
         pipelineLayout);
 
     CHECK_NE(testPipeline.get(), VK_NULL_HANDLE);
