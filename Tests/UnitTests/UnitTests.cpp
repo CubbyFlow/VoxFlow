@@ -16,6 +16,5 @@ int main()
         1.0F);
 
     // Run queries, or run tests unless --no-run is specified
-    const int res = context.run();
-    return 0;
+    return context.run();
 }

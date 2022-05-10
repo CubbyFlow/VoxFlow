@@ -13,6 +13,7 @@ CommandBuffer::CommandBuffer(VkCommandBufferLevel cmdBufferLevel,
     // Do nothing
     (void)cmdBufferLevel;
     (void)instantBegin;
+    (void)_queueType;
 }
 CommandBuffer::~CommandBuffer()
 {

@@ -13,13 +13,15 @@ namespace VoxFlow
 class PhysicalDevice : NonCopyable
 {
  public:
-    PhysicalDevice(const Instance& instance);
+    explicit PhysicalDevice(const Instance& instance);
     ~PhysicalDevice() override = default;
 
-    [[nodiscard]] std::vector<VkLayerProperties>        getPossibleLayers() const;
-    [[nodiscard]] std::vector<VkExtensionProperties>    getPossibleExtensions() const;
-    [[nodiscard]] VkPhysicalDeviceMemoryProperties      getMemoryProperty() const;
-    [[nodiscard]] std::vector<VkQueueFamilyProperties>  getQueueFamilyProperties() const;
+    [[nodiscard]] std::vector<VkLayerProperties> getPossibleLayers() const;
+    [[nodiscard]] std::vector<VkExtensionProperties> getPossibleExtensions()
+        const;
+    [[nodiscard]] VkPhysicalDeviceMemoryProperties getMemoryProperty() const;
+    [[nodiscard]] std::vector<VkQueueFamilyProperties>
+    getQueueFamilyProperties() const;
 
     [[nodiscard]] VkPhysicalDevice get() const noexcept
     {
@@ -27,7 +29,7 @@ class PhysicalDevice : NonCopyable
     }
 
  private:
-    VkPhysicalDevice _physicalDevice { VK_NULL_HANDLE };
+    VkPhysicalDevice _physicalDevice{ VK_NULL_HANDLE };
 };
 }  // namespace VoxFlow
 

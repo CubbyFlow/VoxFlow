@@ -60,11 +60,12 @@ TEST_CASE("Glslang Shader file reading")
 
 TEST_CASE("Glslang Test Shader Compile")
 {
+    // Vulkan device setup for glslang_initialize_process
     VoxFlow::Instance instance(gVulkanContext);
     VoxFlow::PhysicalDevice physicalDevice(instance);
-
-    auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
+    const auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
         gVulkanContext, physicalDevice);
+    (void)logicalDevice;
 
     constexpr std::array<std::pair<glslang_stage_t, const char*>, 3>
         targetShaders = { std::make_pair(GLSLANG_STAGE_VERTEX, RESOURCES_DIR
