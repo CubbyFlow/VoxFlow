@@ -18,6 +18,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipelineTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipelineTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtilTests.cpp
+    ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassTests.cpp
     ${SRC_DIR}/UnitTests.cpp
 )
 
