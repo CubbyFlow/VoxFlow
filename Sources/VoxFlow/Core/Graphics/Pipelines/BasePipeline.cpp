@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <spdlog/spdlog.h>
+
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
@@ -8,6 +9,7 @@
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/pch.hpp>
+#include <execution>
 
 namespace VoxFlow
 {
@@ -72,6 +74,12 @@ void BasePipeline::bindPipeline(const CommandBuffer& cmdBuffer) const noexcept
 
 void BasePipeline::release()
 {
+    std::for_each(std::execution::par, _shaderStageInfos.begin(),
+                  _shaderStageInfos.end(), [this](const auto& stageInfo) {
+                      vkDestroyShaderModule(_device->get(), stageInfo.module,
+                                            nullptr);
+                  });
+    _shaderStageInfos.clear();
     _layout.reset();
     if (_pipeline != VK_NULL_HANDLE)
     {
