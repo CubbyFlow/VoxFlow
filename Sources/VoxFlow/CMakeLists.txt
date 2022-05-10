@@ -112,15 +112,9 @@ target_compile_definitions(${target}
 
 # Install
 install(TARGETS  
-        ${target} glfw volk glslang 
-        OGLCompiler OSDependent MachineIndependent 
-        GenericCodeGen SPIRV assimp IrrXML
-        EXPORT   ${target}-config
+        ${target} 
         RUNTIME  DESTINATION bin
         LIBRARY  DESTINATION lib
         ARCHIVE  DESTINATION lib
         PUBLIC_HEADER DESTINATION include
-)
-install(EXPORT   ${target}-config
-        DESTINATION share/${target}
 )
