@@ -16,22 +16,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Ubuntu 18.04 + GCC-8"
+          - name: "Ubuntu 18.04 + GCC-9"
             os: ubuntu-18.04
-            compiler: gcc
-            version: "8"
-          - name: "Ubuntu 20.04 + GCC-9"
-            os: ubuntu-20.04
             compiler: gcc
             version: "9"
-          - name: "Ubuntu 18.04 + Clang-10"
+          - name: "Ubuntu 20.04 + GCC-10"
+            os: ubuntu-20.04
+            compiler: gcc
+            version: "10"
+          - name: "Ubuntu 18.04 + Clang-11"
             os: ubuntu-18.04
             compiler: clang
-            version: "10"
-          - name: "Ubuntu 20.04 + Clang-11"
+            version: "11"
+          - name: "Ubuntu 20.04 + Clang-12"
             os: ubuntu-20.04
             compiler: clang
-            version: "11"
+            version: "12"
 
     runs-on: ${{matrix.os}}
     name: ${{matrix.name}}
