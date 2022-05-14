@@ -50,7 +50,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
             }
 
             if (familyIndex.has_value() &&
-                std::ranges::find(
+                std::find(
                     queueFamilyIndices.begin(), queueFamilyIndices.end(),
                     familyIndex.value()) == queueFamilyIndices.end())
             {

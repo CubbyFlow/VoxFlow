@@ -12,7 +12,7 @@ VkResult DecisionMaker::pickLayers(
 {
     for (const auto& entry : requested)
     {
-        if (auto ranges = std::ranges::find_if(
+        if (auto ranges = std::find_if(
                 properties.begin(), properties.end(),
                 [&entry](const VkLayerProperties& p) {
                     return strcmp(entry.entryName, p.layerName) == 0;
@@ -39,7 +39,7 @@ VkResult DecisionMaker::pickExtensions(
 {
     for (const auto& entry : requested)
     {
-        if (auto ranges = std::ranges::find_if(
+        if (auto ranges = std::find_if(
                 properties.begin(), properties.end(),
                 [&entry](const VkExtensionProperties& p) {
                     return strcmp(entry.entryName, p.extensionName) == 0;
