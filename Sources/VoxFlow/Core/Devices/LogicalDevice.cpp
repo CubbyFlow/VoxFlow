@@ -16,7 +16,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     std::vector<const char*> usedLayers;
     // As instance layers are same with device layers, we can use it again
     VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
-                                        ctx.instanceLayers) == VK_SUCCESS);
+                                        ctx.instanceLayers));
 
     const std::vector<VkExtensionProperties> extensionProperties =
         physicalDevice.getPossibleExtensions();
@@ -25,7 +25,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     std::vector<void*> featureStructs;
     VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
                                             ctx.deviceExtensions,
-                                            featureStructs) == VK_SUCCESS);
+                                            featureStructs));
 
     const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
 
@@ -92,7 +92,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     };
 
     VK_ASSERT(vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr,
-                             &_device) == VK_SUCCESS);
+                             &_device));
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {
