@@ -5,7 +5,6 @@
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <execution>
 
 namespace VoxFlow
 {
@@ -17,7 +16,7 @@ GraphicsPipeline::GraphicsPipeline(
     : BasePipeline(device, layout)
 {
     std::for_each(
-        std::execution::par, shaderFilenames.begin(), shaderFilenames.end(),
+        shaderFilenames.begin(), shaderFilenames.end(),
         [this](const char* filename) {
             _shaderStageInfos.emplace_back(compileToShaderStage(filename));
         });
@@ -45,8 +44,7 @@ GraphicsPipeline::GraphicsPipeline(
     };
 
     VK_ASSERT(vkCreateGraphicsPipelines(_device->get(), VK_NULL_HANDLE, 1,
-                                        &pipelineInfo, nullptr,
-                                        &_pipeline));
+                                        &pipelineInfo, nullptr, &_pipeline));
 }
 
 GraphicsPipeline::~GraphicsPipeline()
