@@ -52,7 +52,7 @@ jobs:
     - name: Configure Build
       run: |
         mkdir build
-        cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}}
+        cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}} -DCUBBYFLOW_TASKING_SYSTEM=CPP11Thread
     - name: Build
       run: cd build && make
     - name: Run Unit Test
