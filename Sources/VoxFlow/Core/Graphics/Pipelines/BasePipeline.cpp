@@ -8,7 +8,6 @@
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <execution>
 
 namespace VoxFlow

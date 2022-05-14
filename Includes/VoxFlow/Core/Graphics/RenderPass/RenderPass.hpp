@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_RENDER_PASS_HPP
 #define VOXEL_FLOW_RENDER_PASS_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {

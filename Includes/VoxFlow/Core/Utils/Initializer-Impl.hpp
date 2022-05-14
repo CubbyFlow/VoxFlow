@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_INITIALIZER_IMPL_HPP
 #define VOXEL_FLOW_INITIALIZER_IMPL_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {

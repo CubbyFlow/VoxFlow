@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_PIPELINE_LAYOUT_HPP
 #define VOXEL_FLOW_PIPELINE_LAYOUT_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {
@@ -23,7 +23,7 @@ class PipelineLayout : NonCopyable
         return _layout;
     }
 
-protected:
+ protected:
     void release();
 
  private:

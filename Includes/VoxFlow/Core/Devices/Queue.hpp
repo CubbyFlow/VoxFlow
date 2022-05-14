@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_QUEUE_HPP
 #define VOXEL_FLOW_QUEUE_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {
@@ -26,8 +26,8 @@ class Queue : NonCopyable
     }
 
  private:
-    VkQueue         _queue       { VK_NULL_HANDLE };
-    unsigned int    _familyIndex { 0 };
+    VkQueue _queue{ VK_NULL_HANDLE };
+    unsigned int _familyIndex{ 0 };
 };
 }  // namespace VoxFlow
 

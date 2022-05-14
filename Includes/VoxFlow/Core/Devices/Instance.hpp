@@ -3,9 +3,9 @@
 #ifndef VOXEL_FLOW_INSTANCE_HPP
 #define VOXEL_FLOW_INSTANCE_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {

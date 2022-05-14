@@ -3,9 +3,9 @@
 #ifndef VOXEL_FLOW_PHYSICAL_DEVICE_HPP
 #define VOXEL_FLOW_PHYSICAL_DEVICE_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <vector>
 
 namespace VoxFlow

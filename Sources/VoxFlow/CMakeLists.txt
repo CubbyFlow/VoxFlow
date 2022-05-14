@@ -48,20 +48,8 @@ set(SRCS
 # Build library
 add_library(${target} ${SRCS} ${BACKWARD_ENABLE})
 
-# Speed up builds
-cotire(${target})
-
 # Enable backward-cpp stack-trace for this build
 add_backward(${target})
-
-# Set precompiled header
-set(PRECOMPILED_HEADERS
-    ${PUBLIC_HDR_DIR}/Utils/pch.hpp
-)
-set_target_properties(${target}
-    PROPERTIES
-    COTIRE_CXX_PREFIX_HEADER_INIT ${PRECOMPILED_HEADERS}
-)
 
 # Project options
 set_target_properties(${target}

@@ -22,9 +22,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # Compile options
 include(Builds/CMake/CompileOptions.cmake)
 
-# Precompiled headers
-include(Builds/CMake/cotire.cmake)
-
 # Build type - Release by default
 message("CMake build type: " ${CMAKE_BUILD_TYPE})
 if(NOT CMAKE_BUILD_TYPE)
@@ -45,7 +42,31 @@ set(CMAKE_MACOSX_RPATH ON)
 # Set resource directory
 set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Resources/")
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# Add definitions for third-party dependencies
+add_definitions(-DVK_NO_PROTOTYPES)
+add_definitions(-DGLM_FORCE_SWIZZLE)
+add_definitions(-DGLM_FORCE_RADIANS)
+add_definitions(-DGLM_FORCE_CTOR_INIT)
+add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
+
+# Includes
+include_directories(Dependencies/src)
+include_directories(Dependencies/src/vulkan/include)
+include_directories(Dependencies/src/vma/src)
+include_directories(Dependencies/src/glfw/include)
+include_directories(Dependencies/src/glm)
+include_directories(Dependencies/src/assimp/include)
+include_directories(Dependencies/src/etc2comp/EtcLib/Etc)
+include_directories(Dependencies/src/etc2comp/EtcLib/EtcCodec)
+include_directories(Dependencies/src/glslang/glslang/Include)
+include_directories(Dependencies/src/taskflow)
+include_directories(Dependencies/src/stb)
+include_directories(Dependencies/src/cubbyflow/Includes)
+include_directories(Dependencies/src/glslang)
+include_directories(Dependencies/src/glslang/StandAlone)
+include_directories(Dependencies/src/glslang/src)
+include_directories(Dependencies/src/ImGuizmo/src)
+include_directories(Dependencies/src/spdlog/include)
 
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "")
 set(GLFW_BUILD_TESTS    OFF CACHE BOOL "")
@@ -86,6 +107,7 @@ set(USE_CUDA        OFF CACHE BOOL "")
 set(BUILD_SONARCLOUD ON CACHE BOOL "")
 add_subdirectory(Dependencies/src/cubbyflow)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET glfw          PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET assimp        PROPERTY FOLDER "ThirdPartyLibraries")
 set_property(TARGET EtcLib        PROPERTY FOLDER "ThirdPartyLibraries")
@@ -101,25 +123,6 @@ set_property(TARGET OGLCompiler   PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 set_property(TARGET OSDependent   PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 set_property(TARGET SPIRV         PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 set_property(TARGET SPVRemapper   PROPERTY FOLDER "ThirdPartyLibraries/glslang")
-
-# Includes
-include_directories(Dependencies/src)
-include_directories(Dependencies/src/vulkan/include)
-include_directories(Dependencies/src/vma/src)
-include_directories(Dependencies/src/glfw/include)
-include_directories(Dependencies/src/glm)
-include_directories(Dependencies/src/assimp/include)
-include_directories(Dependencies/src/etc2comp/EtcLib/Etc)
-include_directories(Dependencies/src/etc2comp/EtcLib/EtcCodec)
-include_directories(Dependencies/src/glslang/glslang/Include)
-include_directories(Dependencies/src/taskflow)
-include_directories(Dependencies/src/stb)
-include_directories(Dependencies/src/cubbyflow/Includes)
-include_directories(Dependencies/src/glslang)
-include_directories(Dependencies/src/glslang/StandAlone)
-include_directories(Dependencies/src/glslang/src)
-include_directories(Dependencies/src/ImGuizmo/src)
-include_directories(Dependencies/src/spdlog/include)
 
 # Project modules
 add_subdirectory(Sources/VoxFlow)
