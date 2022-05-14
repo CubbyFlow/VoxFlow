@@ -27,7 +27,7 @@ RenderPass::RenderPass(const std::shared_ptr<LogicalDevice>& device)
     // TODO(snowapril) : add attachment, subpass, dependency parameters
     // TODO(snowapril) : deploy render graphy system
     VK_ASSERT(vkCreateRenderPass(_device->get(), &renderPassInfo, nullptr,
-                                 &_renderPass) == VK_SUCCESS);
+                                 &_renderPass));
 }
 
 RenderPass::~RenderPass()

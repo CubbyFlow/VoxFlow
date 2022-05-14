@@ -16,7 +16,7 @@ PipelineLayout::PipelineLayout(const std::shared_ptr<LogicalDevice>& device)
     // TODO(snowapril) : add descriptor layout, push constant ranges to layout info
 
     VK_ASSERT(vkCreatePipelineLayout(_device->get(), &layoutInfo, nullptr,
-                                     &_layout) == VK_SUCCESS);
+                                     &_layout));
 }
 
 PipelineLayout::~PipelineLayout()

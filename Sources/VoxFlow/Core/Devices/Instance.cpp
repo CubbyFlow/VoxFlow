@@ -13,7 +13,7 @@ namespace VoxFlow
 Instance::Instance(const Context& ctx)
 {
     glslang_initialize_process();
-    VK_ASSERT(volkInitialize() == VK_SUCCESS);
+    VK_ASSERT(volkInitialize());
 
     VkApplicationInfo appInfo = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -35,7 +35,7 @@ Instance::Instance(const Context& ctx)
     std::vector<void*> featureStructs;
     VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
                                             ctx.instanceExtensions,
-                                            featureStructs) == VK_SUCCESS);
+                                            featureStructs));
 
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -44,7 +44,7 @@ Instance::Instance(const Context& ctx)
 
     std::vector<const char*> usedLayers;
     VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
-                                        ctx.instanceLayers) == VK_SUCCESS);
+                                        ctx.instanceLayers));
 
     [[maybe_unused]] VkInstanceCreateInfo instanceInfo = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -64,15 +64,13 @@ Instance::Instance(const Context& ctx)
         instanceInfo.pNext = &debugInfo;
     }
 
-    VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance) ==
-              VK_SUCCESS);
+    VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance));
     volkLoadInstance(_instance);
 
     if (ctx.useValidationLayer)
     {
         VK_ASSERT(vkCreateDebugUtilsMessengerEXT(_instance, &debugInfo, nullptr,
-                                                 &_debugMessenger) ==
-                  VK_SUCCESS);
+                                                 &_debugMessenger));
     }
 }
 

@@ -92,13 +92,13 @@ VkPipelineShaderStageCreateInfo BasePipeline::compileToShaderStage(
     const char* filename) const
 {
     std::vector<char> shaderSource;
-    VK_ASSERT(GlslangUtil::ReadShaderFile(filename, &shaderSource) == true);
+    assert(GlslangUtil::ReadShaderFile(filename, &shaderSource));
 
     const glslang_stage_t glslangStage =
         GlslangUtil::GlslangStageFromFilename(filename);
     std::vector<unsigned int> spirvBinary;
-    VK_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
-                                         &spirvBinary));
+    assert(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
+                                      &spirvBinary));
 
     [[maybe_unused]] auto moduleInfo =
         Initializer::MakeInfo<VkShaderModuleCreateInfo>();
@@ -106,8 +106,8 @@ VkPipelineShaderStageCreateInfo BasePipeline::compileToShaderStage(
     moduleInfo.pCode = spirvBinary.data();
 
     VkShaderModule module = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateShaderModule(_device->get(), &moduleInfo, nullptr,
-                                   &module) == VK_SUCCESS);
+    VK_ASSERT(
+        vkCreateShaderModule(_device->get(), &moduleInfo, nullptr, &module));
 
     auto stageCreateInfo =
         Initializer::MakeInfo<VkPipelineShaderStageCreateInfo>();

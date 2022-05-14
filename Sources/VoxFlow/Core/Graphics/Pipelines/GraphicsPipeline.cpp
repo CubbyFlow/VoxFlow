@@ -46,7 +46,7 @@ GraphicsPipeline::GraphicsPipeline(
 
     VK_ASSERT(vkCreateGraphicsPipelines(_device->get(), VK_NULL_HANDLE, 1,
                                         &pipelineInfo, nullptr,
-                                        &_pipeline) == VK_SUCCESS);
+                                        &_pipeline));
 }
 
 GraphicsPipeline::~GraphicsPipeline()
