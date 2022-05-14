@@ -23,7 +23,10 @@ set(SRCS
 )
 
 # Build executable
-add_executable(${target} ${SRCS})
+add_executable(${target} ${SRCS} ${BACKWARD_ENABLE})
+
+# Enable backward-cpp stack-trace for this build
+add_backward(${target})
 
 # Project options
 set_target_properties(${target}
