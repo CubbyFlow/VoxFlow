@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_DECISION_MAKER_HPP
 #define VOXEL_FLOW_DECISION_MAKER_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <string>
 #include <vector>
 

@@ -3,11 +3,11 @@
 #ifndef VOXEL_FLOW_LOGICAL_DEVICE_HPP
 #define VOXEL_FLOW_LOGICAL_DEVICE_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <memory>
 #include <unordered_map>
 

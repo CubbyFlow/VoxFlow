@@ -4,14 +4,14 @@
 #define VOXEL_FLOW_GLSLANG_UTIL_HPP
 
 #include <glslang_c_shader_types.h>
-#include <VoxFlow/Core/Utils/pch.hpp>
+#include <volk/volk.h>
 #include <string_view>
 #include <vector>
 
 namespace VoxFlow
 {
-// TODO(snowapril): `CompileShader` needs to be moved into Instance or LogicalDevice
-// as it only success when they are already constructed 
+// TODO(snowapril): `CompileShader` needs to be moved into Instance or
+// LogicalDevice as it only success when they are already constructed
 class GlslangUtil
 {
  public:

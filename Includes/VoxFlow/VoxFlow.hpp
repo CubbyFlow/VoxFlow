@@ -1,6 +1,7 @@
 #ifndef VOX_FLOW_HPP
 #define VOX_FLOW_HPP
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
@@ -18,6 +19,5 @@
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 #endif

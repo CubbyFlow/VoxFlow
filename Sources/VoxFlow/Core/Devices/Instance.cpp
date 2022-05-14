@@ -4,7 +4,7 @@
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
+#include <volk/volk.h>
 
 #include <glslang_c_interface.h>
 

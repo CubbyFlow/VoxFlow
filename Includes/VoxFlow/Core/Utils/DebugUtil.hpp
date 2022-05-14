@@ -3,7 +3,7 @@
 #ifndef VOXEL_FLOW_DEBUG_UTIL_HPP
 #define VOXEL_FLOW_DEBUG_UTIL_HPP
 
-#include <VoxFlow/Core/Utils/pch.hpp>
+#include <volk/volk.h>
 #include <memory>
 
 namespace VoxFlow

@@ -4,7 +4,6 @@
 #include <glslang_c_interface.h>
 #include <spdlog/spdlog.h>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 #include <fstream>
 
 namespace VoxFlow

@@ -1,7 +1,6 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
-#include <VoxFlow/Core/Utils/pch.hpp>
 
 namespace VoxFlow
 {
