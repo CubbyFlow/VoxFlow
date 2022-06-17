@@ -79,7 +79,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		${WARN_AS_ERROR_FLAGS}
 
 		/wd4819       # -> disable warning: The file contains a character that cannot be represented in the current code page (949) (caused by pybind11)
-
+		/wd4201       # -> disable warning: nonstandard extension used: nameless struct/union
+		/wd4189       # -> disable warning: nonstandard extension used: nameless struct/union
 		#$<$<CONFIG:Debug>:
 		#/RTCc        # -> value is assigned to a smaller data type and results in a data loss
 		#>
