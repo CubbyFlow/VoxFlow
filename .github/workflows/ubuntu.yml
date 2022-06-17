@@ -75,5 +75,3 @@ jobs:
           cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}}
       - name: Build
         run: cd build && make
-      - name: Run Unit Test
-        run: /home/runner/work/VoxFlow/VoxFlow/build/bin/UnitTests

@@ -55,5 +55,3 @@ jobs:
           cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}} -DCUBBYFLOW_TASKING_SYSTEM=CPP11Thread
       - name: Build
         run: cd build && make
-      - name: Run Unit Test
-        run: /Users/runner/work/VoxFlow/VoxFlow/build/bin/UnitTests
