@@ -16,7 +16,7 @@ TEST_CASE("Vulkan Physical Device Feature Querying")
 {
     VoxFlow::Instance instance(gVulkanContext);
     VoxFlow::PhysicalDevice physicalDevice(instance);
-    
+
     CHECK(physicalDevice.getMemoryProperty().memoryTypeCount != 0);
     CHECK(physicalDevice.getMemoryProperty().memoryHeapCount != 0);
     CHECK(physicalDevice.getPossibleExtensions().empty() == false);

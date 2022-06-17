@@ -23,8 +23,6 @@ namespace VoxFlow
 #define VK_ASSERT(x) ((void)0)
 #endif
 
-
-
 }  // namespace VoxFlow
 
 #endif

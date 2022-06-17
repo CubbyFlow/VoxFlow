@@ -15,6 +15,6 @@ class NonCopyable
     NonCopyable& operator=(const NonCopyable&) = delete;
     NonCopyable& operator=(NonCopyable&&) = default;
 };
-}  // namespace VoxelFlow
+}  // namespace VoxFlow
 
 #endif

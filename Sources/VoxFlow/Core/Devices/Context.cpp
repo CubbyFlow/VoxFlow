@@ -39,7 +39,7 @@ void Context::addDeviceExtension(const char* name, bool isOptional /* false */,
 }
 
 void Context::addRequiredQueue(std::string&& queueName, VkQueueFlags queueFlag,
-                      uint32_t queueCount, float queuePriority)
+                               uint32_t queueCount, float queuePriority)
 {
     requiredQueues.emplace_back(std::move(queueName), queueFlag, queueCount,
                                 queuePriority);

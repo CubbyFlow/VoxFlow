@@ -50,9 +50,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
             }
 
             if (familyIndex.has_value() &&
-                std::find(
-                    queueFamilyIndices.begin(), queueFamilyIndices.end(),
-                    familyIndex.value()) == queueFamilyIndices.end())
+                std::find(queueFamilyIndices.begin(), queueFamilyIndices.end(),
+                          familyIndex.value()) == queueFamilyIndices.end())
             {
                 break;
             }
@@ -91,8 +90,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         .pEnabledFeatures = nullptr
     };
 
-    VK_ASSERT(vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr,
-                             &_device));
+    VK_ASSERT(
+        vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr, &_device));
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {

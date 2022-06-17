@@ -1,7 +1,7 @@
 // Author : snowapril
 
-#include "../../UnitTestUtils.hpp"
 #include <VoxFlow/Core/Devices/Instance.hpp>
+#include "../../UnitTestUtils.hpp"
 
 TEST_CASE("Vulkan Instance Initialization")
 {

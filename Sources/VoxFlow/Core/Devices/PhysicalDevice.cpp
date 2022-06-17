@@ -13,7 +13,8 @@ PhysicalDevice::PhysicalDevice(const Instance& instance)
     vkEnumeratePhysicalDevices(instance.get(), &numPhysicalDevices,
                                deviceCandidates.data());
 
-    // TODO(snowapril) : enable physical device selection between external gpu and internal gpu
+    // TODO(snowapril) : enable physical device selection between external gpu
+    // and internal gpu
     _physicalDevice = deviceCandidates[0];
 }
 
@@ -45,7 +46,8 @@ VkPhysicalDeviceMemoryProperties PhysicalDevice::getMemoryProperty() const
     return memoryProperties;
 }
 
-std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilyProperties() const
+std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilyProperties()
+    const
 {
     uint32_t familyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &familyCount,

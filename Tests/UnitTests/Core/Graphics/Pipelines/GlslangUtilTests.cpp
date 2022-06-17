@@ -4,9 +4,9 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
-#include "../../../UnitTestUtils.hpp"
 #include <array>
 #include <sstream>
+#include "../../../UnitTestUtils.hpp"
 
 TEST_CASE("Glslang Stage parsing from filename")
 {

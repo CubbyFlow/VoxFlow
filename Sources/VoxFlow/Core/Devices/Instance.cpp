@@ -1,10 +1,10 @@
 // Author : snowapril
 
+#include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <volk/volk.h>
 
 #include <glslang_c_interface.h>
 

@@ -12,11 +12,11 @@ VkResult DecisionMaker::pickLayers(
 {
     for (const auto& entry : requested)
     {
-        if (auto ranges = std::find_if(
-                properties.begin(), properties.end(),
-                [&entry](const VkLayerProperties& p) {
-                    return strcmp(entry.entryName, p.layerName) == 0;
-                });
+        if (auto ranges = std::find_if(properties.begin(), properties.end(),
+                                       [&entry](const VkLayerProperties& p) {
+                                           return strcmp(entry.entryName,
+                                                         p.layerName) == 0;
+                                       });
             ranges != properties.end())
         {
             used.emplace_back(entry.entryName);

@@ -23,8 +23,7 @@ ComputePipeline::ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
     };
 
     VK_ASSERT(vkCreateComputePipelines(_device->get(), VK_NULL_HANDLE, 1,
-                                       &pipelineInfo, nullptr,
-                                       &_pipeline));
+                                       &pipelineInfo, nullptr, &_pipeline));
 
     _shaderStageInfos.emplace_back(pipelineInfo.stage);
 }
