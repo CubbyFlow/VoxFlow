@@ -44,5 +44,3 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Build
       run: cd build && MSBuild.exe VoxFlow.sln /p:Configuration=${{env.build_type}}
-    - name: Run Unit Test
-      run: /a/VoxFlow/VoxFlow/build/bin/${{env.build_type}}/UnitTests.exe

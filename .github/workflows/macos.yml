@@ -2,9 +2,9 @@ name: macOS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-macos:
@@ -29,31 +29,29 @@ jobs:
     name: ${{matrix.name}}
 
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Configure Compiler
-      shell: bash
-      run: |
-        ls -ls /Applications/
-        sudo xcode-select -switch /Applications/Xcode_${{ matrix.version }}.app
-        echo "CC=clang" >> $GITHUB_ENV
-        echo "CXX=clang++" >> $GITHUB_ENV
-    - name: Configure Vulkan SDK using the downloaded spec
-      uses: humbletim/setup-vulkan-sdk@v1.2.0
-      with:
-        vulkan-query-version: ${{ env.vulkan_version }}
-        vulkan-components: Vulkan-Headers, Vulkan-Loader
-        vulkan-use-cache: true
-    - name: Execute bootstrap script
-      shell: bash
-      run: |
-        python3 bootstrap.py
-    - name: Configure Build
-      run: |
-        mkdir build
-        cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}}
-    - name: Build
-      run: cd build && make
-    - name: Run Unit Test
-      run: /Users/runner/work/VoxFlow/VoxFlow/build/bin/UnitTests
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - name: Configure Compiler
+        shell: bash
+        run: |
+          ls -ls /Applications/
+          sudo xcode-select -switch /Applications/Xcode_${{ matrix.version }}.app
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+      - name: Configure Vulkan SDK using the downloaded spec
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: ${{ env.vulkan_version }}
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
+      - name: Execute bootstrap script
+        shell: bash
+        run: |
+          python3 bootstrap.py
+      - name: Configure Build
+        run: |
+          mkdir build
+          cd build && cmake .. -DCMAKE_BUILD_TYPE=${{env.build_type}} -DCUBBYFLOW_TASKING_SYSTEM=CPP11Thread
+      - name: Build
+        run: cd build && make
