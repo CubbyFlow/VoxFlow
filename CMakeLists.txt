@@ -127,3 +127,4 @@ set_property(TARGET SPVRemapper   PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 # Project modules
 add_subdirectory(Sources/VoxFlow)
 add_subdirectory(Tests/UnitTests)
+add_subdirectory(Tests/RenderingTests)
