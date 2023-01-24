@@ -11,6 +11,7 @@ Context::Context(bool useValidation /* true */)
     {
         addInstanceLayer("VK_LAYER_KHRONOS_validation", false);
         addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
+        // TODO(snowapril) : addInstanceExtension(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME, false);
     }
 }
 
