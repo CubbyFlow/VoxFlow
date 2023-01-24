@@ -104,6 +104,22 @@
     }
   },
   {
+    "name": "DirectXShaderCompiler",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/microsoft/DirectXShaderCompiler",
+      "revision": "v1.7.2212"
+    }
+  },
+  {
+    "name": "spirv-reflect",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/KhronosGroup/SPIRV-Reflect",
+      "revision": "v1.3.208"
+    }
+  },
+  {
     "name": "ImGuizmo",
     "source": {
       "type": "git",
