@@ -126,6 +126,9 @@ class DebugUtil
  private:
     std::shared_ptr<LogicalDevice> _device{ nullptr };
 };
+
+std::string getVkResultString(VkResult vkResult);
+
 }  // namespace VoxFlow
 
 #endif

@@ -54,4 +54,44 @@ void DebugUtil::setObjectName(uint64_t object, const char* name,
     };
     vkSetDebugUtilsObjectNameEXT(_device->get(), &nameInfo);
 }
+
+std::string getVkResultString(VkResult vkResult)
+{
+#define VKSTR(str)   \
+    case VK_##str:   \
+        return #str; \
+        break;
+
+    switch (vkResult)
+    {
+        VKSTR(NOT_READY);
+        VKSTR(TIMEOUT);
+        VKSTR(EVENT_SET);
+        VKSTR(EVENT_RESET);
+        VKSTR(INCOMPLETE);
+        VKSTR(ERROR_OUT_OF_HOST_MEMORY);
+        VKSTR(ERROR_OUT_OF_DEVICE_MEMORY);
+        VKSTR(ERROR_INITIALIZATION_FAILED);
+        VKSTR(ERROR_DEVICE_LOST);
+        VKSTR(ERROR_MEMORY_MAP_FAILED);
+        VKSTR(ERROR_LAYER_NOT_PRESENT);
+        VKSTR(ERROR_EXTENSION_NOT_PRESENT);
+        VKSTR(ERROR_FEATURE_NOT_PRESENT);
+        VKSTR(ERROR_INCOMPATIBLE_DRIVER);
+        VKSTR(ERROR_TOO_MANY_OBJECTS);
+        VKSTR(ERROR_FORMAT_NOT_SUPPORTED);
+        VKSTR(ERROR_SURFACE_LOST_KHR);
+        VKSTR(ERROR_NATIVE_WINDOW_IN_USE_KHR);
+        VKSTR(SUBOPTIMAL_KHR);
+        VKSTR(ERROR_OUT_OF_DATE_KHR);
+        VKSTR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
+        VKSTR(ERROR_VALIDATION_FAILED_EXT);
+        VKSTR(ERROR_INVALID_SHADER_NV);
+        default:
+            return "UNKNOWN_ERROR";
+    }
+
+#undef VKSTR
+}
+
 }  // namespace VoxFlow
