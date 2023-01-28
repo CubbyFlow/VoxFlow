@@ -14,15 +14,16 @@ class RenderDevice : private NonCopyable
     ~RenderDevice();
 
  public:
-    inline Instance* getInstance() const
+    [[nodiscard]] inline Instance* getInstance() const
     {
         return _instance;
     }
-    inline PhysicalDevice* getPhysicalDevice() const
+    [[nodiscard]] inline PhysicalDevice* getPhysicalDevice() const
     {
         return _physicalDevice;
     }
-    inline PhysicalDevice* getLogicalDevice(const uint32_t deviceIndex) const
+    [[nodiscard]] inline PhysicalDevice* getLogicalDevice(
+        const uint32_t deviceIndex) const
     {
         VOX_ASSERT(deviceIndex < _logicalDevices.size(),
                    "Given Index(%u), Num LogicalDevices(%u)", deviceIndex,
