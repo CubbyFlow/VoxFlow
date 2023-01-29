@@ -5,13 +5,22 @@
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-
+#include <glfw/glfw3.h>
 #include <glslang_c_interface.h>
 
 namespace VoxFlow
 {
 Instance::Instance(const Context& ctx)
 {
+    if (glfwInit() == -1)
+    {
+        const char* glfwErrorMsg = nullptr;
+        glfwGetError(&glfwErrorMsg);
+        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : %s",
+                   glfwErrorMsg);
+        return;
+    }
+
     glslang_initialize_process();
     VK_ASSERT(volkInitialize());
 
@@ -97,6 +106,7 @@ Instance::~Instance()
 {
     release();
     glslang_finalize_process();
+    glfwTerminate();
 }
 
 Instance::Instance(Instance&& instance) noexcept : _instance(instance._instance)
