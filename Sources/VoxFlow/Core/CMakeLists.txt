@@ -1,9 +1,9 @@
 # Target name
-set(target VoxFlow)
+set(target VoxFlowCore)
 set(ROOT_DIR ${PROJECT_SOURCE_DIR})
 set(LIBRARY_DIR ${PROJECT_SOURCE_DIR}/Dependencies/src)
 set(PUBLIC_HDR_DIR ${PROJECT_SOURCE_DIR}/Includes)
-set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 # Set public headers
 set(PUBLIC_HDRS
@@ -45,7 +45,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
-    ${SRC_DIR}/VoxFlow/Core/RenderDevice.cpp
+    ${SRC_DIR}/Core/RenderDevice.cpp
 )
 
 # Build library
