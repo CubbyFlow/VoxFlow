@@ -125,6 +125,7 @@ set_property(TARGET SPIRV         PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 set_property(TARGET SPVRemapper   PROPERTY FOLDER "ThirdPartyLibraries/glslang")
 
 # Project modules
-add_subdirectory(Sources/VoxFlow)
+add_subdirectory(Sources/VoxFlow/Core)
+add_subdirectory(Sources/VoxFlow/Editor)
 add_subdirectory(Tests/UnitTests)
 add_subdirectory(Tests/RenderingTests)

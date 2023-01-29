@@ -5,6 +5,8 @@
 
 namespace VoxFlow
 {
+class RenderDevice;
+
 class VoxEngine
 {
  public
@@ -13,6 +15,8 @@ class VoxEngine
 
  protected:
  private:
+    RenderDevice* _renderDevice = nullptr;
+
 };
 }  // namespace VoxFlow
 
