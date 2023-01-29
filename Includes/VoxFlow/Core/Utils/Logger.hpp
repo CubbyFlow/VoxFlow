@@ -4,20 +4,21 @@
 #define VOXEL_FLOW_LOGGER_HPP
 
 #include <spdlog/spdlog.h>
+#include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <cstdlib>
 
 namespace VoxFlow
 {
 #ifdef VOXFLOW_DEBUG
-#define VK_ASSERT(return_code)                                        \
-    do                                                                \
-    {                                                                 \
-        if (!static_cast<bool>(return_code == VK_SUCCESS))            \
-        {                                                             \
-            spdlog::error("Vulkan Error ({}) at {}:{}.", return_code, \
-                          __FILE__, __LINE__);                        \
-            std::abort();                                             \
-        }                                                             \
+#define VK_ASSERT(return_code)                                                 \
+    do                                                                         \
+    {                                                                          \
+        if (!static_cast<bool>(return_code == VK_SUCCESS))                     \
+        {                                                                      \
+            spdlog::error("Vulkan Error ({}) at {}:{}.",                       \
+                          getVkResultString(return_code), __FILE__, __LINE__); \
+            std::abort();                                                      \
+        }                                                                      \
     } while (false)
 
 template <typename... Args>
