@@ -71,7 +71,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
             queueInfos.push_back(
                 { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                   .pNext = nullptr,
-                  .flags = requiredQueue.flag,
+                  .flags = 0,
                   .queueFamilyIndex = familyIndex.value(),
                   .queueCount = requiredQueue.queueCount,
                   .pQueuePriorities = &requiredQueue.priority });
@@ -100,6 +100,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     {
         VkQueue queueHandle;
         vkGetDeviceQueue(_device, queueFamilyIndices[i], 0, &queueHandle);
+
+        VOX_ASSERT(queueHandle != VK_NULL_HANDLE, "Failed to get device queue");
 
         std::unordered_map<uint32_t, uint32_t>::iterator findIt =
             queueIndicesPerFamily.find(queueFamilyIndices[i]);
