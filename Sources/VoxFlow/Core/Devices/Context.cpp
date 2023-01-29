@@ -46,6 +46,6 @@ void Context::addRequiredQueue(std::string&& queueName, VkQueueFlags queueFlag,
                                bool isMainQueue)
 {
     requiredQueues.emplace_back(std::move(queueName), queueFlag, queueCount,
-                                queuePriority);
+                                queuePriority, isMainQueue);
 }
 }  // namespace VoxFlow

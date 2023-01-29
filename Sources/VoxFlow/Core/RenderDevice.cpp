@@ -1,17 +1,22 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/RenderDevice.hpp>
+#include <VoxFlow/Core/Devices/Instance.hpp>
+#include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 
 namespace VoxFlow
 {
 
 RenderDevice::RenderDevice(Context deviceSetupCtx)
-    : _deviceSetupCtx(deviceSetupCtx)
 {
-    _instance = new Instance(_deviceSetupCtx);
+    _deviceSetupCtx = new Context(deviceSetupCtx);
+    _instance = new Instance(deviceSetupCtx);
     _physicalDevice = new PhysicalDevice(*_instance);
+
+    // TODO(snowapril) : support multiple logical devices
     _logicalDevices.emplace_back(
-        new LogicalDevice(_deviceSetupCtx, *_physicalDevice));
+        new LogicalDevice(deviceSetupCtx, *_physicalDevice));
 }
 
 RenderDevice::~RenderDevice()
@@ -27,6 +32,9 @@ RenderDevice::~RenderDevice()
 
     if (_instance != nullptr)
         delete _instance;
+
+    if (_deviceSetupCtx != nullptr)
+        delete _deviceSetupCtx;
 }
 
 }  // namespace VoxFlow

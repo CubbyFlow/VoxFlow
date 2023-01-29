@@ -10,6 +10,10 @@ namespace VoxFlow
 struct Context
 {
     explicit Context(bool useValidation = true);
+    Context(const Context&) = default;
+    Context(Context&&) = default;
+    Context& operator=(const Context&) = default;
+    Context& operator=(Context&&) = default;
 
     void setVersion(const uint32_t major, const uint32_t minor);
 

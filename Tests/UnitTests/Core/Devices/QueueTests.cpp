@@ -12,7 +12,6 @@ TEST_CASE("Vulkan Queue Initialization")
     VoxFlow::PhysicalDevice physicalDevice(instance);
     VoxFlow::LogicalDevice logicalDevice(gVulkanContext, physicalDevice);
 
-    std::shared_ptr<VoxFlow::Queue> gctQueue =
-        logicalDevice.getQueuePtr("GCT").lock();
+    VoxFlow::Queue* gctQueue = logicalDevice.getQueuePtr("GCT");
     CHECK_NE(gctQueue->get(), VK_NULL_HANDLE);
 }

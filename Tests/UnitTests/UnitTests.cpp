@@ -13,7 +13,7 @@ int main()
     gVulkanContext.addRequiredQueue(
         "GCT",
         VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 1,
-        1.0F);
+        1.0F, true);
 
     // Run queries, or run tests unless --no-run is specified
     return context.run();

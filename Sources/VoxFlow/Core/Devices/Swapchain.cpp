@@ -1,18 +1,24 @@
 // Author : snowapril
 
-#include <glfw/glfw3.h>
+#define VK_USE_PLATFORM_WIN32_KHR
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/Swapchain.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
+
+#include <glm/common.hpp>
 
 namespace VoxFlow
 {
-SwapChain::SwapChain(const Instance* instance,
-                     const PhysicalDevice* physicalDevice,
-                     const LogicalDevice* logicalDevice,
-                     const Queue* presentSupportQueue, const char* title,
-                     const glm::ivec2 resolution) noexcept
+SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
+                     LogicalDevice* logicalDevice, Queue* presentSupportQueue,
+                     const char* title, const glm::ivec2 resolution) noexcept
     : _instance(instance),
       _physicalDevice(physicalDevice),
       _logicalDevice(logicalDevice),
@@ -24,11 +30,14 @@ SwapChain::SwapChain(const Instance* instance,
 
     VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .hinstance = GetModuleHandle(nullptr),
         .hwnd = glfwGetWin32Window(_window),
-        .hinstance = GetModuleHandle()
     };
 
-    VK_ASSERT(vkCreateWin32SurfaceKHR(_instance->get(), nullptr, &_surface));
+    VK_ASSERT(vkCreateWin32SurfaceKHR(_instance->get(), &surfaceCreateInfo,
+                                      nullptr, &_surface));
 
     const std::vector<VkSurfaceFormatKHR> surfaceFormatList = {
         { VK_FORMAT_R8G8B8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
@@ -67,12 +76,29 @@ SwapChain::~SwapChain()
     glfwDestroyWindow(_window);
 }
 
-SwapChain::SwapChain(SwapChain&& other)
+SwapChain::SwapChain(SwapChain&& other) noexcept
 {
+    operator=(std::move(other));
 }
 
-SwapChain& SwapChain::operator=(SwapChain&& other)
+SwapChain& SwapChain::operator=(SwapChain&& other) noexcept
 {
+    if (this != &other)
+    {
+        _swapChain = other._swapChain;
+        _surface = other._surface;
+        _window = other._window;
+        _instance = other._instance;
+        _physicalDevice = other._physicalDevice;
+        _logicalDevice = other._logicalDevice;
+        _queue = other._queue;
+        _resolution = other._resolution;
+        _surfaceFormat = other._surfaceFormat;
+        _colorSpace = other._colorSpace;
+        _swapChainImages.swap(other._swapChainImages);
+        _swapChainImageViews.swap(other._swapChainImageViews);
+    }
+    return *this;
 }
 
 bool SwapChain::create(bool vsync)
@@ -83,7 +109,7 @@ bool SwapChain::create(bool vsync)
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         _physicalDevice->get(), _surface, &surfaceCaps));
 
-    uint32 numPresentModes = 0;
+    uint32_t numPresentModes = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->get(), _surface,
                                               &numPresentModes, nullptr);
 
@@ -124,14 +150,14 @@ bool SwapChain::create(bool vsync)
         }
     }
 
-    uint32_t numSwapChainImages = surfaceCaps.minImageCount + 1;
+    uint32_t numDesiredSwapChainImages = surfaceCaps.minImageCount + 1;
     if ((surfaceCaps.maxImageCount > 0))
     {
-        numSwapChainImages =
-            glm::min(numSwapChainImages, surfaceCaps.maxImageCount);
+        numDesiredSwapChainImages =
+            glm::min(numDesiredSwapChainImages, surfaceCaps.maxImageCount);
     }
 
-    VkSurfaceTransformFlagsKHR preTransform;
+    VkSurfaceTransformFlagBitsKHR preTransform;
     if (surfaceCaps.supportedTransforms ==
         VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
     {
@@ -142,24 +168,40 @@ bool SwapChain::create(bool vsync)
         preTransform = surfaceCaps.currentTransform;
     }
 
-    VkCompositeAlphaFlagBitsKHR compositeAlpha{
-        surfaceCaps.supportedCompositeAlpha
+    VkCompositeAlphaFlagBitsKHR compositeAlpha =
+        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+
+    VkCompositeAlphaFlagBitsKHR compositeAlphaList[] = {
+        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+        VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+        VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
     };
+
+    for (VkCompositeAlphaFlagBitsKHR alphaFlagBit : compositeAlphaList)
+    {
+        if (surfaceCaps.supportedCompositeAlpha & alphaFlagBit)
+        {
+            compositeAlpha = alphaFlagBit;
+            break;
+        }
+    }
 
     VkSwapchainCreateInfoKHR swapChainCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
+        .flags = 0,
         .surface = _surface,
-        .minImageCount = numSwapChainImages,
+        .minImageCount = numDesiredSwapChainImages,
         .imageFormat = _surfaceFormat,
         .imageColorSpace = _colorSpace,
         .imageExtent = swapchainExtent,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .preTransform = preTransform,
         .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
+        .preTransform = preTransform,
         .compositeAlpha = compositeAlpha,
         .presentMode = resultPresentMode,
         .clipped = VK_TRUE,  // Allow presentation engine discard rendering
@@ -178,7 +220,7 @@ bool SwapChain::create(bool vsync)
     }
 
     VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo,
-                                   nullptr, _swapChain));
+                                   nullptr, &_swapChain));
 
     if (oldSwapChain != VK_NULL_HANDLE)
     {
@@ -225,8 +267,9 @@ bool SwapChain::create(bool vsync)
         };
 
         VK_ASSERT(vkCreateImageView(_logicalDevice->get(), &viewCreateInfo,
-                                    nullptr, numSwapChainImages[i]));
+                                    nullptr, &_swapChainImageViews[i]));
     }
+
+    return true;
 }
-}  // namespace VoxFlow
 }  // namespace VoxFlow

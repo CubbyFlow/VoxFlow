@@ -111,7 +111,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         }
         else
         {
-            queueIndicesPerFamily.insert(queueFamilyIndices[i], queueIndex);
+            queueIndicesPerFamily.insert(
+                std::make_pair(queueFamilyIndices[i], queueIndex));
         }
 
         Queue* queue =

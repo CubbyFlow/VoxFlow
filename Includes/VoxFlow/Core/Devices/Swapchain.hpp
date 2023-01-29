@@ -16,11 +16,9 @@ class Queue;
 class SwapChain : NonCopyable
 {
  public:
-    explicit SwapChain(const Instance* instance,
-                       const PhysicalDevice* physicalDevice,
-                       const LogicalDevice* logicalDevice,
-                       const Queue* presentSupportQueue, const char* title,
-                       const glm::ivec2 resolution) noexcept;
+    explicit SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
+                       LogicalDevice* logicalDevice, Queue* presentSupportQueue,
+                       const char* title, const glm::ivec2 resolution) noexcept;
     ~SwapChain();
     SwapChain(SwapChain&& other) noexcept;
     SwapChain& operator=(SwapChain&& other) noexcept;
@@ -45,7 +43,7 @@ class SwapChain : NonCopyable
     PhysicalDevice* _physicalDevice = nullptr;
     LogicalDevice* _logicalDevice = nullptr;
     Queue* _queue = nullptr;
-    glm::ivec2* _resolution;
+    glm::ivec2 _resolution;
     VkFormat _surfaceFormat = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR _colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     std::vector<VkImage> _swapChainImages;
