@@ -9,14 +9,13 @@ class RenderDevice;
 
 class VoxEngine
 {
- public
+ public:
     VoxEngine();
     ~VoxEngine();
 
  protected:
  private:
     RenderDevice* _renderDevice = nullptr;
-
 };
 }  // namespace VoxFlow
 

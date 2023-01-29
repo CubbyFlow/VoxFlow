@@ -7,7 +7,7 @@ namespace VoxFlow
 {
 class VoxEditor
 {
- public
+ public:
     VoxEditor();
     ~VoxEditor();
 
