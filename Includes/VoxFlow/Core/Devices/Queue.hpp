@@ -8,10 +8,13 @@
 
 namespace VoxFlow
 {
+class LogicalDevice;
+
 class Queue : NonCopyable
 {
  public:
-    explicit Queue(VkQueue queueHandle, unsigned int familyIndex) noexcept;
+    explicit Queue(VkQueue queueHandle, uint32_t familyIndex,
+                   uint32_t queueIndex) noexcept;
     ~Queue() override = default;
     Queue(Queue&& other) noexcept;
     Queue& operator=(Queue&& other) noexcept;
@@ -26,8 +29,9 @@ class Queue : NonCopyable
     }
 
  private:
+    uint32_t _familyIndex{ 0 };
+    uint32_t _queueIndex{ 0 };
     VkQueue _queue{ VK_NULL_HANDLE };
-    unsigned int _familyIndex{ 0 };
 };
 }  // namespace VoxFlow
 

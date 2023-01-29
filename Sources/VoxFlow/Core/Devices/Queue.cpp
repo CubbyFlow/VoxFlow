@@ -5,16 +5,18 @@
 
 namespace VoxFlow
 {
-Queue::Queue(VkQueue queueHandle, uint32_t familyIndex) noexcept
-    : _queue(queueHandle), _familyIndex(familyIndex)
+Queue::Queue(VkQueue queueHandle, uint32_t familyIndex,
+             uint32_t queueIndex) noexcept
+    : _queue(queueHandle), _familyIndex(familyIndex), _queueIndex(queueIndex)
 {
-    // Do nothing
+    // DO NOTHING
 }
 
 Queue::Queue(Queue&& other) noexcept
-    : _queue(std::move(other._queue)), _familyIndex(other._familyIndex)
+    : _queue(std::move(other._queue)),
+      _familyIndex(other._familyIndex),
+      _queueIndex(other._queueIndex)
 {
-    // Do nothing
 }
 
 Queue& Queue::operator=(Queue&& other) noexcept
@@ -23,6 +25,7 @@ Queue& Queue::operator=(Queue&& other) noexcept
     {
         _queue = std::move(other._queue);
         _familyIndex = other._familyIndex;
+        _queueIndex = other._queueIndex;
     }
     return *this;
 }
