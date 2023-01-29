@@ -33,6 +33,11 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT);
             break;
     }
+
+#if defined(_WIN32)
+    DebugBreak();
+#endif
+
     return VK_FALSE;
 }
 
