@@ -5,14 +5,27 @@
 
 namespace VoxFlow
 {
+class VoxEngine;
+
 class VoxEditor
 {
  public:
     VoxEditor();
     ~VoxEditor();
 
+ public:
+    void runEditorLoop();
+
+ protected:
+    void processInput();
+    void preUpdateFrame();
+    void updateFrame();
+    void renderFrame();
+    void postRenderFrame();
+
  protected:
  private:
+    VoxEngine* _voxEngine = nullptr;
 };
 }  // namespace VoxFlow
 
