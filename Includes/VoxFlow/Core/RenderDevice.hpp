@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <glm/vec2.hpp>
 #include <vector>
 
 namespace VoxFlow
@@ -14,6 +15,7 @@ class Instance;
 class PhysicalDevice;
 class LogicalDevice;
 class Queue;
+class SwapChain;
 
 class RenderDevice : private NonCopyable
 {
@@ -39,11 +41,15 @@ class RenderDevice : private NonCopyable
         return _logicalDevices.at(deviceIndex);
     }
 
+ public:
+    bool addSwapChain(const char* title, const glm::ivec2 resolution);
+
  protected:
  private:
     Instance* _instance = nullptr;
     PhysicalDevice* _physicalDevice = nullptr;
     std::vector<LogicalDevice*> _logicalDevices;
+    std::vector<std::shared_ptr<SwapChain>> _swapChains;
 
     Context* _deviceSetupCtx = nullptr;
     Queue* _mainQueue = nullptr;
