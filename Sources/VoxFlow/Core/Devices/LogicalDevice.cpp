@@ -129,6 +129,9 @@ LogicalDevice::LogicalDevice(const Context& ctx,
             _mainQueue = queue;
         }
     }
+
+    // Load device-related vulkan entrypoints (all global functions)
+    volkLoadDevice(_device);
 }
 
 LogicalDevice::~LogicalDevice()
@@ -172,6 +175,7 @@ void LogicalDevice::release()
 
     if (_device != VK_NULL_HANDLE)
     {
+        vkDeviceWaitIdle(_device);
         vkDestroyDevice(_device, nullptr);
         _device = VK_NULL_HANDLE;
     }
