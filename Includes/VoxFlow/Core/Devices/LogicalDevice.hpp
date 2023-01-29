@@ -25,7 +25,7 @@ class LogicalDevice : NonCopyable
     {
         return _device;
     }
-    [[nodiscard]] std::weak_ptr<Queue> getQueuePtr(
+    [[nodiscard]] Queue* getQueuePtr(
         const std::string& queueName);
 
  private:
@@ -33,7 +33,8 @@ class LogicalDevice : NonCopyable
 
  private:
     VkDevice _device{ VK_NULL_HANDLE };
-    std::unordered_map<std::string, std::shared_ptr<Queue>> _queueMap{};
+    std::unordered_map<std::string, Queue*> _queueMap{};
+    Queue* _mainQueue = nullptr;
 };
 }  // namespace VoxFlow
 

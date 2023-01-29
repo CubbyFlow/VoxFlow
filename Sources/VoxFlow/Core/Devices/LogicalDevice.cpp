@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <optional>
+#include <unordered_map>
 
 namespace VoxFlow
 {
@@ -70,7 +71,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
             queueInfos.push_back(
                 { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                   .pNext = nullptr,
-                  .flags = 0,
+                  .flags = requiredQueue.flag,
                   .queueFamilyIndex = familyIndex.value(),
                   .queueCount = requiredQueue.queueCount,
                   .pQueuePriorities = &requiredQueue.priority });
@@ -93,13 +94,37 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     VK_ASSERT(
         vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr, &_device));
 
+    std::unordered_map<uint32_t, uint32_t> queueIndicesPerFamily;
+
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {
         VkQueue queueHandle;
         vkGetDeviceQueue(_device, queueFamilyIndices[i], 0, &queueHandle);
-        _queueMap.emplace(
-            ctx.requiredQueues[i].queueName,
-            std::make_shared<Queue>(queueHandle, queueFamilyIndices[i]));
+
+        std::unordered_map<uint32_t, uint32_t>::iterator findIt =
+            queueIndicesPerFamily.find(queueFamilyIndices[i]);
+
+        uint32_t queueIndex = 0U;
+        if (findIt != queueIndicesPerFamily.end())
+        {
+            queueIndex = ++(findIt->second);
+        }
+        else
+        {
+            queueIndicesPerFamily.insert(queueFamilyIndices[i], queueIndex);
+        }
+
+        Queue* queue =
+            new Queue(queueHandle, queueFamilyIndices[i], queueIndex);
+
+        VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
+
+        _queueMap.emplace(ctx.requiredQueues[i].queueName, queue);
+
+        if (ctx.requiredQueues[i].isMainQueue)
+        {
+            _mainQueue = queue;
+        }
     }
 }
 
@@ -124,7 +149,7 @@ LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other) noexcept
     return *this;
 }
 
-std::weak_ptr<Queue> LogicalDevice::getQueuePtr(const std::string& queueName)
+Queue* LogicalDevice::getQueuePtr(const std::string& queueName)
 {
     const auto iter = _queueMap.find(queueName);
     assert(iter != _queueMap.end());
@@ -133,6 +158,15 @@ std::weak_ptr<Queue> LogicalDevice::getQueuePtr(const std::string& queueName)
 
 void LogicalDevice::release()
 {
+    std::for_each(
+        _queueMap.begin(), _queueMap.end(),
+        [](std::unordered_map<std::string, Queue*>::value_type& queue) {
+            if (queue.second != nullptr)
+            {
+                delete queue.second;
+            }
+        });
+
     if (_device != VK_NULL_HANDLE)
     {
         vkDestroyDevice(_device, nullptr);
