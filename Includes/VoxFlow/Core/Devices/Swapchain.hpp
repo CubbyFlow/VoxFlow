@@ -7,6 +7,8 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <glm/vec2.hpp>
 
+struct GLFWwindow;
+
 namespace VoxFlow
 {
 class Instance;
@@ -34,6 +36,7 @@ class SwapChain : NonCopyable
     }
 
     bool create(bool vsync = false);
+    void release();
 
  private:
     VkSwapchainKHR _swapChain = VK_NULL_HANDLE;

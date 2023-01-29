@@ -1,17 +1,12 @@
 // Author : snowapril
 
-#define VK_USE_PLATFORM_WIN32_KHR
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/Swapchain.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
+#include <glfw/glfw3.h>
 #include <glm/common.hpp>
 
 namespace VoxFlow
@@ -25,19 +20,23 @@ SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
       _queue(presentSupportQueue),
       _resolution(resolution)
 {
+    // TODO(snowapril) : check glfwGetPhysicalDevicePresentationSupport 
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     _window =
         glfwCreateWindow(resolution.x, resolution.y, title, nullptr, nullptr);
 
-    VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .hinstance = GetModuleHandle(nullptr),
-        .hwnd = glfwGetWin32Window(_window),
-    };
+    // TODO(snowapril) : move callback registration other place
+    glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode,
+                                  int action, int mods) {
+        (void)scancode;
+        (void)mods;
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+    });
 
-    VK_ASSERT(vkCreateWin32SurfaceKHR(_instance->get(), &surfaceCreateInfo,
-                                      nullptr, &_surface));
+    VK_ASSERT(
+        glfwCreateWindowSurface(_instance->get(), _window, nullptr, &_surface));
 
     const std::vector<VkSurfaceFormatKHR> surfaceFormatList = {
         { VK_FORMAT_R8G8B8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
@@ -72,8 +71,7 @@ SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
 
 SwapChain::~SwapChain()
 {
-    vkDestroySurfaceKHR(_instance->get(), _surface, nullptr);
-    glfwDestroyWindow(_window);
+    release();
 }
 
 SwapChain::SwapChain(SwapChain&& other) noexcept
@@ -271,5 +269,23 @@ bool SwapChain::create(bool vsync)
     }
 
     return true;
+}
+
+void SwapChain::release()
+{
+    if (_swapChain != VK_NULL_HANDLE)
+    {
+        for (VkImageView& swapChainImageView : _swapChainImageViews)
+        {
+            vkDestroyImageView(_logicalDevice->get(), swapChainImageView,
+                               nullptr);
+        }
+        _swapChainImageViews.clear();
+
+        vkDestroySwapchainKHR(_logicalDevice->get(), _swapChain, nullptr);
+    }
+
+    vkDestroySurfaceKHR(_instance->get(), _surface, nullptr);
+    glfwDestroyWindow(_window);
 }
 }  // namespace VoxFlow
