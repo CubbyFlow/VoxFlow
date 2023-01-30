@@ -43,6 +43,7 @@ VoxEngine::VoxEngine()
         }
         context.addDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
+    context.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 
     // TODO(snowapril) : customize
     context.addRequiredQueue(

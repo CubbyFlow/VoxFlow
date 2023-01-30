@@ -78,9 +78,15 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         }
     }
 
+    // TODO(snowapril) : expose feature control
+    VkPhysicalDeviceVulkan12Features features12 = {};
+    features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features12.pNext = VK_NULL_HANDLE;
+    features12.timelineSemaphore = VK_TRUE;
+
     [[maybe_unused]] const VkDeviceCreateInfo deviceInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &features12,
         .flags = 0,
         .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
         .pQueueCreateInfos = queueInfos.data(),
@@ -118,7 +124,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         }
 
         Queue* queue =
-            new Queue(queueHandle, queueFamilyIndices[i], queueIndex);
+            new Queue(this, queueHandle, queueFamilyIndices[i], queueIndex);
 
         VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
 
