@@ -49,6 +49,9 @@ void DebugUtil::GlfwDebugCallback(int errorCode, const char* description)
 void DebugUtil::setObjectName(uint64_t object, const char* name,
                               VkObjectType type) const
 {
+void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object, const char* name,
+                              VkObjectType type)
+{
     // static PFN_vkSetDebugUtilsObjectNameEXT setObjectName =
     const VkDebugUtilsObjectNameInfoEXT nameInfo = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -57,7 +60,27 @@ void DebugUtil::setObjectName(uint64_t object, const char* name,
         .objectHandle = object,
         .pObjectName = name
     };
-    vkSetDebugUtilsObjectNameEXT(_device->get(), &nameInfo);
+    vkSetDebugUtilsObjectNameEXT(logicalDevice->get(), &nameInfo);
+}
+
+DeviceRemoveTracker* DeviceRemoveTracker::get()
+{
+    static DeviceRemoveTracker* sDeviceRemoveTrackerInst = nullptr;
+    if (sDeviceRemoveTrackerInst == nullptr)
+    {
+        sDeviceRemoveTrackerInst = new DeviceRemoveTracker();
+    }
+    return sDeviceRemoveTrackerInst;
+}
+
+void DeviceRemoveTracker::addLogicalDeviceToTrack(LogicalDevice* logicalDevice)
+{
+    _logicalDevices.push_back(logicalDevice);
+}
+
+void DeviceRemoveTracker::onDeviceRemoved()
+{
+    VOX_ASSERT(false, "Not implemented yet");
 }
 
 std::string getVkResultString(VkResult vkResult)
