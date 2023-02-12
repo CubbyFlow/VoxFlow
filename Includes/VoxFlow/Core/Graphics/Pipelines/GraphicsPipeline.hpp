@@ -4,18 +4,21 @@
 #define VOXEL_FLOW_GRAPHICS_PIPELINE_HPP
 
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
+#include <memory>
 
 namespace VoxFlow
 {
 class LogicalDevice;
+class ShaderModule;
 
 class GraphicsPipeline : public BasePipeline
 {
  public:
-    explicit GraphicsPipeline(const std::shared_ptr<LogicalDevice>& device,
-                              const std::vector<const char*>& shaderFilenames,
-                              const PipelineCreateInfo& createInfo,
-                              const std::shared_ptr<PipelineLayout>& layout);
+    explicit GraphicsPipeline(
+        LogicalDevice* logicalDevice,
+        std::vector<std::shared_ptr<ShaderModule>>&& shaderModules,
+        const PipelineCreateInfo& createInfo,
+        const std::shared_ptr<PipelineLayout>& layout);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;
