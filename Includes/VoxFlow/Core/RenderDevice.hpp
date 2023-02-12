@@ -16,11 +16,13 @@ class PhysicalDevice;
 class LogicalDevice;
 class Queue;
 class SwapChain;
+class CommandPool;
+class CommandBuffer;
 
 class RenderDevice : private NonCopyable
 {
  public:
-    RenderDevice(Context deviceSetupCtx);
+    explicit RenderDevice(Context deviceSetupCtx);
     ~RenderDevice();
 
  public:
@@ -42,17 +44,21 @@ class RenderDevice : private NonCopyable
     }
 
  public:
-    bool addSwapChain(const char* title, const glm::ivec2 resolution);
+    void beginFrame(const uint32_t deviceIndex);
+    void presentSwapChains(const uint32_t deviceIndex);
 
  protected:
  private:
     Instance* _instance = nullptr;
     PhysicalDevice* _physicalDevice = nullptr;
     std::vector<LogicalDevice*> _logicalDevices;
-    std::vector<std::shared_ptr<SwapChain>> _swapChains;
-
     Context* _deviceSetupCtx = nullptr;
+
+    // TODO(snowapril) : to be removed
     Queue* _mainQueue = nullptr;
+    CommandPool* _mainCommandPool = nullptr;
+    std::vector<std::shared_ptr<CommandBuffer>> _mainCommandBuffers;
+    
 };
 }  // namespace VoxFlow
 
