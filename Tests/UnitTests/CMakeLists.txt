@@ -19,6 +19,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipelineTests.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtilTests.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassTests.cpp
+    ${SRC_DIR}/ThirdPartySampleTests/TaskFlowTests.cpp
     ${SRC_DIR}/UnitTests.cpp
 )
 
@@ -42,6 +43,7 @@ target_include_directories(${target}
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
     PRIVATE
     ${ROOT_DIR}/Dependencies/src/doctest
+    ${ROOT_DIR}/Dependencies/src/taskflow
     ${ROOT_DIR}/Includes
 )
 
