@@ -11,6 +11,8 @@ namespace VoxFlow
 
 RenderDevice::RenderDevice(Context deviceSetupCtx)
 {
+    deviceSetupCtx.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                                        false);
     _deviceSetupCtx = new Context(deviceSetupCtx);
     _instance = new Instance(deviceSetupCtx);
     _physicalDevice = new PhysicalDevice(*_instance);
