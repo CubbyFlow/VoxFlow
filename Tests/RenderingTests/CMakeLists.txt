@@ -5,7 +5,7 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Includes
 set(PUBLIC_HDRS 
-    ${PUBLIC_HDR_DIR}/RenderingTestUnits.hpp
+    ${PUBLIC_HDR_DIR}/RenderingTestsUtils.hpp
 )
 
 # Sources

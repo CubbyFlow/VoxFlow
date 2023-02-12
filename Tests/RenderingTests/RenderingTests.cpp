@@ -2,7 +2,7 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT
 
-#include "UnitTestUtils.hpp"
+#include "RenderingTestsUtils.hpp"
 
 VoxFlow::Context gVulkanContext;
 
@@ -14,7 +14,7 @@ int main()
     gVulkanContext.addRequiredQueue(
         "GCT",
         VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 1,
-        1.0F);
+        1.0F, true);
 
     // Run queries, or run tests unless --no-run is specified
     return context.run();
