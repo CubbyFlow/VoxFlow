@@ -22,6 +22,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
@@ -50,6 +51,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/ShaderModule.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
@@ -100,6 +102,7 @@ target_link_libraries(${target}
     glslang
     SPIRV
     assimp
+    spirv-cross-core
 )
 
 # Compile definitions
