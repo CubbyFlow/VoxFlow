@@ -3,32 +3,35 @@
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
-#include <VoxFlow/Core/Devices/Swapchain.hpp>
+#include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <glm/common.hpp>
 
 namespace VoxFlow
 {
 SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
                      LogicalDevice* logicalDevice, Queue* presentSupportQueue,
-                     const char* title, const glm::ivec2 resolution) noexcept
+                     std::string&& titleName, const glm::ivec2 resolution) noexcept
     : _instance(instance),
       _physicalDevice(physicalDevice),
       _logicalDevice(logicalDevice),
       _queue(presentSupportQueue),
+      _titleName(std::move(titleName)),
       _resolution(resolution)
 {
-    // TODO(snowapril) : check glfwGetPhysicalDevicePresentationSupport 
-
+    // TODO(snowapril) : check glfwGetPhysicalDevicePresentationSupport
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    _window =
-        glfwCreateWindow(resolution.x, resolution.y, title, nullptr, nullptr);
+    _window = glfwCreateWindow(resolution.x, resolution.y, titleName.c_str(),
+                               nullptr,
+                               nullptr);
 
     // TODO(snowapril) : move callback registration other place
     glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode,
-                                  int action, int mods) {
+                                   int action, int mods) {
         (void)scancode;
         (void)mods;
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -99,11 +102,20 @@ SwapChain& SwapChain::operator=(SwapChain&& other) noexcept
     return *this;
 }
 
+std::optional<uint32_t> SwapChain::acquireNextImageIndex()
+{
+    VK_ASSERT(vkAcquireNextImageKHR(_logicalDevice->get(), _swapChain,
+                                    UINT64_MAX,
+                                    _backBufferReadySemaphores[_frameIndex],
+                                    VK_NULL_HANDLE, &_backBufferIndex));
+    return {};
+}
+
 bool SwapChain::create(bool vsync)
 {
     VkSwapchainKHR oldSwapChain = _swapChain;
 
-    VkSurfaceCapabilitiesKHR surfaceCaps;
+    VkSurfaceCapabilitiesKHR surfaceCaps = {};
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         _physicalDevice->get(), _surface, &surfaceCaps));
 
@@ -128,7 +140,10 @@ bool SwapChain::create(bool vsync)
         _resolution.y = surfaceCaps.currentExtent.height;
     }
 
-    VkExtent2D swapchainExtent(_resolution.x, _resolution.y);
+    const VkExtent2D swapchainExtent{
+        .width = static_cast<uint32_t>(_resolution.x),
+        .height = static_cast<uint32_t>(_resolution.y)
+    };
 
     VkPresentModeKHR resultPresentMode = VK_PRESENT_MODE_FIFO_KHR;
     if (vsync == false)
@@ -142,7 +157,7 @@ bool SwapChain::create(bool vsync)
             }
             else if (presentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
             {
-                resultPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                resultPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
                 break;
             }
         }
@@ -220,6 +235,14 @@ bool SwapChain::create(bool vsync)
     VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo,
                                    nullptr, &_swapChain));
 
+    if (_swapChain == VK_NULL_HANDLE)
+    {
+        VOX_ASSERT(false, "Failed to create SwapChain(%s)", _titleName);
+        return false;
+    }
+
+    DebugUtil::setObjectName(_logicalDevice, _swapChain, _titleName.c_str());
+
     if (oldSwapChain != VK_NULL_HANDLE)
     {
         for (VkImageView& swapChainImageView : _swapChainImageViews)
@@ -266,26 +289,144 @@ bool SwapChain::create(bool vsync)
 
         VK_ASSERT(vkCreateImageView(_logicalDevice->get(), &viewCreateInfo,
                                     nullptr, &_swapChainImageViews[i]));
+
+        const std::string swapChainImageDebugName =
+            fmt::format("%s_Image(%u)", _titleName, i);
+        const std::string swapChainImageViewDebugName =
+            fmt::format("%s_ImageView(%u)", _titleName, i);
+        DebugUtil::setObjectName(_logicalDevice, _swapChainImages[i],
+                                 swapChainImageDebugName.c_str());
+        DebugUtil::setObjectName(_logicalDevice, _swapChainImageViews[i],
+                                 swapChainImageViewDebugName.c_str());
     }
 
+    if (numSwapChainImages != _presentSemaphores.size())
+    {
+        LogicalDevice* logicalDevice = _logicalDevice;
+        auto recreateSemaphores =
+            [logicalDevice](const uint32_t numSwapChainImages,
+                            std::vector<VkSemaphore>& targetSemaphores) {
+                for (uint32_t i = numSwapChainImages;
+                     i < targetSemaphores.size(); ++i)
+                {
+                    vkDestroySemaphore(logicalDevice->get(),
+                                       targetSemaphores[i], nullptr);
+                }
+
+                const uint32_t oldNumSemaphores =
+                    static_cast<uint32_t>(targetSemaphores.size());
+                targetSemaphores.resize(numSwapChainImages);
+                for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
+                {
+                    VkSemaphoreCreateInfo semaphoreInfo =
+                        Initializer::MakeInfo<VkSemaphoreCreateInfo>();
+                    vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
+                                      nullptr, &targetSemaphores[i]);
+                }
+            };
+
+        recreateSemaphores(numSwapChainImages, _backBufferReadySemaphores);
+        recreateSemaphores(numSwapChainImages, _presentSemaphores);
+    }
     return true;
 }
 
 void SwapChain::release()
 {
+    for (VkSemaphore& backBufferReadySemaphore : _backBufferReadySemaphores)
+    {
+        vkDestroySemaphore(_logicalDevice->get(), backBufferReadySemaphore,
+                           nullptr);
+    }
+    _backBufferReadySemaphores.clear();
+
+    for (VkSemaphore& presentSemaphore : _presentSemaphores)
+    {
+        vkDestroySemaphore(_logicalDevice->get(), presentSemaphore, nullptr);
+    }
+    _presentSemaphores.clear();
+
+    for (VkImageView& swapChainImageView : _swapChainImageViews)
+    {
+        vkDestroyImageView(_logicalDevice->get(), swapChainImageView, nullptr);
+    }
+    _swapChainImageViews.clear();
+
     if (_swapChain != VK_NULL_HANDLE)
     {
-        for (VkImageView& swapChainImageView : _swapChainImageViews)
-        {
-            vkDestroyImageView(_logicalDevice->get(), swapChainImageView,
-                               nullptr);
-        }
-        _swapChainImageViews.clear();
-
         vkDestroySwapchainKHR(_logicalDevice->get(), _swapChain, nullptr);
     }
 
-    vkDestroySurfaceKHR(_instance->get(), _surface, nullptr);
-    glfwDestroyWindow(_window);
+    if (_surface != VK_NULL_HANDLE)
+    {
+        vkDestroySurfaceKHR(_instance->get(), _surface, nullptr);
+    }
+
+    if (_window != nullptr)
+    {
+        glfwDestroyWindow(_window);
+    }
+}
+
+void SwapChain::present()
+{
+    VkResult presentResult = VK_SUCCESS;
+
+    VkPresentInfoKHR presentInfo = {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &_presentSemaphores[_frameIndex],
+        .swapchainCount = 1,
+        .pSwapchains = &_swapChain,
+        .pImageIndices = &_backBufferIndex,
+        .pResults = &presentResult,
+    };
+
+    VK_ASSERT(vkQueuePresentKHR(_queue->get(), &presentInfo));
+}
+
+void SwapChain::prepareForNextFrame()
+{
+    _frameIndex = (_frameIndex + 1) % FRAME_BUFFER_COUNT;
+}
+
+void SwapChain::addWaitSemaphores(const uint32_t frameIndex,
+    VkSemaphore timelineSemaphore,
+    const uint64_t waitingValue)
+{
+    SemaphoreWaitInfo& waitInfo =
+        _waitSemaphoreInfos[frameIndex];
+
+    std::lock_guard<std::mutex> scopeLockGuard(waitInfo._waitInfoMutex);
+
+    waitInfo._waitSemaphores.push_back(timelineSemaphore);
+    waitInfo._waitingSemaphoreValues.push_back(
+        waitingValue);
+}
+
+void SwapChain::waitForGpuComplete(const uint32_t frameIndex)
+{
+    SemaphoreWaitInfo& waitInfo = _waitSemaphoreInfos[frameIndex];
+
+    std::lock_guard<std::mutex> scopeLockGuard(waitInfo._waitInfoMutex);
+
+    if (waitInfo._waitSemaphores.empty() == false)
+    {
+        VkSemaphoreWaitInfo vkWaitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
+            .pNext = nullptr,
+            .flags = 0,
+            .semaphoreCount =
+                static_cast<uint32_t>(waitInfo._waitSemaphores.size()),
+            .pSemaphores = waitInfo._waitSemaphores.data(),
+            .pValues = waitInfo._waitingSemaphoreValues.data()
+        };
+        VK_ASSERT(vkWaitSemaphoresKHR(_logicalDevice->get(), &vkWaitInfo,
+                                      UINT64_MAX));
+
+        waitInfo._waitSemaphores.clear();
+        waitInfo._waitingSemaphoreValues.clear();
+    }
 }
 }  // namespace VoxFlow
