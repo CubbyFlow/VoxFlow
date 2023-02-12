@@ -189,6 +189,22 @@ inline VkSubpassDescription Initializer::MakeInfo() noexcept
              .preserveAttachmentCount = 0,
              .pPreserveAttachments = nullptr };
 }
+
+template <>
+inline VkSemaphoreCreateInfo Initializer::MakeInfo() noexcept
+{
+    return { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+             .pNext = nullptr,
+             .flags = 0 };
+}
+
+template <>
+inline VkFenceCreateInfo Initializer::MakeInfo() noexcept
+{
+    return { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+             .pNext = nullptr,
+             .flags = 0 };
+}
 }  // namespace VoxFlow
 
 #endif
