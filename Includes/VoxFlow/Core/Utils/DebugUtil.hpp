@@ -19,6 +19,7 @@ class DebugUtil
                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                   void* userData);
     static void GlfwDebugCallback(int errorCode, const char* description);
+    static void DebugBreak();
 
  public:
     struct ScopedCmdLabel

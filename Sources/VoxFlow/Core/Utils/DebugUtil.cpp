@@ -34,9 +34,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
             break;
     }
 
-#if defined(_WIN32)
-    DebugBreak();
-#endif
+    DebugUtil::DebugBreak();
 
     return VK_FALSE;
 }
@@ -46,9 +44,13 @@ void DebugUtil::GlfwDebugCallback(int errorCode, const char* description)
     spdlog::warn("[GLFW Callback] {} ({})", description, errorCode);
 }
 
-void DebugUtil::setObjectName(uint64_t object, const char* name,
-                              VkObjectType type) const
+void DebugUtil::DebugBreak()
 {
+#if defined(_WIN32)
+    ::DebugBreak();
+#endif
+}
+
 void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object, const char* name,
                               VkObjectType type)
 {
