@@ -4,6 +4,9 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <execution>
@@ -122,33 +125,33 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
         VOX_ASSERT(queueHandle != VK_NULL_HANDLE, "Failed to get device queue");
         if (queueHandle != VK_NULL_HANDLE)
         {
-        std::unordered_map<uint32_t, uint32_t>::iterator findIt =
+            std::unordered_map<uint32_t, uint32_t>::iterator findIt =
                 queueIndicesPerFamily.find(requiredQueueFamilyIndices[i]);
 
-        uint32_t queueIndex = 0U;
-        if (findIt != queueIndicesPerFamily.end())
-        {
-            queueIndex = ++(findIt->second);
-        }
-        else
-        {
-            queueIndicesPerFamily.insert(
+            uint32_t queueIndex = 0U;
+            if (findIt != queueIndicesPerFamily.end())
+            {
+                queueIndex = ++(findIt->second);
+            }
+            else
+            {
+                queueIndicesPerFamily.insert(
                     std::make_pair(requiredQueueFamilyIndices[i], queueIndex));
-        }
+            }
 
             Queue* queue = new Queue(ctx.requiredQueues[i].queueName, this,
                                      requiredQueueFlags[i], queueHandle,
                                      requiredQueueFamilyIndices[i], queueIndex);
 
-        VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
+            VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
 
-        _queueMap.emplace(ctx.requiredQueues[i].queueName, queue);
+            _queueMap.emplace(ctx.requiredQueues[i].queueName, queue);
 
-        if (ctx.requiredQueues[i].isMainQueue)
-        {
-            _mainQueue = queue;
+            if (ctx.requiredQueues[i].isMainQueue)
+            {
+                _mainQueue = queue;
+            }
         }
-    }
     }
 
     // Load device-related vulkan entrypoints (all global functions)
@@ -197,6 +200,27 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     _swapChains.push_back(swapChain);
 
     return swapChain;
+}
+
+std::shared_ptr<Texture> LogicalDevice::createTexture(std::string&& name,
+                                                      TextureInfo textureInfo)
+{
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(
+        std::move(name), this, _renderResourceMemoryPool);
+    if (texture->initialize(textureInfo) == false)
+        return nullptr;
+
+    return texture;
+}
+std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
+                                                    BufferInfo bufferInfo)
+{
+    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
+        std::move(name), this, _renderResourceMemoryPool);
+    if (buffer->initialize(bufferInfo) == false)
+        return nullptr;
+
+    return buffer;
 }
 
 void LogicalDevice::executeOnEachSwapChain(

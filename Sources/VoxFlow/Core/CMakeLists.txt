@@ -28,6 +28,9 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderResourceCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
@@ -63,6 +66,9 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/ShaderResourceCollector.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassCollector.cpp
+    ${SRC_DIR}/Core/Resources/Texture.cpp
+    ${SRC_DIR}/Core/Resources/Buffer.cpp
+    ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/RenderDevice.cpp
@@ -92,6 +98,8 @@ target_include_directories(${target}
     ${LIBRARY_DIR}/volk
     ${LIBRARY_DIR}/glslang
     ${LIBRARY_DIR}/assimp/include
+    ${LIBRARY_DIR}/vma/src
+    ${LIBRARY_DIR}
 )
 
 # Compile options
@@ -113,6 +121,7 @@ target_link_libraries(${target}
     SPIRV
     assimp
     spirv-cross-core
+    VulkanMemoryAllocator
 )
 
 # Compile definitions

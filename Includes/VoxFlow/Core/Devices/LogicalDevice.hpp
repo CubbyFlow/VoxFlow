@@ -5,7 +5,6 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>
-#include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -17,6 +16,9 @@
 namespace VoxFlow
 {
 class SwapChain;
+class RenderResourceMemoryPool;
+class Buffer;
+class Texture;
 class PhysicalDevice;
 class Instance;
 
@@ -34,12 +36,19 @@ class LogicalDevice : NonCopyable
     }
     [[nodiscard]] Queue* getQueuePtr(
         const std::string& queueName);
-
+    
  public:
      // Create new swapChain with given desc.
     std::shared_ptr<SwapChain> addSwapChain(const char* title,
                                             const glm::ivec2 resolution);
 
+    // Create new texture handle
+    std::shared_ptr<Texture> createTexture(std::string&& name,
+                                           TextureInfo textureInfo);
+
+    // Create new buffer handle
+    std::shared_ptr<Buffer> createBuffer(std::string&& name,
+                                         BufferInfo bufferInfo);
 
     // Execute given executor for each swapchain created.
     void executeOnEachSwapChain(
@@ -56,6 +65,7 @@ class LogicalDevice : NonCopyable
     std::unordered_map<std::string, Queue*> _queueMap{};
     Queue* _mainQueue = nullptr;
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
+    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
 };
 }  // namespace VoxFlow
 
