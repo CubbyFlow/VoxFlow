@@ -1,8 +1,12 @@
 #version 450 core
 
-layout(location = 0) out vec4 fragColor;
+precision mediump float;
+
+layout(location = 0) in vec4 vTex;
+layout(binding = 0) uniform sampler2D uTex;
+layout(location = 0) out vec4 FragColor;
 
 void main()
 {
-	fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    FragColor = textureProj(uTex, vTex);
 }
