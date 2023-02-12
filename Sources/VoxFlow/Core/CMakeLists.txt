@@ -14,6 +14,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/SwapChain.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
@@ -39,6 +40,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/Queue.cpp
     ${SRC_DIR}/Core/Devices/SwapChain.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
+    ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetLayout.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayout.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtil.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
