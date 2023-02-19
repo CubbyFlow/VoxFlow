@@ -31,7 +31,8 @@ class Buffer : private NonCopyable
         return _bufferInfo;
     }
 
-    bool initialize(BufferInfo bufferInfo);
+    bool initialize(const BufferInfo& bufferInfo);
+    std::optional<uint32_t> createBufferView(const BufferViewInfo& viewInfo);
     void release();
 
  protected:
@@ -42,6 +43,8 @@ class Buffer : private NonCopyable
     VmaAllocation _bufferAllocation = nullptr;
     BufferInfo _bufferInfo;
     std::string _debugName;
+
+    std::vector<std::pair<VkBufferView, BufferViewInfo>> _vkBufferViews;
 };
 }  // namespace VoxFlow
 

@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 
@@ -38,7 +39,7 @@ Buffer::~Buffer()
 {
 }
 
-bool Buffer::initialize(BufferInfo bufferInfo)
+bool Buffer::initialize(const BufferInfo& bufferInfo)
 {
     VOX_ASSERT(bufferInfo._usage != BufferUsage::Unknown,
                "BufferUsage must be specified");
@@ -73,7 +74,7 @@ bool Buffer::initialize(BufferInfo bufferInfo)
 
     if (_vkBuffer == VK_NULL_HANDLE)
     {
-        VOX_ASSERT(false, "Failed to initialize buffer(%s)", _debugName);
+        VOX_ASSERT(false, "Failed to initialize buffer({})", _debugName);
         return false;
     }
 
@@ -81,8 +82,43 @@ bool Buffer::initialize(BufferInfo bufferInfo)
     return true;
 }
 
+std::optional<uint32_t> Buffer::createBufferView(const BufferViewInfo& viewInfo)
+{
+    VkBufferViewCreateInfo viewCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .buffer = _vkBuffer,
+        .format = viewInfo._format,
+        .offset = viewInfo._offset,
+        .range = viewInfo._range
+    };
+    VkBufferView vkBufferView = VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateBufferView(_logicalDevice->get(), &viewCreateInfo,
+                                 nullptr, &vkBufferView));
+
+    const uint32_t viewIndex = static_cast<uint32_t>(_vkBufferViews.size());
+    const std::string& viewDebugName =
+        fmt::format("%s_View({})", _debugName, viewIndex);
+
+    if (vkBufferView == VK_NULL_HANDLE)
+    {
+        VOX_ASSERT(false, "Failed to create BufferView({})", viewDebugName);
+        return {};
+    }
+
+    _vkBufferViews.emplace_back(vkBufferView, viewInfo);
+    return viewIndex;
+}
+
 void Buffer::release()
 {
+    for (auto& viewPair : _vkBufferViews)
+    {
+        vkDestroyBufferView(_logicalDevice->get(), viewPair.first, nullptr);
+    }
+    _vkBufferViews.clear();
+
     if (_vkBuffer != VK_NULL_HANDLE)
     {
         vmaDestroyBuffer(_renderResourceMemoryPool->get(), _vkBuffer,
