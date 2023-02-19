@@ -118,6 +118,12 @@ class DebugUtil
         setObjectName(logicalDevice, reinterpret_cast<uint64_t>(fence), name,
                       VK_OBJECT_TYPE_FENCE);
     }
+    static void setObjectName(LogicalDevice* logicalDevice, VkFramebuffer frameBuffer,
+                              const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(frameBuffer),
+                      name, VK_OBJECT_TYPE_FRAMEBUFFER);
+    }
     static void setObjectName(LogicalDevice* logicalDevice,
                               VkSemaphore semaphore, const char* name)
     {
