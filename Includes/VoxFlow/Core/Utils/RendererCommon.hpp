@@ -4,8 +4,9 @@
 #define VOXEL_FLOW_RENDERER_COMMON_HPP
 
 #include <volk/volk.h>
-#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <VoxFlow/Core/Utils/HashUtil.hpp>
 #include <vector>
 #include <string>
@@ -14,9 +15,9 @@
 
 namespace VoxFlow
 {
-class Texture;
+class TextureView;
 
-constexpr uint32_t BACK_BUFFER_COUNT = 2;
+constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 2;
 
 enum DescriptorSetCycle : uint8_t
@@ -51,8 +52,15 @@ inline uint32_t operator&(BufferUsage lhs, BufferUsage rhs)
 
 struct BufferInfo
 {
-    uint32_t _size = 0;
+    uint64_t _size = 0;
     BufferUsage _usage = BufferUsage::Unknown;
+};
+
+struct BufferViewInfo
+{
+    VkFormat _format = VK_FORMAT_UNDEFINED;
+    uint64_t _offset = 0;
+    uint64_t _range = 0;
 };
 
 enum class TextureUsage : uint32_t
@@ -84,16 +92,30 @@ struct TextureInfo
     TextureUsage _usage = TextureUsage::Unknown;
 };
 
+struct TextureViewInfo
+{
+    VkImageViewType _viewType = VK_IMAGE_VIEW_TYPE_2D;
+    VkFormat _format = VK_FORMAT_UNDEFINED;
+    VkImageAspectFlags _aspectFlags = 0;
+    uint32_t _baseMipLevel = 0;
+    uint32_t _levelCount = 1;
+    uint32_t _baseArrayLayer = 0;
+    uint32_t _layerCount = 1;
+};
+
 struct ColorPassDescription
 {
     glm::ivec3 _resolution;
     VkFormat _format = VK_FORMAT_UNDEFINED;
     bool _clearColor = false;
+    glm::vec4 _clearColorValues;
 
     inline bool operator==(const ColorPassDescription& other) const
     {
         return (_resolution == other._resolution) &&
-               (_format == other._format) && (_clearColor == other._clearColor);
+               (_format == other._format) &&
+               (_clearColor == other._clearColor) &&
+               (_clearColorValues == other._clearColorValues);
     }
 };
 
@@ -103,6 +125,8 @@ struct DepthStencilPassDescription
     VkFormat _format = VK_FORMAT_UNDEFINED;
     bool _clearDepth = false;
     bool _clearStencil = false;
+    float _clearDepthValue = 0.0f;
+    uint32_t _clearStencilValue = 0;
 
     inline bool operator==(
         const DepthStencilPassDescription& other) const
@@ -110,7 +134,9 @@ struct DepthStencilPassDescription
         return (_resolution == other._resolution) &&
                (_format == other._format) &&
                (_clearDepth == other._clearDepth) &&
-               (_clearStencil == other._clearStencil);
+               (_clearStencil == other._clearStencil) &&
+               (_clearDepthValue == other._clearDepthValue) &&
+               (_clearStencilValue == other._clearStencilValue);
     }
 };
 
@@ -126,13 +152,32 @@ struct RenderTargetLayoutKey
 struct RenderTargetsInfo
 {
     std::string _debugName;
-    std::vector<std::shared_ptr<Texture>> _colorRenderTarget;
-    std::optional<std::shared_ptr<Texture>> _depthStencilImage;
-    glm::ivec2 _resolution;
+    RenderTargetLayoutKey _layoutKey;
+    std::vector<std::shared_ptr<TextureView>> _colorRenderTarget;
+    std::optional<std::shared_ptr<TextureView>> _depthStencilImage;
+    glm::uvec2 _resolution;
 
     bool operator==(const RenderTargetsInfo& other) const;
 };
 
+struct VertexInputLayout
+{
+
+};
 }  // namespace VoxFlow
+
+template <>
+struct std::hash<VoxFlow::RenderTargetLayoutKey>
+{
+    std::size_t operator()(
+        VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept;
+};
+
+template <>
+struct std::hash<VoxFlow::RenderTargetsInfo>
+{
+    std::size_t operator()(
+        VoxFlow::RenderTargetsInfo const& rtInfo) const noexcept;
+};
 
 #endif

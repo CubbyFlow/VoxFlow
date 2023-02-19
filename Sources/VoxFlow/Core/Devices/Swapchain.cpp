@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -15,7 +16,7 @@ namespace VoxFlow
 {
 SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
                      LogicalDevice* logicalDevice, Queue* presentSupportQueue,
-                     std::string&& titleName, const glm::ivec2 resolution) noexcept
+                     std::string&& titleName, const glm::uvec2 resolution) noexcept
     : _instance(instance),
       _physicalDevice(physicalDevice),
       _logicalDevice(logicalDevice),
@@ -97,7 +98,6 @@ SwapChain& SwapChain::operator=(SwapChain&& other) noexcept
         _surfaceFormat = other._surfaceFormat;
         _colorSpace = other._colorSpace;
         _swapChainImages.swap(other._swapChainImages);
-        _swapChainImageViews.swap(other._swapChainImageViews);
     }
     return *this;
 }
@@ -108,13 +108,110 @@ std::optional<uint32_t> SwapChain::acquireNextImageIndex()
                                     UINT64_MAX,
                                     _backBufferReadySemaphores[_frameIndex],
                                     VK_NULL_HANDLE, &_backBufferIndex));
-    return {};
+
+    // TODO(snowapril) : need handling out-of-date or not-ready situation.
+    return { _backBufferIndex };
 }
 
-bool SwapChain::create(bool vsync)
+bool SwapChain::create(const bool vsync)
 {
     VkSwapchainKHR oldSwapChain = _swapChain;
 
+    VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
+    querySwapChainCapability(swapChainCreateInfo, vsync);
+    swapChainCreateInfo.oldSwapchain = oldSwapChain;
+
+    VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo,
+                                   nullptr, &_swapChain));
+
+    if (_swapChain == VK_NULL_HANDLE)
+    {
+        VOX_ASSERT(false, "Failed to create SwapChain({})", _titleName);
+        return false;
+    }
+
+    DebugUtil::setObjectName(_logicalDevice, _swapChain, _titleName.c_str());
+
+    if (oldSwapChain != VK_NULL_HANDLE)
+    {
+        _swapChainImages.clear();
+        vkDestroySwapchainKHR(_logicalDevice->get(), oldSwapChain, nullptr);
+    }
+
+    uint32_t numSwapChainImages;
+    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
+                            &numSwapChainImages, nullptr);
+    
+    std::vector<VkImage> vkSwapChainImages(numSwapChainImages);
+    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
+                            &numSwapChainImages, vkSwapChainImages.data());
+
+    // Create Textures from queried swapChain images
+    _swapChainImages.reserve(numSwapChainImages);
+    for (uint32_t i = 0; i < numSwapChainImages; ++i)
+    {
+        auto swapChainImage = std::make_shared<Texture>(
+            fmt::format("{}_Image({})", _titleName, i), _logicalDevice,
+            nullptr);
+
+        TextureInfo surfaceInfo = { ._extent = glm::uvec3(_resolution, 1),
+                                    ._format = _surfaceFormat,
+                                    ._imageType = VK_IMAGE_TYPE_2D,
+                                    ._usage = TextureUsage::RenderTarget };
+
+        swapChainImage->initializeFromSwapChain(surfaceInfo,
+                                                vkSwapChainImages[i]);
+
+        TextureViewInfo surfaceViewInfo = { ._viewType = VK_IMAGE_VIEW_TYPE_2D,
+                                            ._format = _surfaceFormat,
+                                            ._aspectFlags =
+                                                VK_IMAGE_ASPECT_COLOR_BIT,
+                                            ._baseMipLevel = 0,
+                                            ._levelCount = 1,
+                                            ._baseArrayLayer = 0,
+                                            ._layerCount = 1 };
+
+        swapChainImage->createTextureView(surfaceViewInfo);
+
+        _swapChainImages.push_back(std::move(swapChainImage));
+    }
+
+    // If number of swapChain images are differred with original, create new semaphore
+    if (numSwapChainImages != _presentSemaphores.size())
+    {
+        LogicalDevice* logicalDevice = _logicalDevice;
+        auto recreateSemaphores =
+            [logicalDevice](const uint32_t numSwapChainImages,
+                            std::vector<VkSemaphore>& targetSemaphores) {
+                for (uint32_t i = numSwapChainImages;
+                     i < targetSemaphores.size(); ++i)
+                {
+                    vkDestroySemaphore(logicalDevice->get(),
+                                       targetSemaphores[i], nullptr);
+                }
+
+                const uint32_t oldNumSemaphores =
+                    static_cast<uint32_t>(targetSemaphores.size());
+                targetSemaphores.resize(numSwapChainImages);
+                for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
+                {
+                    VkSemaphoreCreateInfo semaphoreInfo =
+                        Initializer::MakeInfo<VkSemaphoreCreateInfo>();
+                    vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
+                                      nullptr, &targetSemaphores[i]);
+                }
+            };
+
+        recreateSemaphores(numSwapChainImages, _backBufferReadySemaphores);
+        recreateSemaphores(numSwapChainImages, _presentSemaphores);
+    }
+
+    return true;
+}
+
+void SwapChain::querySwapChainCapability(
+    VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync)
+{
     VkSurfaceCapabilitiesKHR surfaceCaps = {};
     VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         _physicalDevice->get(), _surface, &surfaceCaps));
@@ -200,7 +297,7 @@ bool SwapChain::create(bool vsync)
         }
     }
 
-    VkSwapchainCreateInfoKHR swapChainCreateInfo = {
+    swapChainCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
@@ -219,7 +316,7 @@ bool SwapChain::create(bool vsync)
         .presentMode = resultPresentMode,
         .clipped = VK_TRUE,  // Allow presentation engine discard rendering
                              // outside of the surface,
-        .oldSwapchain = oldSwapChain
+        .oldSwapchain = VK_NULL_HANDLE
     };
 
     if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
@@ -231,104 +328,6 @@ bool SwapChain::create(bool vsync)
     {
         swapChainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     }
-
-    VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo,
-                                   nullptr, &_swapChain));
-
-    if (_swapChain == VK_NULL_HANDLE)
-    {
-        VOX_ASSERT(false, "Failed to create SwapChain(%s)", _titleName);
-        return false;
-    }
-
-    DebugUtil::setObjectName(_logicalDevice, _swapChain, _titleName.c_str());
-
-    if (oldSwapChain != VK_NULL_HANDLE)
-    {
-        for (VkImageView& swapChainImageView : _swapChainImageViews)
-        {
-            vkDestroyImageView(_logicalDevice->get(), swapChainImageView,
-                               nullptr);
-        }
-        _swapChainImageViews.clear();
-
-        vkDestroySwapchainKHR(_logicalDevice->get(), oldSwapChain, nullptr);
-    }
-
-    uint32_t numSwapChainImages;
-    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
-                            &numSwapChainImages, nullptr);
-    _swapChainImages.resize(numSwapChainImages);
-    _swapChainImageViews.resize(numSwapChainImages);
-    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
-                            &numSwapChainImages, _swapChainImages.data());
-
-    for (uint32_t i = 0; i < numSwapChainImages; ++i)
-    {
-        VkImageViewCreateInfo viewCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-             .image = _swapChainImages[i],
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = _surfaceFormat,
-            .components = {
-                VK_COMPONENT_SWIZZLE_R,
-                VK_COMPONENT_SWIZZLE_G,
-                VK_COMPONENT_SWIZZLE_B,
-                VK_COMPONENT_SWIZZLE_A,
-            },
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-
-        VK_ASSERT(vkCreateImageView(_logicalDevice->get(), &viewCreateInfo,
-                                    nullptr, &_swapChainImageViews[i]));
-
-        const std::string swapChainImageDebugName =
-            fmt::format("%s_Image(%u)", _titleName, i);
-        const std::string swapChainImageViewDebugName =
-            fmt::format("%s_ImageView(%u)", _titleName, i);
-        DebugUtil::setObjectName(_logicalDevice, _swapChainImages[i],
-                                 swapChainImageDebugName.c_str());
-        DebugUtil::setObjectName(_logicalDevice, _swapChainImageViews[i],
-                                 swapChainImageViewDebugName.c_str());
-    }
-
-    if (numSwapChainImages != _presentSemaphores.size())
-    {
-        LogicalDevice* logicalDevice = _logicalDevice;
-        auto recreateSemaphores =
-            [logicalDevice](const uint32_t numSwapChainImages,
-                            std::vector<VkSemaphore>& targetSemaphores) {
-                for (uint32_t i = numSwapChainImages;
-                     i < targetSemaphores.size(); ++i)
-                {
-                    vkDestroySemaphore(logicalDevice->get(),
-                                       targetSemaphores[i], nullptr);
-                }
-
-                const uint32_t oldNumSemaphores =
-                    static_cast<uint32_t>(targetSemaphores.size());
-                targetSemaphores.resize(numSwapChainImages);
-                for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
-                {
-                    VkSemaphoreCreateInfo semaphoreInfo =
-                        Initializer::MakeInfo<VkSemaphoreCreateInfo>();
-                    vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
-                                      nullptr, &targetSemaphores[i]);
-                }
-            };
-
-        recreateSemaphores(numSwapChainImages, _backBufferReadySemaphores);
-        recreateSemaphores(numSwapChainImages, _presentSemaphores);
-    }
-    return true;
 }
 
 void SwapChain::release()
@@ -345,12 +344,6 @@ void SwapChain::release()
         vkDestroySemaphore(_logicalDevice->get(), presentSemaphore, nullptr);
     }
     _presentSemaphores.clear();
-
-    for (VkImageView& swapChainImageView : _swapChainImageViews)
-    {
-        vkDestroyImageView(_logicalDevice->get(), swapChainImageView, nullptr);
-    }
-    _swapChainImageViews.clear();
 
     if (_swapChain != VK_NULL_HANDLE)
     {

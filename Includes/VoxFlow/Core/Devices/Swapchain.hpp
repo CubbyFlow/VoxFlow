@@ -16,57 +16,31 @@ namespace VoxFlow
 class Instance;
 class PhysicalDevice;
 class Queue;
+class Texture;
 
-class SwapChain : NonCopyable
+class SwapChain : private NonCopyable
 {
  public:
     explicit SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
                        LogicalDevice* logicalDevice, Queue* presentSupportQueue,
-                       std::string&& titleName, const glm::ivec2 resolution) noexcept;
+                       std::string&& titleName, const glm::uvec2 resolution) noexcept;
     ~SwapChain();
     SwapChain(SwapChain&& other) noexcept;
     SwapChain& operator=(SwapChain&& other) noexcept;
 
-    [[nodiscard]] inline VkSwapchainKHR get() const noexcept
-    {
-        return _swapChain;
-    }
+    [[nodiscard]] VkSwapchainKHR get() const noexcept;
+    [[nodiscard]] VkSurfaceKHR getSurface() const noexcept;
+    [[nodiscard]] VkFormat getSurfaceFormat() const noexcept;
+    [[nodiscard]] VkSemaphore getCurrentBackBufferReadySemaphore() const noexcept;
+    [[nodiscard]] VkSemaphore getCurrentPresentReadySemaphore() const noexcept;
+    [[nodiscard]] uint32_t getSwapChainIndex() const noexcept;
+    [[nodiscard]] uint32_t getFrameIndex() const noexcept;
+    [[nodiscard]] std::shared_ptr<Texture> getSwapChainImage(const uint32_t index) const;
+    [[nodiscard]] glm::uvec2 getResolution() const noexcept;
 
-    [[nodiscard]] inline VkSurfaceKHR getSurface() const noexcept
-    {
-        return _surface;
-    }
-
-    [[nodiscard]] inline VkSemaphore getCurrentBackBufferReadySemaphore() const
-    {
-        return _backBufferReadySemaphores[_frameIndex];
-    }
-    [[nodiscard]] inline VkSemaphore getCurrentPresentReadySemaphore() const
-    {
-        return _presentSemaphores[_frameIndex];
-    }
-
-    [[nodiscard]] inline uint32_t getSwapChainIndex() const
-    {
-        return _swapChainIndex;
-    }
-
-    [[nodiscard]] inline uint32_t getFrameIndex() const
-    {
-        return _frameIndex;
-    }
-
-    [[nodiscard]] VkImage getSwapChainImage(const uint32_t index) const
-    {
-        VOX_ASSERT(index < static_cast<uint32_t>(_swapChainImages.size()),
-                   "Given Index (%u), Num SwapChain Images (%u)", index,
-                   _swapChainImages.size());
-        return _swapChainImages[index];
-    }
-
-    public:
+public:
     // Create new SwapChain and resources and discard old one.
-    bool create(bool vsync = false);
+    bool create(const bool vsync = false);
 
     // Release swapchain handle and its resources
     void release();
@@ -89,6 +63,10 @@ class SwapChain : NonCopyable
     // Wait all semaphores added with frameIndex
     void waitForGpuComplete(const uint32_t frameIndex);
 
+private:
+    void querySwapChainCapability(
+        VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync);
+
  private:
     Instance* _instance = nullptr;
     PhysicalDevice* _physicalDevice = nullptr;
@@ -99,13 +77,12 @@ class SwapChain : NonCopyable
 
     GLFWwindow* _window = nullptr;
     std::string _titleName;
-    glm::ivec2 _resolution;
+    glm::uvec2 _resolution;
 
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
     VkFormat _surfaceFormat = VK_FORMAT_UNDEFINED;
     VkColorSpaceKHR _colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-    std::vector<VkImage> _swapChainImages;
-    std::vector<VkImageView> _swapChainImageViews;
+    std::vector<std::shared_ptr<Texture>> _swapChainImages;
 
     std::vector<VkSemaphore> _backBufferReadySemaphores;
     std::vector<VkSemaphore> _presentSemaphores;
@@ -123,6 +100,48 @@ class SwapChain : NonCopyable
     };
     std::array<SemaphoreWaitInfo, FRAME_BUFFER_COUNT> _waitSemaphoreInfos;
 };
+
+
+inline VkSwapchainKHR SwapChain::get() const noexcept
+{
+    return _swapChain;
+}
+inline VkSurfaceKHR SwapChain::getSurface() const noexcept
+{
+    return _surface;
+}
+inline VkFormat SwapChain::getSurfaceFormat() const noexcept
+{
+    return _surfaceFormat;
+}
+inline VkSemaphore SwapChain::getCurrentBackBufferReadySemaphore() const noexcept
+{
+    return _backBufferReadySemaphores[_frameIndex];
+}
+inline VkSemaphore SwapChain::getCurrentPresentReadySemaphore() const noexcept
+{
+    return _presentSemaphores[_frameIndex];
+}
+inline uint32_t SwapChain::getSwapChainIndex() const noexcept
+{
+    return _swapChainIndex;
+}
+inline uint32_t SwapChain::getFrameIndex() const noexcept
+{
+    return _frameIndex;
+}
+inline std::shared_ptr<Texture> SwapChain::getSwapChainImage(
+    const uint32_t index) const
+{
+    VOX_ASSERT(index < static_cast<uint32_t>(_swapChainImages.size()),
+               "Given Index ({}), Num SwapChain Images ({})", index,
+               _swapChainImages.size());
+    return _swapChainImages[index];
+}
+inline glm::uvec2 SwapChain::getResolution() const noexcept
+{
+    return _resolution;
+}
 }  // namespace VoxFlow
 
 #endif
