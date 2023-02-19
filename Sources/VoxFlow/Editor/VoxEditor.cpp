@@ -15,7 +15,7 @@ VoxEditor::VoxEditor()
     {
         const char* glfwErrorMsg = nullptr;
         glfwGetError(&glfwErrorMsg);
-        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : %s",
+        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : {}",
                    glfwErrorMsg);
         return;
     }
@@ -28,7 +28,7 @@ VoxEditor::VoxEditor()
         glfwGetError(&glfwErrorMsg);
         VOX_ASSERT(false,
                    "Current availiability of loader and ICD does not support "
-                   "Vulkan. LastError : %s",
+                   "Vulkan. LastError : {}",
                    glfwErrorMsg);
         return;
     }

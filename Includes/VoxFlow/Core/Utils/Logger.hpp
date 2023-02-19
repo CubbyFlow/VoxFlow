@@ -30,7 +30,7 @@ void voxAssertImpl(bool expr, const char* fmt, Args... args)
     {
         if (!static_cast<bool>(expr))
         {
-            spdlog::error("%s at {}:{}.", fmt, args..., __FILE__, __LINE__);
+            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__);
             DebugUtil::DebugBreak();
         }
     } while (false);

@@ -194,7 +194,7 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     std::shared_ptr<SwapChain> swapChain = std::make_shared<SwapChain>(
         _instance, _physicalDevice, this, _mainQueue, title, resolution);
 
-    VOX_ASSERT(swapChain->create(), "Failed to create swapchain (name : %s)",
+    VOX_ASSERT(swapChain->create(), "Failed to create swapchain (name : {})",
                title);
 
     _swapChains.push_back(swapChain);

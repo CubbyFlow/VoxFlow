@@ -57,7 +57,8 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .initialLayout =
+                colorDesc._clearColor ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         attachmentDescs.push_back(colorAttachmentDesc);
@@ -139,13 +140,13 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
 
     if (_renderPass == VK_NULL_HANDLE)
     {
-        VOX_ASSERT(false, " Failed to create RenderPass(%s)",
+        VOX_ASSERT(false, " Failed to create RenderPass({})",
                    _renderTargetLayout._debugName);
         return false;
     }
 
     const std::string renderPassDebugName =
-        fmt::format("%s_Color(#%u)_Depth(#%u)", _renderTargetLayout._debugName,
+        fmt::format("{}_Color(#{})_Depth(#{})", _renderTargetLayout._debugName,
                     numColorAttachments, hasDepthStencilAttachment ? 1U : 0U);
     DebugUtil::setObjectName(_logicalDevice, _renderPass,
                              renderPassDebugName.c_str());

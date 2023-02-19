@@ -133,7 +133,7 @@ glslang_stage_t GlslangUtil::GlslangStageFromFilename(
     if (filename.ends_with(".tese"))
         return GLSLANG_STAGE_TESSEVALUATION;
 
-    VOX_ASSERT(false, "Unknown shader filename extension : %s", filename);
+    VOX_ASSERT(false, "Unknown shader filename extension : {}", filename);
     return GLSLANG_STAGE_VERTEX;
 }
 
@@ -155,7 +155,7 @@ glslang_stage_t GlslangUtil::VulkanStageToGlslangStage(
         case VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
             return GLSLANG_STAGE_TESSEVALUATION;
         default:
-            VOX_ASSERT(false, "Unknown shader stage flags bits : %u",
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
                        static_cast<uint32_t>(vkStage));
             return GLSLANG_STAGE_VERTEX;
     }
@@ -179,7 +179,7 @@ VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(
         case GLSLANG_STAGE_TESSEVALUATION:
             return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         default:
-            VOX_ASSERT(false, "Unknown shader stage flags bits : %u",
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
                        static_cast<uint32_t>(glslangStage));
             return VK_SHADER_STAGE_VERTEX_BIT;
     }

@@ -18,14 +18,14 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
 {
     std::vector<char> shaderSource;
     VOX_ASSERT(GlslangUtil::ReadShaderFile(shaderFilePath, &shaderSource),
-               "Failed to read shader file : %s", shaderFilePath);
+               "Failed to read shader file : {}", shaderFilePath);
 
     const glslang_stage_t glslangStage =
         GlslangUtil::GlslangStageFromFilename(shaderFilePath);
     std::vector<unsigned int> spirvBinary;
     VOX_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
                                           &spirvBinary),
-               " Failed to compile shader file : %s", shaderFilePath);
+               " Failed to compile shader file : {}", shaderFilePath);
 
     _stageFlagBits = GlslangUtil::GlslangStageToVulkanStage(glslangStage);
 

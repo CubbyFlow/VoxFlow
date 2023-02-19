@@ -33,7 +33,7 @@ CommandPool::CommandPool(LogicalDevice* logicalDevice, Queue* ownerQueue)
     }
     else
     {
-        VOX_ASSERT(false, "Failed to create CommandPool(%s)", debugName);
+        VOX_ASSERT(false, "Failed to create CommandPool({})", debugName);
     }
 }
 
