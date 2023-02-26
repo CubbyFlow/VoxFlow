@@ -6,6 +6,7 @@
 namespace VoxFlow
 {
 class RenderDevice;
+class VoxFlow;
 
 class VoxEditor
 {
@@ -26,6 +27,7 @@ class VoxEditor
  protected:
  private:
     RenderDevice* _renderDevice = nullptr;
+    VoxFlow* _voxFlow = nullptr;
 };
 }  // namespace VoxFlow
 

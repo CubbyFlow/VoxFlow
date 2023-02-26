@@ -121,7 +121,7 @@ add_subdirectory(Dependencies/src/spirv-cross)
 
 set(BUILD_TESTS     OFF CACHE BOOL "")
 set(BUILD_EXAMPLES  OFF CACHE BOOL "")
-set(USE_CUDA        OFF CACHE BOOL "")
+set(USE_CUDA         ON CACHE BOOL "")
 set(BUILD_SONARCLOUD ON CACHE BOOL "")
 add_subdirectory(Dependencies/src/cubbyflow)
 

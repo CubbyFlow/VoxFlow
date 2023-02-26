@@ -5,6 +5,7 @@
 #include <VoxFlow/Core/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <GLFW/glfw3.h>
+#include <VoxFlow/Editor/VoxFlow.hpp>
 
 namespace VoxFlow
 {
@@ -52,6 +53,9 @@ VoxEditor::VoxEditor()
     context.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 
     _renderDevice = new RenderDevice(context);
+
+    _voxFlow = new VoxFlow();
+    _voxFlow->initialize();
 }
 
 VoxEditor::~VoxEditor()

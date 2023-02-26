@@ -14,7 +14,7 @@ set(PUBLIC_HDRS
 # Set Sources
 set(SRCS
     ${SRC_DIR}/Editor/VoxEditor.cpp
-    ${SRC_DIR}/Editor/VoxFlow.cpp
+    ${SRC_DIR}/Editor/VoxFlow.cu
     ${SRC_DIR}/Editor/WinMain.cpp
 )
 
@@ -42,6 +42,7 @@ target_include_directories(${target}
     ${LIBRARY_DIR}/volk
     ${LIBRARY_DIR}/glslang
     ${LIBRARY_DIR}/assimp/include
+    ${LIBRARY_DIR}/cubbyflow/Includes
 )
 
 # Compile options
@@ -63,6 +64,7 @@ target_link_libraries(${target}
     glslang
     SPIRV
     assimp
+    CubbyFlow
 )
 
 # Compile definitions
