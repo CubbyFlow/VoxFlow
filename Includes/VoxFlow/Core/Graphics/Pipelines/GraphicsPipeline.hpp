@@ -10,14 +10,13 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class ShaderModule;
-
+class RenderPass;
 class GraphicsPipeline : public BasePipeline
 {
  public:
     explicit GraphicsPipeline(
         LogicalDevice* logicalDevice,
         std::vector<std::shared_ptr<ShaderModule>>&& shaderModules,
-        const PipelineCreateInfo& createInfo,
         const std::shared_ptr<PipelineLayout>& layout);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
@@ -27,6 +26,9 @@ class GraphicsPipeline : public BasePipeline
     {
         return VK_PIPELINE_BIND_POINT_GRAPHICS;
     }
+
+public:
+    bool initialize(const std::shared_ptr<RenderPass>& renderPass);
 };
 }  // namespace VoxFlow
 
