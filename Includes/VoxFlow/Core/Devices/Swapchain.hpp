@@ -63,6 +63,9 @@ public:
     // Wait all semaphores added with frameIndex
     void waitForGpuComplete(const uint32_t frameIndex);
 
+    // Returns whether swapChain window should be removed.
+    bool shouldDestroySwapChain() const;
+
 private:
     void querySwapChainCapability(
         VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync);

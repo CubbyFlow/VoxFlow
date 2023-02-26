@@ -422,4 +422,9 @@ void SwapChain::waitForGpuComplete(const uint32_t frameIndex)
         waitInfo._waitingSemaphoreValues.clear();
     }
 }
+
+bool SwapChain::shouldDestroySwapChain() const
+{
+    return glfwWindowShouldClose(_window);
+}
 }  // namespace VoxFlow
