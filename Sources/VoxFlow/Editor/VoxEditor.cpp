@@ -52,7 +52,6 @@ VoxEditor::VoxEditor()
     context.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 
     _renderDevice = new RenderDevice(context);
-    _renderDevice->getLogicalDevice(0)->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
 }
 
 VoxEditor::~VoxEditor()
