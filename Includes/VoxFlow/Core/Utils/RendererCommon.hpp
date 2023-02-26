@@ -12,6 +12,7 @@
 #include <string>
 #include <optional>
 #include <functional>
+#include <memory>
 
 namespace VoxFlow
 {
