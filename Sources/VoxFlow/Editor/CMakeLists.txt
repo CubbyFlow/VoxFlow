@@ -8,13 +8,13 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
 # Set public headers
 set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Editor/VoxEditor.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Editor/VoxEngine.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Editor/VoxFlow.hpp
 )
 
 # Set Sources
 set(SRCS
     ${SRC_DIR}/Editor/VoxEditor.cpp
-    ${SRC_DIR}/Editor/VoxEngine.cpp
+    ${SRC_DIR}/Editor/VoxFlow.cpp
     ${SRC_DIR}/Editor/WinMain.cpp
 )
 
@@ -70,4 +70,5 @@ target_compile_definitions(${target}
     PRIVATE
     RESOURCES_DIR="${RESOURCES_DIR}"
     ${DEFAULT_COMPILE_DEFINITIONS}
+    CUBBYFLOW_USE_CUDA
 )

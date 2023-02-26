@@ -6,7 +6,6 @@
 #include <VoxFlow/Core/Devices/Context.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <glm/vec2.hpp>
 #include <vector>
 
 namespace VoxFlow
@@ -18,6 +17,9 @@ class Queue;
 class SwapChain;
 class CommandPool;
 class CommandBuffer;
+class GraphicsPipeline;
+class ShaderModule;
+class PipelineLayout;
 
 class RenderDevice : private NonCopyable
 {
@@ -38,12 +40,12 @@ class RenderDevice : private NonCopyable
         const uint32_t deviceIndex) const
     {
         VOX_ASSERT(deviceIndex < _logicalDevices.size(),
-                   "Given Index(%u), Num LogicalDevices(%u)", deviceIndex,
+                   "Given Index({}), Num LogicalDevices({})", deviceIndex,
                    _logicalDevices.size());
         return _logicalDevices.at(deviceIndex);
     }
 
- public:
+public:
     void beginFrame(const uint32_t deviceIndex);
     void presentSwapChains(const uint32_t deviceIndex);
 
@@ -53,11 +55,12 @@ class RenderDevice : private NonCopyable
     PhysicalDevice* _physicalDevice = nullptr;
     std::vector<LogicalDevice*> _logicalDevices;
     Context* _deviceSetupCtx = nullptr;
-
+    
     // TODO(snowapril) : to be removed
     Queue* _mainQueue = nullptr;
     CommandPool* _mainCommandPool = nullptr;
     std::vector<std::shared_ptr<CommandBuffer>> _mainCommandBuffers;
+    std::shared_ptr<GraphicsPipeline> _trianglePipeline = nullptr;
     
 };
 }  // namespace VoxFlow
