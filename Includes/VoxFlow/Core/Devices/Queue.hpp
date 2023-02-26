@@ -37,6 +37,11 @@ class Queue : private NonCopyable
         return _familyIndex;
     }
 
+    [[nodiscard]] inline LogicalDevice* getLogicalDevice() const noexcept
+    {
+        return _logicalDevice;
+    }
+
     inline const std::string& getDebugName() const
     {
         return _debugName;
