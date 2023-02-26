@@ -21,6 +21,8 @@ class Buffer;
 class Texture;
 class PhysicalDevice;
 class Instance;
+class RenderPassCollector;
+class FrameBufferCollector;
 
 class LogicalDevice : NonCopyable
 {
@@ -36,6 +38,11 @@ class LogicalDevice : NonCopyable
     }
     [[nodiscard]] Queue* getQueuePtr(
         const std::string& queueName);
+
+    [[nodiscard]] RenderPassCollector* getRenderPassCollector() const
+    {
+        return _renderPassCollector;
+    }
     
  public:
      // Create new swapChain with given desc.
@@ -66,6 +73,7 @@ class LogicalDevice : NonCopyable
     Queue* _mainQueue = nullptr;
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
     RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
+    RenderPassCollector* _renderPassCollector = nullptr;
 };
 }  // namespace VoxFlow
 

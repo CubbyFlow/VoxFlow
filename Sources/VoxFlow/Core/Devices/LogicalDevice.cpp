@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
@@ -158,6 +159,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     volkLoadDevice(_device);
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
+    _renderPassCollector = new RenderPassCollector(this);
 }
 
 LogicalDevice::~LogicalDevice()
