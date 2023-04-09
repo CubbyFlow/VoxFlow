@@ -31,7 +31,6 @@ class PhysicalDevice : NonCopyable
 
  private:
     VkPhysicalDevice _physicalDevice{ VK_NULL_HANDLE };
-    Instance* _instance = nullptr;
 };
 }  // namespace VoxFlow
 

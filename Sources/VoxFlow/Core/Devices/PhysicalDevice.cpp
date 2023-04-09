@@ -6,7 +6,7 @@
 
 namespace VoxFlow
 {
-PhysicalDevice::PhysicalDevice(Instance* instance) : _instance(instance)
+PhysicalDevice::PhysicalDevice(Instance* instance)
 {
     uint32_t numPhysicalDevices;
     vkEnumeratePhysicalDevices(instance->get(), &numPhysicalDevices, nullptr);

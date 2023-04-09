@@ -19,8 +19,8 @@ SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
                      std::string&& titleName, const glm::uvec2 resolution) noexcept
     : _instance(instance),
       _physicalDevice(physicalDevice),
-      _logicalDevice(logicalDevice),
       _queue(presentSupportQueue),
+      _logicalDevice(logicalDevice),
       _titleName(std::move(titleName)),
       _resolution(resolution)
 {
