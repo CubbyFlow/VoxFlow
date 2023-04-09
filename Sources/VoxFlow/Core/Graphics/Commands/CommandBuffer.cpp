@@ -37,8 +37,9 @@ void CommandBuffer::beginCommandBuffer(uint32_t swapChainIndex,
     _backBufferIndexCached = backBufferIndex;
     _debugName = debugName;
 
-    _fenceToSignal = FenceObject(
-        _commandQueue, _commandQueue->getLastExecutedFenceValue() + 1);
+    // Every resources and synchronization with this command buffer
+    // will use below new allocated fence.
+    _fenceToSignal = _commandQueue->allocateFenceToSignal();
 
     VOX_ASSERT(_hasBegun == false,
                "Duplicated beginning on the same CommandBuffer({})",

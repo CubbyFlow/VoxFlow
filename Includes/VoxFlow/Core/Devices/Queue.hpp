@@ -85,6 +85,14 @@ class Queue : private NonCopyable
         return _lastCompletedFence.getFenceValue();
     }
 
+    // Returns fence object that command buffer will use for synchronization
+    // with this queue.
+    [[nodiscard]] inline FenceObject allocateFenceToSignal()
+    {
+        _fenceToSignal.advanceFenceValue();
+        return _fenceToSignal;
+    }
+
     // Returns Timeline semaphore's value which synchronized with queue
     // submission
     [[nodiscard]] uint64_t getTimelineSemaphoreValue();
@@ -97,6 +105,7 @@ class Queue : private NonCopyable
     uint32_t _familyIndex{ 0 };
     uint32_t _queueIndex{ 0 };
     VkSemaphore _submitTimelineSemaphore{ VK_NULL_HANDLE };
+    FenceObject _fenceToSignal;
     FenceObject _lastExecutedFence;
     FenceObject _lastCompletedFence;
 };
