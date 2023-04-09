@@ -62,8 +62,7 @@ class Queue : private NonCopyable
     // Submit given command buffers to queue and returns FenceObject for waiting
     // submission completed
     FenceObject submitCommandBufferBatch(
-        const std::vector<std::shared_ptr<CommandBuffer>>&
-            batchedCommandBuffers,
+        std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
         const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
         const bool waitAllCompletion);
 

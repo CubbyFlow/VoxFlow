@@ -4,8 +4,8 @@
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
+#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 
@@ -20,6 +20,7 @@ Queue::Queue(const std::string& debugName, LogicalDevice* logicalDevice,
       _queue(queueHandle),
       _familyIndex(familyIndex),
       _queueIndex(queueIndex),
+      _fenceToSignal(this, 0ULL),
       _lastExecutedFence(this, 0ULL),
       _lastCompletedFence(this, 0ULL)
 {
@@ -153,11 +154,23 @@ FenceObject Queue::submitCommandBuffer(
 }
 
 FenceObject Queue::submitCommandBufferBatch(
-    const std::vector<std::shared_ptr<CommandBuffer>>& batchedCommandBuffers,
+    std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
     const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
     const bool waitAllCompletion)
 {
-    (void)batchedCommandBuffers;
+    std::vector<std::shared_ptr<CommandBuffer>>&& commandBuffersToSubmit =
+        std::move(batchedCommandBuffers);
+
+    // Must sort given command buffers with fence value allocated to
+    // guarantee sequential execution.
+    std::sort(commandBuffersToSubmit.begin(), commandBuffersToSubmit.end(),
+              [](const std::shared_ptr < CommandBuffer >> &lhs,
+                 const std::shared_ptr < CommandBuffer >> &rhs) {
+                  return lhs->getFenceToSignal().getFenceValue() <
+                         rhs->getFenceToSignal().getFenceValue();
+              });
+    
+    (void)commandBuffersToSubmit;
     (void)swapChain;
     (void)frameIndex;
     (void)waitAllCompletion;
