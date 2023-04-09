@@ -42,10 +42,8 @@ bool FrameBuffer::initialize(const std::shared_ptr<RenderPass>& renderPass,
     std::vector<VkImageView> attachments;
     attachments.reserve(
         _renderTargetsInfo._colorRenderTarget.size() +
-                _renderTargetsInfo._depthStencilImage.has_value()
-            ? 1U
-            : 0U);
-
+        (_renderTargetsInfo._depthStencilImage.has_value() ? 1U : 0U));
+    
     for (const auto& colorRT : rtInfo._colorRenderTarget)
     {
         attachments.push_back(colorRT->get());
