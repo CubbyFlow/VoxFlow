@@ -10,9 +10,7 @@ Context::Context(bool useValidation /* true */)
     if (useValidationLayer)
     {
         addInstanceLayer("VK_LAYER_KHRONOS_validation", false);
-        // TODO(snowapril) :
-        // addInstanceExtension(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME,
-        // false);
+        addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, false);
     }
 }
 
@@ -41,10 +39,9 @@ void Context::addDeviceExtension(const char* name, bool isOptional /* false */,
 }
 
 void Context::addRequiredQueue(std::string&& queueName, VkQueueFlags queueFlag,
-                               uint32_t queueCount, float queuePriority,
-                               bool isMainQueue)
+                               uint32_t queueCount, float queuePriority)
 {
     requiredQueues.emplace_back(std::move(queueName), queueFlag, queueCount,
-                                queuePriority, isMainQueue);
+                                queuePriority);
 }
 }  // namespace VoxFlow

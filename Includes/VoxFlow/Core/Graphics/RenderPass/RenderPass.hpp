@@ -5,7 +5,6 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 
 namespace VoxFlow
 {
@@ -14,24 +13,22 @@ class LogicalDevice;
 class RenderPass : NonCopyable
 {
  public:
-    explicit RenderPass(LogicalDevice* logicalDevice);
+    explicit RenderPass(const std::shared_ptr<LogicalDevice>& device);
     ~RenderPass() override;
     RenderPass(RenderPass&& other) noexcept;
     RenderPass& operator=(RenderPass&& other) noexcept;
 
-    [[nodiscard]] inline VkRenderPass get() const noexcept
+    [[nodiscard]] VkRenderPass get() const noexcept
     {
         return _renderPass;
     }
 
- public:
-    bool initialize(const RenderTargetLayoutKey& rtLayoutKey);
+ protected:
     void release();
 
  private:
-    LogicalDevice* _logicalDevice = nullptr;
+    std::shared_ptr<LogicalDevice> _device;
     VkRenderPass _renderPass{ VK_NULL_HANDLE };
-    RenderTargetLayoutKey _renderTargetLayout;
 };
 }  // namespace VoxFlow
 

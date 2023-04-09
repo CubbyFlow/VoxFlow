@@ -19,8 +19,6 @@ class GlslangUtil
 
     [[nodiscard]] static glslang_stage_t GlslangStageFromFilename(
         const std::string_view filename);
-    [[nodiscard]] static glslang_stage_t VulkanStageToGlslangStage(
-        VkShaderStageFlagBits vkStage);
     [[nodiscard]] static VkShaderStageFlagBits GlslangStageToVulkanStage(
         glslang_stage_t glslangStage);
     [[nodiscard]] static bool ReadShaderFile(const char* filename,

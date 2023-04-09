@@ -8,14 +8,14 @@
 
 TEST_CASE("Vulkan RenderPass Initialization")
 {
-    VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(&instance);
+    const VoxFlow::Instance instance(gVulkanContext);
+    VoxFlow::PhysicalDevice physicalDevice(instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, physicalDevice);
 
     const auto renderPass =
-        std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());
+        std::make_shared<VoxFlow::RenderPass>(logicalDevice);
 
     CHECK_NE(renderPass->get(), VK_NULL_HANDLE);
 }

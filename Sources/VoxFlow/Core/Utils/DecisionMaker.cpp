@@ -54,7 +54,7 @@ VkResult DecisionMaker::pickExtensions(
         }
         else if (entry.isOptional == false)
         {
-            spdlog::error("Requested Vulkan Extension '{}' not found.",
+            spdlog::error("Requested Vulkan Extension {} not found.",
                           entry.entryName);
             return VK_ERROR_EXTENSION_NOT_PRESENT;
         }

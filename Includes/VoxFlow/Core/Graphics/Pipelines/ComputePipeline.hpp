@@ -4,17 +4,16 @@
 #define VOXEL_FLOW_COMPUTE_PIPELINE_HPP
 
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
-#include <memory>
 
 namespace VoxFlow
 {
-class ShaderModule;
+class LogicalDevice;
 
 class ComputePipeline : public BasePipeline
 {
  public:
-    explicit ComputePipeline(LogicalDevice* logicalDevice,
-                             std::shared_ptr<ShaderModule> shaderModule,
+    explicit ComputePipeline(const std::shared_ptr<LogicalDevice>& device,
+                             const char* shaderFilename,
                              const std::shared_ptr<PipelineLayout>& layout);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;

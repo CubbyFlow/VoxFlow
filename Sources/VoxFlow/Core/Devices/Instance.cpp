@@ -5,6 +5,7 @@
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+
 #include <glslang_c_interface.h>
 
 namespace VoxFlow
@@ -56,30 +57,11 @@ Instance::Instance(const Context& ctx)
         .ppEnabledExtensionNames = usedExtensions.data()
     };
 
-    // TODO(snowapril) : enable below features
     [[maybe_unused]] VkDebugUtilsMessengerCreateInfoEXT debugInfo;
-    // [[maybe_unused]] VkValidationFeaturesEXT validationFeatures;
-    // [[maybe_unused]] std::vector<VkValidationFeatureEnableEXT>
-    //     enabledValidationFeatures;
     if (ctx.useValidationLayer)
     {
         debugInfo = Initializer::MakeInfo<VkDebugUtilsMessengerCreateInfoEXT>();
         instanceInfo.pNext = &debugInfo;
-    // 
-    //     validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-    //     enabledValidationFeatures.push_back(
-    //         VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT);
-    //     enabledValidationFeatures.push_back(
-    //         VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT);
-    //     enabledValidationFeatures.push_back(
-    //         VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
-    //     enabledValidationFeatures.push_back(
-    //         VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT);
-    //     enabledValidationFeatures.push_back(
-    //         VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
-    //     validationFeatures.enabledValidationFeatureCount = static_cast<uint32_t>(enabledValidationFeatures.size());
-    //     validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures.data();
-    //     debugInfo.pNext = &validationFeatures;
     }
 
     VK_ASSERT(vkCreateInstance(&instanceInfo, nullptr, &_instance));

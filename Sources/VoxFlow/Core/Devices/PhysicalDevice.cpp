@@ -1,17 +1,16 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
-#include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
-PhysicalDevice::PhysicalDevice(Instance* instance)
+PhysicalDevice::PhysicalDevice(const Instance& instance)
 {
     uint32_t numPhysicalDevices;
-    vkEnumeratePhysicalDevices(instance->get(), &numPhysicalDevices, nullptr);
+    vkEnumeratePhysicalDevices(instance.get(), &numPhysicalDevices, nullptr);
     std::vector<VkPhysicalDevice> deviceCandidates(numPhysicalDevices);
-    vkEnumeratePhysicalDevices(instance->get(), &numPhysicalDevices,
+    vkEnumeratePhysicalDevices(instance.get(), &numPhysicalDevices,
                                deviceCandidates.data());
 
     // TODO(snowapril) : enable physical device selection between external gpu
