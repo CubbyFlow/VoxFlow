@@ -10,6 +10,10 @@ namespace VoxFlow
 struct Context
 {
     explicit Context(bool useValidation = true);
+    Context(const Context&) = default;
+    Context(Context&&) = default;
+    Context& operator=(const Context&) = default;
+    Context& operator=(Context&&) = default;
 
     void setVersion(const uint32_t major, const uint32_t minor);
 
@@ -20,7 +24,8 @@ struct Context
                             uint32_t version = 0);
 
     void addRequiredQueue(std::string&& queueName, VkQueueFlags queueFlag,
-                          uint32_t queueCount, float queuePriority);
+                          uint32_t queueCount, float queuePriority,
+                          bool isMainQueue);
 
     std::string appEngine = "VoxFlow";
     std::string appTitle = "VoxFlow";
@@ -48,11 +53,13 @@ struct Context
     struct QueueSetup
     {
         explicit QueueSetup(std::string&& queueName, const VkQueueFlags flag,
-                            const uint32_t queueCount, const float priority)
+                            const uint32_t queueCount, const float priority,
+                            bool isMainQueue)
             : queueName(std::move(queueName)),
               flag(flag),
               queueCount(queueCount),
-              priority(priority)
+              priority(priority),
+              isMainQueue(isMainQueue)
         {
         }
 
@@ -60,6 +67,7 @@ struct Context
         VkQueueFlags flag{ 0 };
         uint32_t queueCount{ 0 };
         float priority{ 1.0f };
+        bool isMainQueue{ false };
     };
 
     std::vector<QueueSetup> requiredQueues{};

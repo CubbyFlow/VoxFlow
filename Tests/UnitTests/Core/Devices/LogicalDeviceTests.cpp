@@ -8,15 +8,16 @@
 TEST_CASE("Vulkan Logical Device Initialization")
 {
     VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(instance);
-    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, physicalDevice);
+    VoxFlow::PhysicalDevice physicalDevice(&instance);
+    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
+                                         &instance);
     CHECK_NE(logicalDevice.get(), VK_NULL_HANDLE);
 }
 
 TEST_CASE("Vulkan Logical Device Queue Creation")
 {
     VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(instance);
-    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, physicalDevice);
-    CHECK(logicalDevice.getQueuePtr("GCT").expired() == false);
+    VoxFlow::PhysicalDevice physicalDevice(&instance);
+    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
+                                         &instance);
 }

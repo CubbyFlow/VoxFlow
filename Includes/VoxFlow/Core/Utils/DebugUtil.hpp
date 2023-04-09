@@ -13,17 +13,13 @@ class LogicalDevice;
 class DebugUtil
 {
  public:
-    DebugUtil() = default;
-    explicit DebugUtil(const std::shared_ptr<LogicalDevice>& device)
-        : _device(device){};
-
- public:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                   VkDebugUtilsMessageTypeFlagsEXT flags,
                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                   void* userData);
     static void GlfwDebugCallback(int errorCode, const char* description);
+    static void DebugBreak();
 
  public:
     struct ScopedCmdLabel
@@ -68,64 +64,120 @@ class DebugUtil
     {
         return { cmdBuffer, label };
     }
-    void setObjectName(VkBuffer buffer, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkCommandBuffer commandBuffer, const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(buffer), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(commandBuffer),
+                      name, VK_OBJECT_TYPE_COMMAND_BUFFER);
+    }
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkCommandPool commandPool, const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(commandPool),
+                      name, VK_OBJECT_TYPE_COMMAND_POOL);
+    }
+    static void setObjectName(LogicalDevice* logicalDevice, VkBuffer buffer,
+                              const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(buffer), name,
                       VK_OBJECT_TYPE_BUFFER);
     }
-    void setObjectName(VkImage image, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice, VkImage image,
+                              const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(image), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(image), name,
                       VK_OBJECT_TYPE_IMAGE);
     }
-    void setObjectName(VkImageView imageView, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkImageView imageView, const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(imageView), name,
-                      VK_OBJECT_TYPE_IMAGE_VIEW);
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(imageView),
+                      name, VK_OBJECT_TYPE_IMAGE_VIEW);
     }
-    void setObjectName(VkSampler sampler, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice, VkSampler sampler,
+                              const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(sampler), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(sampler), name,
                       VK_OBJECT_TYPE_SAMPLER);
     }
-    void setObjectName(VkPipeline pipeline, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice, VkPipeline pipeline,
+                              const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(pipeline), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(pipeline), name,
                       VK_OBJECT_TYPE_PIPELINE);
     }
-    void setObjectName(VkRenderPass renderPass, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkRenderPass renderPass, const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(renderPass), name,
-                      VK_OBJECT_TYPE_RENDER_PASS);
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(renderPass),
+                      name, VK_OBJECT_TYPE_RENDER_PASS);
     }
-    void setObjectName(VkFence fence, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice, VkFence fence,
+                              const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(fence), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(fence), name,
                       VK_OBJECT_TYPE_FENCE);
     }
-    void setObjectName(VkSemaphore semaphore, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice, VkFramebuffer frameBuffer,
+                              const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(semaphore), name,
-                      VK_OBJECT_TYPE_SEMAPHORE);
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(frameBuffer),
+                      name, VK_OBJECT_TYPE_FRAMEBUFFER);
     }
-    void setObjectName(VkDescriptorSet descSet, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkSemaphore semaphore, const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(descSet), name,
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(semaphore),
+                      name, VK_OBJECT_TYPE_SEMAPHORE);
+    }
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkDescriptorSet descSet, const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(descSet), name,
                       VK_OBJECT_TYPE_DESCRIPTOR_SET);
     }
-    void setObjectName(VkBufferView bufferView, const char* name) const
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkBufferView bufferView, const char* name)
     {
-        setObjectName(reinterpret_cast<uint64_t>(bufferView), name,
-                      VK_OBJECT_TYPE_BUFFER_VIEW);
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(bufferView),
+                      name, VK_OBJECT_TYPE_BUFFER_VIEW);
+    }
+    static void setObjectName(LogicalDevice* logicalDevice, VkQueue queue,
+                              const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(queue), name,
+                      VK_OBJECT_TYPE_QUEUE);
+    }
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkSwapchainKHR swapChain, const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(swapChain),
+                      name, VK_OBJECT_TYPE_SWAPCHAIN_KHR);
     }
 
  private:
-    void setObjectName(uint64_t object, const char* name,
-                       VkObjectType type) const;
+    static void setObjectName(LogicalDevice* logicalDevice, uint64_t object,
+                              const char* name, VkObjectType type);
+};
+
+class DeviceRemoveTracker
+{
+ public:
+    DeviceRemoveTracker() = default;
+    ~DeviceRemoveTracker() = default;
+
+ public:
+    static DeviceRemoveTracker* get();
+
+    void addLogicalDeviceToTrack(LogicalDevice* logicalDevice);
+    void onDeviceRemoved();
 
  private:
-    std::shared_ptr<LogicalDevice> _device{ nullptr };
+    std::vector<LogicalDevice*> _logicalDevices;
 };
+
+std::string getVkResultString(VkResult vkResult);
+
 }  // namespace VoxFlow
 
 #endif

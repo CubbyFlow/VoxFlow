@@ -127,7 +127,7 @@ inline VkPipelineDepthStencilStateCreateInfo Initializer::MakeInfo() noexcept
 template <>
 inline VkPipelineColorBlendStateCreateInfo Initializer::MakeInfo() noexcept
 {
-    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+    return { .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
              .pNext = nullptr,
              .flags = 0,
              .logicOpEnable = VK_FALSE,
@@ -146,7 +146,6 @@ inline VkPipelineDynamicStateCreateInfo Initializer::MakeInfo() noexcept
              .dynamicStateCount = 0,
              .pDynamicStates = nullptr };
 }
-
 template <>
 inline VkDebugUtilsMessengerCreateInfoEXT Initializer::MakeInfo() noexcept
 {
@@ -188,6 +187,22 @@ inline VkSubpassDescription Initializer::MakeInfo() noexcept
              .pDepthStencilAttachment = nullptr,
              .preserveAttachmentCount = 0,
              .pPreserveAttachments = nullptr };
+}
+
+template <>
+inline VkSemaphoreCreateInfo Initializer::MakeInfo() noexcept
+{
+    return { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+             .pNext = nullptr,
+             .flags = 0 };
+}
+
+template <>
+inline VkFenceCreateInfo Initializer::MakeInfo() noexcept
+{
+    return { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+             .pNext = nullptr,
+             .flags = 0 };
 }
 }  // namespace VoxFlow
 

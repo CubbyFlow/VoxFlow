@@ -1,23 +1,35 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+#include <algorithm>
 
 namespace VoxFlow
 {
-PipelineLayout::PipelineLayout(const std::shared_ptr<LogicalDevice>& device)
-    : _device(device)
+PipelineLayout::PipelineLayout(
+    LogicalDevice* logicalDevice,
+    const std::vector<std::shared_ptr<DescriptorSetLayout>>& setLayouts)
+    : _logicalDevice(logicalDevice), _setLayouts(setLayouts)
 {
-    [[maybe_unused]] const auto layoutInfo =
-        Initializer::MakeInfo<VkPipelineLayoutCreateInfo>();
+    auto layoutInfo = Initializer::MakeInfo<VkPipelineLayoutCreateInfo>();
 
-    // TODO(snowapril) : add descriptor layout, push constant ranges to layout
-    // info
+    std::vector<VkDescriptorSetLayout> vkSetLayouts;
+    vkSetLayouts.reserve(_setLayouts.size());
 
-    VK_ASSERT(
-        vkCreatePipelineLayout(_device->get(), &layoutInfo, nullptr, &_layout));
+    std::for_each(
+        _setLayouts.begin(), _setLayouts.end(),
+        [&vkSetLayouts](const std::shared_ptr<DescriptorSetLayout>& setLayout) {
+            vkSetLayouts.push_back(setLayout->get());
+        });
+
+    layoutInfo.setLayoutCount = static_cast<uint32_t>(vkSetLayouts.size());
+    layoutInfo.pSetLayouts = vkSetLayouts.data();
+
+    VK_ASSERT(vkCreatePipelineLayout(_logicalDevice->get(), &layoutInfo,
+                                     nullptr, &_layout));
 }
 
 PipelineLayout::~PipelineLayout()
@@ -26,7 +38,7 @@ PipelineLayout::~PipelineLayout()
 }
 
 PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
-    : _device(std::move(other._device)), _layout(other._layout)
+    : _logicalDevice(std::move(other._logicalDevice)), _layout(other._layout)
 {
     // Do nothing
 }
@@ -35,7 +47,7 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
 {
     if (&other != this)
     {
-        _device = std::move(other._device);
+        _logicalDevice = std::move(other._logicalDevice);
         _layout = other._layout;
     }
     return *this;
@@ -45,9 +57,8 @@ void PipelineLayout::release()
 {
     if (_layout)
     {
-        vkDestroyPipelineLayout(_device->get(), _layout, nullptr);
+        vkDestroyPipelineLayout(_logicalDevice->get(), _layout, nullptr);
         _layout = VK_NULL_HANDLE;
     }
-    _device.reset();
 }
 }  // namespace VoxFlow
