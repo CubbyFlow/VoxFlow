@@ -120,17 +120,17 @@ constexpr TBuiltInResource GetDefaultGlslangResource()
 glslang_stage_t GlslangUtil::GlslangStageFromFilename(
     const std::string_view filename)
 {
-    if (filename.ends_with(".vert"))
+    if (filename.find(".vert") != std::string_view::npos)
         return GLSLANG_STAGE_VERTEX;
-    if (filename.ends_with(".frag"))
+    if (filename.find(".frag") != std::string_view::npos)
         return GLSLANG_STAGE_FRAGMENT;
-    if (filename.ends_with(".geom"))
+    if (filename.find(".geom") != std::string_view::npos)
         return GLSLANG_STAGE_GEOMETRY;
-    if (filename.ends_with(".comp"))
+    if (filename.find(".comp") != std::string_view::npos)
         return GLSLANG_STAGE_COMPUTE;
-    if (filename.ends_with(".tesc"))
+    if (filename.find(".tesc") != std::string_view::npos)
         return GLSLANG_STAGE_TESSCONTROL;
-    if (filename.ends_with(".tese"))
+    if (filename.find(".tese") != std::string_view::npos)
         return GLSLANG_STAGE_TESSEVALUATION;
 
     VOX_ASSERT(false, "Unknown shader filename extension : {}", filename);
