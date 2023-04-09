@@ -37,12 +37,12 @@ class Buffer : private NonCopyable
 
  protected:
  private:
+    std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
     RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VkBuffer _vkBuffer = VK_NULL_HANDLE;
     VmaAllocation _bufferAllocation = nullptr;
     BufferInfo _bufferInfo;
-    std::string _debugName;
 
     std::vector<std::pair<VkBufferView, BufferViewInfo>> _vkBufferViews;
 };

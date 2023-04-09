@@ -20,15 +20,6 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
 
     const VoxFlow::RenderPass renderPass(logicalDevice.get());
 
-    const VkViewport viewport = { .x = 0.0f,
-                                  .y = 0.0f,
-                                  .width = 1.0f,
-                                  .height = 1.0f,
-                                  .minDepth = 0.0f,
-                                  .maxDepth = 1.0f };
-    const VkRect2D scissor = { .offset = { .x = 0, .y = 0 },
-                               .extent = { .width = 1u, .height = 1u } };
-
     std::vector<std::shared_ptr<VoxFlow::ShaderModule>> shaderModules;
     shaderModules.emplace_back(std::make_shared<VoxFlow::ShaderModule>(
         logicalDevice.get(), RESOURCES_DIR "/Shaders/test_shader.vert"));

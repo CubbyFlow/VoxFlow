@@ -48,12 +48,12 @@ class Texture : private NonCopyable, public std::enable_shared_from_this<Texture
 
  protected:
  private:
+    std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
     RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VkImage _vkImage = VK_NULL_HANDLE;
     VmaAllocation _textureAllocation = nullptr;
     TextureInfo _textureInfo;
-    std::string _debugName;
     bool _isFromSwapChain = false;
 
     std::vector<std::shared_ptr<TextureView>> _ownedTextureViews;
