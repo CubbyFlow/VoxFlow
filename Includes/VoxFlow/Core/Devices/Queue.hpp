@@ -47,6 +47,11 @@ class Queue : private NonCopyable
         return _debugName;
     }
 
+    inline VkQueueFlags getQueueFlags() const
+    {
+        return _queueTypeFlags;
+    }
+
     // Submit given single command buffer to queue and returns FenceObject for
     // waiting submission completed
     FenceObject submitCommandBuffer(
