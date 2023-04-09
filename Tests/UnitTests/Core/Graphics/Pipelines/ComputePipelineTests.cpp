@@ -12,10 +12,10 @@
 TEST_CASE("Vulkan Compute Pipeline Initialization")
 {
     VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(instance);
+    VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, physicalDevice);
+        gVulkanContext, &physicalDevice, &instance);
 
     auto shaderModule = std::make_shared<VoxFlow::ShaderModule>(
         logicalDevice.get(), RESOURCES_DIR "/Shaders/test_shader.comp");

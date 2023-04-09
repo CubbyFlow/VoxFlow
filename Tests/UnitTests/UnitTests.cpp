@@ -18,6 +18,8 @@ int main()
         "GCT",
         VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 1,
         1.0F, true);
+    gVulkanContext.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                                        false);
 
     // Run queries, or run tests unless --no-run is specified
     return context.run();

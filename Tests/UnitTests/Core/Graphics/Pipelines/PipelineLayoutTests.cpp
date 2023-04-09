@@ -9,11 +9,11 @@
 
 TEST_CASE("Vulkan Pipeline Layout Initialization")
 {
-    const VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(instance);
+    VoxFlow::Instance instance(gVulkanContext);
+    VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, physicalDevice);
+        gVulkanContext, &physicalDevice, &instance);
 
     std::vector<std::shared_ptr<VoxFlow::DescriptorSetLayout>> emptySetLayouts;
 

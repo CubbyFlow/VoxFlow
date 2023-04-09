@@ -12,13 +12,13 @@
 
 TEST_CASE("Vulkan Graphics Pipeline Initialization")
 {
-    const VoxFlow::Instance instance(gVulkanContext);
-    VoxFlow::PhysicalDevice physicalDevice(instance);
+    VoxFlow::Instance instance(gVulkanContext);
+    VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, physicalDevice);
+        gVulkanContext, &physicalDevice, &instance);
 
-    const VoxFlow::RenderPass renderPass(logicalDevice);
+    const VoxFlow::RenderPass renderPass(logicalDevice.get());
 
     const VkViewport viewport = { .x = 0.0f,
                                   .y = 0.0f,
@@ -28,13 +28,6 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
                                   .maxDepth = 1.0f };
     const VkRect2D scissor = { .offset = { .x = 0, .y = 0 },
                                .extent = { .width = 1u, .height = 1u } };
-
-    auto pipelineCreateInfo = VoxFlow::PipelineCreateInfo::CreateDefault();
-    pipelineCreateInfo.renderPass = renderPass.get();
-    pipelineCreateInfo.viewportState.viewportCount = 1;
-    pipelineCreateInfo.viewportState.scissorCount = 1;
-    pipelineCreateInfo.viewportState.pViewports = &viewport;
-    pipelineCreateInfo.viewportState.pScissors = &scissor;
 
     std::vector<std::shared_ptr<VoxFlow::ShaderModule>> shaderModules;
     shaderModules.emplace_back(std::make_shared<VoxFlow::ShaderModule>(
@@ -50,8 +43,7 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
         std::make_shared<VoxFlow::PipelineLayout>(logicalDevice.get(), setLayouts);
 
     const VoxFlow::GraphicsPipeline testPipeline(
-        logicalDevice.get(), std::move(shaderModules), pipelineCreateInfo,
-        pipelineLayout);
+        logicalDevice.get(), std::move(shaderModules), pipelineLayout);
 
     CHECK_NE(testPipeline.get(), VK_NULL_HANDLE);
 }
