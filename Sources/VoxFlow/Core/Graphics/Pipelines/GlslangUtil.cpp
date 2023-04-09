@@ -4,6 +4,7 @@
 #include <glslang_c_interface.h>
 #include <spdlog/spdlog.h>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <fstream>
 
 namespace VoxFlow
@@ -119,20 +120,45 @@ constexpr TBuiltInResource GetDefaultGlslangResource()
 glslang_stage_t GlslangUtil::GlslangStageFromFilename(
     const std::string_view filename)
 {
-    if (filename.ends_with(".vert"))
+    if (filename.find(".vert") != std::string_view::npos)
         return GLSLANG_STAGE_VERTEX;
-    if (filename.ends_with(".frag"))
+    if (filename.find(".frag") != std::string_view::npos)
         return GLSLANG_STAGE_FRAGMENT;
-    if (filename.ends_with(".geom"))
+    if (filename.find(".geom") != std::string_view::npos)
         return GLSLANG_STAGE_GEOMETRY;
-    if (filename.ends_with(".comp"))
+    if (filename.find(".comp") != std::string_view::npos)
         return GLSLANG_STAGE_COMPUTE;
-    if (filename.ends_with(".tesc"))
+    if (filename.find(".tesc") != std::string_view::npos)
         return GLSLANG_STAGE_TESSCONTROL;
-    if (filename.ends_with(".tese"))
+    if (filename.find(".tese") != std::string_view::npos)
         return GLSLANG_STAGE_TESSEVALUATION;
 
-    std::abort();  // snowapril : Undefined shader extension is given
+    VOX_ASSERT(false, "Unknown shader filename extension : {}", filename);
+    return GLSLANG_STAGE_VERTEX;
+}
+
+glslang_stage_t GlslangUtil::VulkanStageToGlslangStage(
+    VkShaderStageFlagBits vkStage)
+{
+    switch (vkStage)
+    {
+        case VK_SHADER_STAGE_VERTEX_BIT:
+            return GLSLANG_STAGE_VERTEX;
+        case VK_SHADER_STAGE_FRAGMENT_BIT:
+            return GLSLANG_STAGE_FRAGMENT;
+        case VK_SHADER_STAGE_GEOMETRY_BIT:
+            return GLSLANG_STAGE_GEOMETRY;
+        case VK_SHADER_STAGE_COMPUTE_BIT:
+            return GLSLANG_STAGE_COMPUTE;
+        case VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT:
+            return GLSLANG_STAGE_TESSCONTROL;
+        case VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
+            return GLSLANG_STAGE_TESSEVALUATION;
+        default:
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
+                       static_cast<uint32_t>(vkStage));
+            return GLSLANG_STAGE_VERTEX;
+    }
 }
 
 VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(
@@ -153,7 +179,9 @@ VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(
         case GLSLANG_STAGE_TESSEVALUATION:
             return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         default:
-            std::abort();  // snowapril : Cannot handle ray tracing stages yet.
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
+                       static_cast<uint32_t>(glslangStage));
+            return VK_SHADER_STAGE_VERTEX_BIT;
     }
 }
 

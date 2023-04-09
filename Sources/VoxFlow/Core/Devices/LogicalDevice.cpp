@@ -1,17 +1,26 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
+#include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <optional>
+#include <unordered_map>
 
 namespace VoxFlow
 {
-LogicalDevice::LogicalDevice(const Context& ctx,
-                             const PhysicalDevice& physicalDevice)
+LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
+                             Instance* instance)
+    : _physicalDevice(physicalDevice), _instance(instance)
 {
     const std::vector<VkLayerProperties> layerProperties =
-        physicalDevice.getPossibleLayers();
+        physicalDevice->getPossibleLayers();
 
     std::vector<const char*> usedLayers;
     // As instance layers are same with device layers, we can use it again
@@ -19,7 +28,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
                                         ctx.instanceLayers));
 
     const std::vector<VkExtensionProperties> extensionProperties =
-        physicalDevice.getPossibleExtensions();
+        physicalDevice->getPossibleExtensions();
 
     std::vector<const char*> usedExtensions;
     std::vector<void*> featureStructs;
@@ -27,12 +36,13 @@ LogicalDevice::LogicalDevice(const Context& ctx,
                                             ctx.deviceExtensions,
                                             featureStructs));
 
-    const auto queueFamilies = physicalDevice.getQueueFamilyProperties();
+    const auto queueFamilies = physicalDevice->getQueueFamilyProperties();
 
     // TODO: sort queue family indices according to requested priorities
-    std::vector<uint32_t> queueFamilyIndices;
+    std::vector<VkQueueFlags> requiredQueueFlags;
+    std::vector<uint32_t> requiredQueueFamilyIndices;
     std::vector<VkDeviceQueueCreateInfo> queueInfos;
-    queueFamilyIndices.reserve(ctx.requiredQueues.size());
+    requiredQueueFamilyIndices.reserve(ctx.requiredQueues.size());
     queueInfos.reserve(ctx.requiredQueues.size());
 
     // TODO: move picking required queues to DecisionMaker
@@ -40,6 +50,7 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     {
         uint32_t index = 0;
         std::optional<uint32_t> familyIndex = std::nullopt;
+        std::optional<VkQueueFlags> queueFlags = std::nullopt;
 
         for (const auto& queueFamily : queueFamilies)
         {
@@ -47,11 +58,14 @@ LogicalDevice::LogicalDevice(const Context& ctx,
                 (queueFamily.queueFlags && requiredQueue.flag))
             {
                 familyIndex = index;
+                queueFlags = queueFamily.queueFlags;
             }
 
             if (familyIndex.has_value() &&
-                std::find(queueFamilyIndices.begin(), queueFamilyIndices.end(),
-                          familyIndex.value()) == queueFamilyIndices.end())
+                std::find(requiredQueueFamilyIndices.begin(),
+                          requiredQueueFamilyIndices.end(),
+                          familyIndex.value()) ==
+                    requiredQueueFamilyIndices.end())
             {
                 break;
             }
@@ -66,7 +80,8 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         }
         else
         {
-            queueFamilyIndices.push_back(familyIndex.value());
+            requiredQueueFlags.push_back(queueFlags.value());
+            requiredQueueFamilyIndices.push_back(familyIndex.value());
             queueInfos.push_back(
                 { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                   .pNext = nullptr,
@@ -77,9 +92,15 @@ LogicalDevice::LogicalDevice(const Context& ctx,
         }
     }
 
+    // TODO(snowapril) : expose feature control
+    VkPhysicalDeviceVulkan12Features features12 = {};
+    features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features12.pNext = VK_NULL_HANDLE;
+    features12.timelineSemaphore = VK_TRUE;
+
     [[maybe_unused]] const VkDeviceCreateInfo deviceInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &features12,
         .flags = 0,
         .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
         .pQueueCreateInfos = queueInfos.data(),
@@ -91,16 +112,53 @@ LogicalDevice::LogicalDevice(const Context& ctx,
     };
 
     VK_ASSERT(
-        vkCreateDevice(physicalDevice.get(), &deviceInfo, nullptr, &_device));
+        vkCreateDevice(physicalDevice->get(), &deviceInfo, nullptr, &_device));
+
+    std::unordered_map<uint32_t, uint32_t> queueIndicesPerFamily;
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {
         VkQueue queueHandle;
-        vkGetDeviceQueue(_device, queueFamilyIndices[i], 0, &queueHandle);
-        _queueMap.emplace(
-            ctx.requiredQueues[i].queueName,
-            std::make_shared<Queue>(queueHandle, queueFamilyIndices[i]));
+        vkGetDeviceQueue(_device, requiredQueueFamilyIndices[i], 0,
+                         &queueHandle);
+
+        VOX_ASSERT(queueHandle != VK_NULL_HANDLE, "Failed to get device queue");
+        if (queueHandle != VK_NULL_HANDLE)
+        {
+            std::unordered_map<uint32_t, uint32_t>::iterator findIt =
+                queueIndicesPerFamily.find(requiredQueueFamilyIndices[i]);
+
+            uint32_t queueIndex = 0U;
+            if (findIt != queueIndicesPerFamily.end())
+            {
+                queueIndex = ++(findIt->second);
+            }
+            else
+            {
+                queueIndicesPerFamily.insert(
+                    std::make_pair(requiredQueueFamilyIndices[i], queueIndex));
+            }
+
+            Queue* queue = new Queue(ctx.requiredQueues[i].queueName, this,
+                                     requiredQueueFlags[i], queueHandle,
+                                     requiredQueueFamilyIndices[i], queueIndex);
+
+            VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
+
+            _queueMap.emplace(ctx.requiredQueues[i].queueName, queue);
+
+            if (ctx.requiredQueues[i].isMainQueue)
+            {
+                _mainQueue = queue;
+            }
+        }
     }
+
+    // Load device-related vulkan entrypoints (all global functions)
+    volkLoadDevice(_device);
+
+    DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
+    _renderPassCollector = new RenderPassCollector(this);
 }
 
 LogicalDevice::~LogicalDevice()
@@ -124,17 +182,68 @@ LogicalDevice& LogicalDevice::operator=(LogicalDevice&& other) noexcept
     return *this;
 }
 
-std::weak_ptr<Queue> LogicalDevice::getQueuePtr(const std::string& queueName)
+Queue* LogicalDevice::getQueuePtr(const std::string& queueName)
 {
     const auto iter = _queueMap.find(queueName);
     assert(iter != _queueMap.end());
     return iter->second;
 }
 
+std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
+    const char* title, const glm::ivec2 resolution)
+{
+    std::shared_ptr<SwapChain> swapChain = std::make_shared<SwapChain>(
+        _instance, _physicalDevice, this, _mainQueue, title, resolution);
+
+    VOX_ASSERT(swapChain->create(), "Failed to create swapchain (name : {})",
+               title);
+
+    _swapChains.push_back(swapChain);
+
+    return swapChain;
+}
+
+std::shared_ptr<Texture> LogicalDevice::createTexture(std::string&& name,
+                                                      TextureInfo textureInfo)
+{
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(
+        std::move(name), this, _renderResourceMemoryPool);
+    if (texture->initialize(textureInfo) == false)
+        return nullptr;
+
+    return texture;
+}
+std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
+                                                    BufferInfo bufferInfo)
+{
+    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
+        std::move(name), this, _renderResourceMemoryPool);
+    if (buffer->initialize(bufferInfo) == false)
+        return nullptr;
+
+    return buffer;
+}
+
+void LogicalDevice::executeOnEachSwapChain(
+    std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor)
+{
+    std::for_each(_swapChains.begin(), _swapChains.end(), swapChainExecutor);
+}
+
 void LogicalDevice::release()
 {
+    std::for_each(
+        _queueMap.begin(), _queueMap.end(),
+        [](std::unordered_map<std::string, Queue*>::value_type& queue) {
+            if (queue.second != nullptr)
+            {
+                delete queue.second;
+            }
+        });
+
     if (_device != VK_NULL_HANDLE)
     {
+        vkDeviceWaitIdle(_device);
         vkDestroyDevice(_device, nullptr);
         _device = VK_NULL_HANDLE;
     }
