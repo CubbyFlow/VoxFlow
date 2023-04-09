@@ -10,7 +10,6 @@
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <execution>
 #include <optional>
 #include <unordered_map>
 
@@ -228,14 +227,13 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
 void LogicalDevice::executeOnEachSwapChain(
     std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor)
 {
-    std::for_each(std::execution::sequenced_policy(), _swapChains.begin(),
-                  _swapChains.end(), swapChainExecutor);
+    std::for_each(_swapChains.begin(), _swapChains.end(), swapChainExecutor);
 }
 
 void LogicalDevice::release()
 {
     std::for_each(
-        std::execution::parallel_policy(), _queueMap.begin(), _queueMap.end(),
+        _queueMap.begin(), _queueMap.end(),
         [](std::unordered_map<std::string, Queue*>::value_type& queue) {
             if (queue.second != nullptr)
             {
