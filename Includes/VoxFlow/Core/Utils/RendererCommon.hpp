@@ -31,12 +31,13 @@ enum class SetSlotCategory : uint8_t
 constexpr uint32_t MAX_NUM_SET_SLOTS =
     static_cast<uint32_t>(SetSlotCategory::Count);
 
-enum DescriptorSetCycle : uint8_t
+enum class CommandBufferUsage : uint8_t 
 {
-    GLOBAL          = 0,
-    RENDERPASS      = 1,
-    PER_DRAW        = 2,
-    COUNT           = 3,
+    Graphics = 0,
+    Compute = 1,
+    Transfer = 2,
+    Count = 4,
+    Undefined = 5,
 };
 
 enum class BufferUsage : uint32_t
