@@ -18,6 +18,7 @@ class PhysicalDevice;
 class Queue;
 class Texture;
 
+// TODO(snowapril) : decouple GLFW dependency from swapchain class
 class SwapChain : private NonCopyable
 {
  public:
