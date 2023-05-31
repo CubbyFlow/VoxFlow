@@ -7,7 +7,9 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <string>
+#include <array>
 
 namespace VoxFlow
 {
@@ -16,11 +18,19 @@ class CommandPool;
 class RenderPass;
 class SwapChain;
 class BasePipeline;
+class BindableResourceView;
+
+struct FrameContext
+{
+    uint32_t _swapChainIndex = UINT32_MAX;
+    uint32_t _frameIndex = UINT32_MAX;
+    uint32_t _backBufferIndex = UINT32_MAX;
+};
 
 class CommandBuffer : private NonCopyable
 {
  public:
-    explicit CommandBuffer(Queue* commandQueue, CommandPool* commandPool, VkCommandBuffer vkCommandBuffer);
+    explicit CommandBuffer(LogicalDevice* logicalDevice, VkCommandBuffer vkCommandBuffer);
     ~CommandBuffer();
 
     [[nodiscard]] VkCommandBuffer get() const noexcept
@@ -29,8 +39,8 @@ class CommandBuffer : private NonCopyable
     }
 
     // Begin command buffer to record new commands
-    void beginCommandBuffer(uint32_t swapChainIndex, uint32_t frameIndex,
-                            uint32_t backBufferIndex,
+    void beginCommandBuffer(const FrameContext& frameContext,
+                            const FenceObject& fenceToSignal,
                             const std::string& debugName);
     
     // End command buffer recording
@@ -69,7 +79,7 @@ class CommandBuffer : private NonCopyable
                      uint32_t firstIndex, int32_t vertexOffset,
                      uint32_t firstInstance);
 
- private:
+private:
     // Set pipeline barrier or transition for given resource to desired layout
     void makeResourceLayout(
         BindableResourceView* resourceView,
@@ -85,6 +95,7 @@ class CommandBuffer : private NonCopyable
     std::array<std::vector<std::pair<std::string_view, BindableResourceView*>>,
                MAX_NUM_SET_SLOTS>
         _pendingResourceBindings;
+    FrameContext _frameContext;
     std::string _debugName;
     bool _hasBegun = false;
 };

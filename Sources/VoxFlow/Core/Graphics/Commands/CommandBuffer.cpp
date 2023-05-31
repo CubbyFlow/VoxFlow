@@ -1,45 +1,44 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandPool.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
-CommandBuffer::CommandBuffer(Queue* commandQueue, CommandPool* commandPool,
+CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
                              VkCommandBuffer vkCommandBuffer)
-    : _commandQueue(commandQueue),
-      // _ownerCommandPool(commandPool),
-      _vkCommandBuffer(vkCommandBuffer)
+    : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer)
 {
-    (void)commandPool;
 }
 CommandBuffer::~CommandBuffer()
 {
     // Do nothing
 }
 
-void CommandBuffer::beginCommandBuffer(uint32_t swapChainIndex,
-                                       uint32_t frameIndex,
-                                       uint32_t backBufferIndex,
+void CommandBuffer::beginCommandBuffer(const FrameContext& frameContext,
+                                       const FenceObject& fenceToSignal,
                                        const std::string& debugName)
 {
-    _swapChainIndexCached = swapChainIndex;
-    _frameIndexCached = frameIndex;
-    _backBufferIndexCached = backBufferIndex;
+    _frameContext = frameContext;
     _debugName = debugName;
 
     // Every resources and synchronization with this command buffer
     // will use below new allocated fence.
-    _fenceToSignal = _commandQueue->allocateFenceToSignal();
+    _fenceToSignal = fenceToSignal;
 
     VOX_ASSERT(_hasBegun == false,
                "Duplicated beginning on the same CommandBuffer({})",
@@ -72,9 +71,8 @@ void CommandBuffer::endCommandBuffer()
 
 void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
 {
-    LogicalDevice* logicalDevice = _commandQueue->getLogicalDevice();
     RenderPassCollector* renderPassCollector =
-        logicalDevice->getRenderPassCollector();
+        _logicalDevice->getRenderPassCollector();
 
     _boundRenderPass =
         renderPassCollector->getOrCreateRenderPass(rtInfo._layoutKey);
@@ -117,7 +115,6 @@ void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
     };
     vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
-
 }
 
 void CommandBuffer::endRenderPass()
@@ -128,11 +125,10 @@ void CommandBuffer::endRenderPass()
 
 void CommandBuffer::bindPipeline(const std::shared_ptr<BasePipeline>& pipeline)
 {
-    vkCmdBindPipeline(_vkCommandBuffer, pipeline->getBindPoint(),
-                      pipeline->get());
+    _boundPipeline = pipeline;
 
-    // TODO(snowapril) : below code will be moved.
-    vkCmdDraw(_vkCommandBuffer, 4, 1, 0, 0);
+    vkCmdBindPipeline(_vkCommandBuffer, _boundPipeline->getBindPoint(),
+                      _boundPipeline->get());
 }
 
 void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
@@ -163,7 +159,8 @@ void CommandBuffer::makeSwapChainFinalLayout(
         .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = swapChain->getSwapChainImage(_backBufferIndexCached)->get(),
+        .image =
+            swapChain->getSwapChainImage(_frameContext._backBufferIndex)->get(),
         .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                               .baseMipLevel = 0,
                               .levelCount = 1,
