@@ -23,6 +23,7 @@ class PhysicalDevice;
 class Instance;
 class RenderPassCollector;
 class FrameBufferCollector;
+class DescriptorSetAllocatorPool;
 
 class LogicalDevice : NonCopyable
 {
@@ -42,6 +43,11 @@ class LogicalDevice : NonCopyable
     [[nodiscard]] RenderPassCollector* getRenderPassCollector() const
     {
         return _renderPassCollector;
+    }
+    
+    [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool() const
+    {
+        return _descriptorSetAllocatorPool;
     }
     
  public:
@@ -77,6 +83,7 @@ class LogicalDevice : NonCopyable
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
     RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     RenderPassCollector* _renderPassCollector = nullptr;
+    DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
 };
 }  // namespace VoxFlow
 

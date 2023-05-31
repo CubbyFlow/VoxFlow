@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
@@ -159,6 +160,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
     _renderPassCollector = new RenderPassCollector(this);
+    _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 }
 
 LogicalDevice::~LogicalDevice()
@@ -224,10 +226,9 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
         delete _renderPassCollector;
 }
 
-void LogicalDevice::executeOnEachSwapChain(
-    std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor)
+    if (_descriptorSetAllocatorPool != nullptr)
 {
-    std::for_each(_swapChains.begin(), _swapChains.end(), swapChainExecutor);
+        delete _descriptorSetAllocatorPool;
 }
 
     _swapChains.clear();
