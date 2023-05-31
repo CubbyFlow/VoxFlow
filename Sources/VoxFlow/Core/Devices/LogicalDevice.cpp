@@ -212,24 +212,17 @@ void LogicalDevice::releaseDedicatedResources()
     if (_renderResourceMemoryPool != nullptr)
     {
         delete _renderResourceMemoryPool;
-}
-std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
-                                                    BufferInfo bufferInfo)
-{
-    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
-        std::move(name), this, _renderResourceMemoryPool);
-    if (buffer->initialize(bufferInfo) == false)
-        return nullptr;
+    }
 
     if (_renderPassCollector != nullptr)
     {
         delete _renderPassCollector;
-}
+    }
 
     if (_descriptorSetAllocatorPool != nullptr)
-{
+    {
         delete _descriptorSetAllocatorPool;
-}
+    }
 
     _swapChains.clear();
 
@@ -247,7 +240,6 @@ void LogicalDevice::release()
 {
     if (_device != VK_NULL_HANDLE)
     {
-        vkDeviceWaitIdle(_device);
         vkDestroyDevice(_device, nullptr);
         _device = VK_NULL_HANDLE;
     }

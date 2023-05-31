@@ -44,7 +44,7 @@ class LogicalDevice : NonCopyable
     {
         return _renderPassCollector;
     }
-    
+
     [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool() const
     {
         return _descriptorSetAllocatorPool;
@@ -55,17 +55,15 @@ class LogicalDevice : NonCopyable
     std::shared_ptr<SwapChain> addSwapChain(const char* title,
                                             const glm::ivec2 resolution);
 
-    // Create new texture handle
-    std::shared_ptr<Texture> createTexture(std::string&& name,
-                                           TextureInfo textureInfo);
-
-    // Create new buffer handle
-    std::shared_ptr<Buffer> createBuffer(std::string&& name,
-                                         BufferInfo bufferInfo);
-
-    // Execute given executor for each swapchain created.
-    void executeOnEachSwapChain(
-        std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor);
+    // Get swapchain instance with given index
+    [[nodiscard]] inline const std::shared_ptr<SwapChain>& getSwapChain(
+        const uint32_t swapChainIndex) const
+    {
+        VOX_ASSERT(swapChainIndex < _swapChains.size(),
+                   "Given Index({}), Num SwapChains({})", swapChainIndex,
+                   _swapChains.size());
+        return _swapChains[swapChainIndex];
+    }
 
  public:
      // Release resources which derived from this LogicalDevice
