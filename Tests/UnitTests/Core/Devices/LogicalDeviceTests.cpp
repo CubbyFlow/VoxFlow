@@ -12,6 +12,7 @@ TEST_CASE("Vulkan Logical Device Initialization")
     VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
                                          &instance);
     CHECK_NE(logicalDevice.get(), VK_NULL_HANDLE);
+    CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }
 
 TEST_CASE("Vulkan Logical Device Queue Creation")
@@ -20,4 +21,5 @@ TEST_CASE("Vulkan Logical Device Queue Creation")
     VoxFlow::PhysicalDevice physicalDevice(&instance);
     VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
                                          &instance);
+    CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }
