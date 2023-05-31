@@ -1,10 +1,11 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Resources/Buffer.hpp>
-#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
-#include <VoxFlow/Core/Utils/Logger.hpp>
+#include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
@@ -39,7 +40,7 @@ Buffer::~Buffer()
 {
 }
 
-bool Buffer::initialize(const BufferInfo& bufferInfo)
+bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 {
     VOX_ASSERT(bufferInfo._usage != BufferUsage::Unknown,
                "BufferUsage must be specified");
@@ -78,51 +79,72 @@ bool Buffer::initialize(const BufferInfo& bufferInfo)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
+#endif
     return true;
 }
 
 std::optional<uint32_t> Buffer::createBufferView(const BufferViewInfo& viewInfo)
 {
-    VkBufferViewCreateInfo viewCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .buffer = _vkBuffer,
-        .format = viewInfo._format,
-        .offset = viewInfo._offset,
-        .range = viewInfo._range
-    };
-    VkBufferView vkBufferView = VK_NULL_HANDLE;
-    VK_ASSERT(vkCreateBufferView(_logicalDevice->get(), &viewCreateInfo,
-                                 nullptr, &vkBufferView));
+    const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
+    std::shared_ptr<BufferView> bufferView = std::make_shared<BufferView>(
+        fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
+        weak_from_this());
 
-    const uint32_t viewIndex = static_cast<uint32_t>(_vkBufferViews.size());
-    const std::string& viewDebugName =
-        fmt::format("%s_View({})", _debugName, viewIndex);
-
-    if (vkBufferView == VK_NULL_HANDLE)
+    if (bufferView->initialize(viewInfo) == false)
     {
-        VOX_ASSERT(false, "Failed to create BufferView({})", viewDebugName);
         return {};
     }
 
-    _vkBufferViews.emplace_back(vkBufferView, viewInfo);
+    _ownedBufferViews.push_back(std::move(bufferView));
     return viewIndex;
 }
 
 void Buffer::release()
 {
-    for (auto& viewPair : _vkBufferViews)
-    {
-        vkDestroyBufferView(_logicalDevice->get(), viewPair.first, nullptr);
-    }
-    _vkBufferViews.clear();
+    _ownedBufferViews.clear();
 
     if (_vkBuffer != VK_NULL_HANDLE)
     {
-        vmaDestroyBuffer(_renderResourceMemoryPool->get(), _vkBuffer,
-                         _bufferAllocation);
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
+            RenderResourceGarbage(std::move(_accessedFences), [this]() {
+                vmaDestroyBuffer(_renderResourceMemoryPool->get(), _vkBuffer,
+                                 _bufferAllocation);
+            }));
     }
+}
+
+BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
+                       std::weak_ptr<Buffer>&& ownerBuffer)
+    : BindableResourceView(std::move(debugName), logicalDevice),
+      _ownerBuffer(std::move(ownerBuffer))
+{
+}
+
+BufferView::~BufferView()
+{
+    release();
+}
+
+bool BufferView::initialize(const BufferViewInfo& viewInfo)
+{
+    _bufferViewInfo = viewInfo;
+    return true;
+}
+
+void BufferView::release()
+{
+}
+
+VkDescriptorBufferInfo BufferView::getDescriptorBufferInfo() const
+{
+    std::shared_ptr<Buffer> ownerBuffer = _ownerBuffer.lock();
+
+    return VkDescriptorBufferInfo{
+        .buffer = ownerBuffer == nullptr ? VK_NULL_HANDLE : ownerBuffer->get(),
+        .offset = _bufferViewInfo._offset,
+        .range = _bufferViewInfo._range,
+    };
 }
 }  // namespace VoxFlow

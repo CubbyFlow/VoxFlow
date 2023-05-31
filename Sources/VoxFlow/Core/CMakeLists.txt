@@ -29,6 +29,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
@@ -66,6 +67,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/RenderPass/FrameBuffer.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassCollector.cpp
+    ${SRC_DIR}/Core/Resources/BindableResourceView.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp

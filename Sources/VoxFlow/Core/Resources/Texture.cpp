@@ -1,11 +1,12 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Devices/SwapChain.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
-#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
-#include <VoxFlow/Core/Utils/Logger.hpp>
-#include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
@@ -39,7 +40,7 @@ Texture::~Texture()
     release();
 }
 
-bool Texture::initialize(const TextureInfo& textureInfo)
+bool Texture::makeResourceResident(const TextureInfo& textureInfo)
 {
     release();
 
@@ -79,7 +80,8 @@ bool Texture::initialize(const TextureInfo& textureInfo)
     };
 
     VK_ASSERT(vmaCreateImage(_renderResourceMemoryPool->get(), &imageCreateInfo,
-                             &vmaInfo, &_vkImage, &_textureAllocation, nullptr));
+                             &vmaInfo, &_vkImage, &_textureAllocation,
+                             nullptr));
 
     if (_vkImage == VK_NULL_HANDLE)
     {
@@ -87,8 +89,11 @@ bool Texture::initialize(const TextureInfo& textureInfo)
         return false;
     }
 
+    _isSwapChainBackBuffer = false;
+
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkImage, _debugName.c_str());
-    _isFromSwapChain = false;
+#endif
     return true;
 }
 
@@ -100,13 +105,17 @@ bool Texture::initializeFromSwapChain(const TextureInfo& swapChainSurfaceInfo,
     _textureInfo = swapChainSurfaceInfo;
     _vkImage = swapChainImage;
 
+    _isSwapChainBackBuffer = true;
+
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkImage, _debugName.c_str());
-    _isFromSwapChain = true;
-    
+#endif
+
     return true;
 }
 
-std::optional<uint32_t> Texture::createTextureView(const TextureViewInfo& viewInfo)
+std::optional<uint32_t> Texture::createTextureView(
+    const TextureViewInfo& viewInfo)
 {
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedTextureViews.size());
     std::shared_ptr<TextureView> textureView = std::make_shared<TextureView>(
@@ -125,20 +134,18 @@ std::optional<uint32_t> Texture::createTextureView(const TextureViewInfo& viewIn
 void Texture::release()
 {
     _ownedTextureViews.clear();
-    if ((_isFromSwapChain == false) && (_vkImage != VK_NULL_HANDLE))
+    if ((_isSwapChainBackBuffer == false) && (_vkImage != VK_NULL_HANDLE))
     {
         vmaDestroyImage(_renderResourceMemoryPool->get(), _vkImage,
-                        _textureAllocation);    
+                        _textureAllocation);
     }
 }
 
 TextureView::TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
                          std::weak_ptr<Texture>&& ownerTexture)
-    : _debugName(std::move(debugName)),
-      _logicalDevice(logicalDevice),
+    : BindableResourceView(std::move(debugName), logicalDevice),
       _ownerTexture(std::move(ownerTexture))
 {
-
 }
 
 TextureView::~TextureView()
@@ -151,6 +158,8 @@ bool TextureView::initialize(const TextureViewInfo& viewInfo)
     std::shared_ptr<Texture> ownerTexture = _ownerTexture.lock();
     if (ownerTexture == nullptr)
         return false;
+
+    _textureViewInfo = viewInfo;
 
     VkImageViewCreateInfo viewCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -184,9 +193,21 @@ void TextureView::release()
 {
     if (_vkImageView != VK_NULL_HANDLE)
     {
-        vkDestroyImageView(_logicalDevice->get(), _vkImageView, nullptr);
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
+            RenderResourceGarbage(std::move(_accessedFences), [this]() {
+                vkDestroyImageView(_logicalDevice->get(), _vkImageView,
+                                   nullptr);
+            }));
     }
 }
 
+VkDescriptorImageInfo TextureView::getDescriptorImageInfo() const
+{
+    return VkDescriptorImageInfo{
+        .sampler = VK_NULL_HANDLE,
+        .imageView = _vkImageView,
+        .imageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+}
 
 }  // namespace VoxFlow
