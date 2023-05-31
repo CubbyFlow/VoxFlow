@@ -52,6 +52,22 @@ enum class BufferUsage : uint32_t
     Unknown             = 0,
 };
 
+enum class ResourceLayout : uint32_t 
+{
+    Undefined           = 0x00000001,
+    TransferSource      = 0x00000002,
+    TransferDest        = 0x00000004,
+    VertexBuffer        = 0x00000008,
+    IndexBuffer         = 0x00000010,
+    ColorAttachment     = 0x00000020,
+    DepthAttachment     = 0x00000040,
+    StencilAttachment   = 0x00000080,
+    DepthReadOnly       = 0x00000100,
+    StencilReadOnly     = 0x00000200,
+    ShaderReadOnly      = 0x00000400,
+    General             = 0x00000800,
+};
+
 inline uint32_t operator|(BufferUsage lhs, BufferUsage rhs)
 {
     return static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs);
@@ -183,7 +199,6 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-};
 }  // namespace VoxFlow
 
 template <>
