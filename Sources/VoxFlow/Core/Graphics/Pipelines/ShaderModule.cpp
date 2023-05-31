@@ -1,7 +1,6 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
-#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -38,10 +37,9 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
     VK_ASSERT(vkCreateShaderModule(_logicalDevice->get(), &moduleInfo, nullptr,
                                    &_shaderModule));
 
-    reflectShaderLayoutBindings(std::move(spirvBinary));
-
-    _setLayout =
-        std::make_shared<DescriptorSetLayout>(_logicalDevice, _layoutBindings);
+    const bool reflectionResult = reflectShaderLayoutBindings(
+        &_shaderLayoutBinding, std::move(spirvBinary), _stageFlagBits);
+    VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}", _shaderFilePath);
 }
 
 ShaderModule::~ShaderModule()
@@ -60,7 +58,7 @@ ShaderModule& ShaderModule::operator=(ShaderModule&& other) noexcept
     {
         _logicalDevice = other._logicalDevice;
         _shaderModule = other._shaderModule;
-        _layoutBindings.swap(other._layoutBindings);
+        _shaderLayoutBinding = other._shaderLayoutBinding;
         _shaderFilePath = other._shaderFilePath;
         _stageFlagBits = other._stageFlagBits;
 
@@ -77,8 +75,137 @@ void ShaderModule::release()
     }
 }
 
-bool ShaderModule::reflectShaderLayoutBindings(
-    std::vector<uint32_t>&& spirvCodes)
+static uint32_t getSpirTypeSize(const spirv_cross::SPIRType& resourceType, bool& isBindlessResource)
+{
+    uint32_t size = 0;
+    isBindlessResource = false;
+    if (!resourceType.array.empty())
+    {
+        if (resourceType.array.size() != 1)
+        {
+            spdlog::error("Array dimension must be 1");
+        }
+        else if (!resourceType.array_size_literal.front())
+        {
+            spdlog::error("Array dimension must be literal value");
+        }
+        else
+        {
+            if (resourceType.array.front() == 0)
+            {
+                isBindlessResource = true;
+                size = UINT32_MAX;
+            }
+            else
+            {
+                size = uint8_t(resourceType.array.front());
+            }
+        }
+    }
+    else
+    {
+        size = 1;
+    }
+
+    return size;
+}
+
+static VkFormat convertSpirvImageFormat(spv::ImageFormat imageFormat)
+{
+    switch (imageFormat)
+    {
+        case spv::ImageFormatUnknown:
+            return VK_FORMAT_UNDEFINED;
+        case spv::ImageFormatRgba32f:
+            return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case spv::ImageFormatRgba16f:
+            return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        case spv::ImageFormatR32f:
+            return VK_FORMAT_R32_SFLOAT;
+        case spv::ImageFormatRgba8:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        case spv::ImageFormatRgba8Snorm:
+            return VK_FORMAT_R8G8B8A8_SNORM;
+        case spv::ImageFormatRg32f:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case spv::ImageFormatRg16f:
+            return VK_FORMAT_R16G16_SFLOAT;
+        case spv::ImageFormatR11fG11fB10f:
+            return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+        case spv::ImageFormatR16f:
+            return VK_FORMAT_R16_SFLOAT;
+        case spv::ImageFormatRgba16:
+            return VK_FORMAT_R16G16B16A16_SFLOAT;
+        case spv::ImageFormatRgb10A2:
+            return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+        case spv::ImageFormatRg16:
+            return VK_FORMAT_R16G16_UNORM;
+        case spv::ImageFormatRg8:
+            return VK_FORMAT_R8G8_UNORM;
+        case spv::ImageFormatR16:
+            return VK_FORMAT_R16_UNORM;
+        case spv::ImageFormatR8:
+            return VK_FORMAT_R8_UNORM;
+        case spv::ImageFormatRgba16Snorm:
+            return VK_FORMAT_R16G16B16A16_SNORM;
+        case spv::ImageFormatRg16Snorm:
+            return VK_FORMAT_R16G16_SNORM;
+        case spv::ImageFormatRg8Snorm:
+            return VK_FORMAT_R8G8_SNORM;
+        case spv::ImageFormatR16Snorm:
+            return VK_FORMAT_R16_SNORM;
+        case spv::ImageFormatR8Snorm:
+            return VK_FORMAT_R8_SNORM;
+        case spv::ImageFormatRgba32i:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        case spv::ImageFormatRgba16i:
+            return VK_FORMAT_R16G16B16A16_UINT;
+        case spv::ImageFormatRgba8i:
+            return VK_FORMAT_R8G8B8A8_SINT;
+        case spv::ImageFormatR32i:
+            return VK_FORMAT_R32_SINT;
+        case spv::ImageFormatRg32i:
+            return VK_FORMAT_R32G32_SINT;
+        case spv::ImageFormatRg16i:
+            return VK_FORMAT_R16G16_SINT;
+        case spv::ImageFormatRg8i:
+            return VK_FORMAT_R8G8_SINT;
+        case spv::ImageFormatR16i:
+            return VK_FORMAT_R16_SINT;
+        case spv::ImageFormatR8i:
+            return VK_FORMAT_R8_SINT;
+        case spv::ImageFormatRgba32ui:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        case spv::ImageFormatRgba16ui:
+            return VK_FORMAT_R16G16B16A16_UINT;
+        case spv::ImageFormatRgba8ui:
+            return VK_FORMAT_R8G8B8A8_UINT;
+        case spv::ImageFormatR32ui:
+            return VK_FORMAT_R32_UINT;
+        case spv::ImageFormatRgb10a2ui:
+            return VK_FORMAT_A2R10G10B10_UINT_PACK32;
+        case spv::ImageFormatRg32ui:
+            return VK_FORMAT_R32G32_UINT;
+        case spv::ImageFormatRg16ui:
+            return VK_FORMAT_R16G16_UINT;
+        case spv::ImageFormatRg8ui:
+            return VK_FORMAT_R8G8_UINT;
+        case spv::ImageFormatR16ui:
+            return VK_FORMAT_R16_UINT;
+        case spv::ImageFormatR8ui:
+            return VK_FORMAT_R8_UINT;
+        case spv::ImageFormatR64ui:
+            return VK_FORMAT_R64_UINT;
+        case spv::ImageFormatR64i:
+            return VK_FORMAT_R64_SINT;
+        default:
+            spdlog::error("Unknown image format was givne {}", imageFormat);
+            return VK_FORMAT_UNDEFINED;
+    }
+}
+
+bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayoutBinding,
+    std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits shaderStageBits)
 {
     // Note(snowapril) : sample codes from Khronos/SPIRV-Cross Wiki.
     //                   https://github.com/KhronosGroup/SPIRV-Cross/wiki/Reflection-API-user-guide
@@ -93,51 +220,165 @@ bool ShaderModule::reflectShaderLayoutBindings(
         compiler.get_shader_resources(activeVariableSet);
     compiler.set_enabled_interface_variables(std::move(activeVariableSet));
 
-    spdlog::debug("[SPIRV Reflection ({})]", _shaderFilePath);
+    bool isBindless = false;
+    for (const spirv_cross::Resource& resource : shaderResources.sampled_images)
+    {
+        const uint32_t set =
+            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding =
+            compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
+                   MAX_NUM_SET_SLOTS);
 
-    const auto& reflectShaderResources =
-        [&compiler, this](
-            const std::string_view& targetResourceType,
-            spirv_cross::SmallVector<spirv_cross::Resource>& resources,
-            VkDescriptorType descriptorType) {
-            spdlog::debug("[{} List]", targetResourceType);
+        const spirv_cross::SPIRType& resourceType =
+            compiler.get_type(resource.type_id);
 
-            for (const spirv_cross::Resource& resource : resources)
-            {
-                const uint32_t set = compiler.get_decoration(
-                    resource.id, spv::DecorationDescriptorSet);
-                const uint32_t binding = compiler.get_decoration(
-                    resource.id, spv::DecorationBinding);
+        const uint32_t count =
+            getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT(
+            (isBindless == false) ||
+                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
+            "Bindless resource must use set = {}",
+            static_cast<uint32_t>(SetSlotCategory::Bindless));
 
-                const spirv_cross::SPIRType& resourceType =
-                    compiler.get_type(resource.type_id);
-                const uint32_t count =
-                    resourceType.array[0] == 0 ? 1 : resourceType.array[0];
+        
+        
+        const std::string& blockName = compiler.get_name(resource.base_type_id);
 
-                spdlog::debug(
-                    "\t {} (set : {}, binding : {}, count : {})", resource.name,
-                    set, binding,
-                    count);  // TODO(snowapril) : support multi-dimensional
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
+                      resource.name, set, binding, count);
 
-                _layoutBindings.push_back(ShaderLayoutBinding(
-                    resource.name, set,
-                    VkDescriptorSetLayoutBinding{
-                        .binding = binding,
-                        .descriptorType = descriptorType,
-                        .descriptorCount = count,
-                        .stageFlags =
-                            static_cast<VkShaderStageFlags>(_stageFlagBits),
-                        .pImmutableSamplers = nullptr }));
-            }
-        };
+        if (resourceType.image.dim == spv::DimBuffer)
+        {
+            // layout.sets[set].sampled_texel_buffer_mask |= 1u << binding;
+        }
+        else
+        {
+            VkFormat imageFormat =
+                convertSpirvImageFormat(resourceType.image.format);
+            shaderLayoutBinding->_sets[set]._bindingMap.emplace(
+                blockName, DescriptorSetLayoutDesc::SampledImage{
+                               imageFormat, count, binding });
+        }
+    }
 
-    reflectShaderResources("Combined Sampled Image List",
-                           shaderResources.sampled_images,
-                           VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    for (const spirv_cross::Resource& resource :
+         shaderResources.uniform_buffers)
+    {
+        const uint32_t set =
+            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding =
+            compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
+                   MAX_NUM_SET_SLOTS);
 
-    reflectShaderResources("Storage Texel Buffer List",
-                           shaderResources.storage_images,
-                           VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+        const spirv_cross::SPIRType& resourceType =
+            compiler.get_type(resource.type_id);
+
+        const uint32_t count =
+            getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT(
+            (isBindless == false) ||
+                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
+            "Bindless resource must use set = {}",
+            static_cast<uint32_t>(SetSlotCategory::Bindless));
+
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
+                      resource.name, set, binding, count);
+
+        uint32_t totalSize = 0;
+        for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
+        {
+            auto& memberType = compiler.get_type(resourceType.member_types[i]);
+            size_t memberSize =
+                compiler.get_declared_struct_member_size(resourceType, i);
+            size_t offset = compiler.type_struct_member_offset(resourceType, i);
+            const std::string& memberName =
+                compiler.get_member_name(resourceType.self, i);
+
+            spdlog::debug("\t\t member({} : size({}), offset({})", memberName,
+                          memberSize, offset);
+            totalSize += static_cast<uint32_t>(memberSize);
+        }
+        const std::string& blockName = compiler.get_name(resource.base_type_id);
+        spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
+
+        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
+            blockName, DescriptorSetLayoutDesc::UniformBuffer{ totalSize, count,
+                                                               binding });
+    }
+
+    for (const spirv_cross::Resource& resource :
+         shaderResources.storage_buffers)
+    {
+        const uint32_t set =
+            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding =
+            compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
+                   MAX_NUM_SET_SLOTS);
+
+        const spirv_cross::SPIRType& resourceType =
+            compiler.get_type(resource.type_id);
+
+        const uint32_t count =
+            getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT(
+            (isBindless == false) ||
+                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
+            "Bindless resource must use set = {}",
+            static_cast<uint32_t>(SetSlotCategory::Bindless));
+
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
+                      resource.name, set, binding, count);
+
+        uint32_t totalSize = 0;
+        for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
+        {
+            auto& memberType = compiler.get_type(resourceType.member_types[i]);
+            size_t memberSize =
+                compiler.get_declared_struct_member_size(resourceType, i);
+            size_t offset = compiler.type_struct_member_offset(resourceType, i);
+            const std::string& memberName =
+                compiler.get_member_name(resourceType.self, i);
+
+            spdlog::debug("\t\t member({} : size({}), offset({})", memberName,
+                          memberSize, offset);
+            totalSize += static_cast<uint32_t>(memberSize);
+        }
+        const std::string& blockName = compiler.get_name(resource.base_type_id);
+        spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
+
+        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
+            blockName, DescriptorSetLayoutDesc::StorageBuffer{ totalSize, count,
+                                                               binding });
+    }
+
+    // TODO(snowapril) : debug its member variables and fill implementation
+    for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
+    {
+        auto location =
+            compiler.get_decoration(attribute.id, spv::DecorationLocation);
+        // shaderLayout
+    }
+    for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
+    {
+        auto location =
+            compiler.get_decoration(attribute.id, spv::DecorationLocation);
+        // shaderLayout
+    }
+
+    if (!shaderResources.push_constant_buffers.empty())
+    {
+        shaderLayoutBinding->_pushConstantSize = static_cast<uint32_t>(
+            compiler.get_declared_struct_size(compiler.get_type(
+                shaderResources.push_constant_buffers.front().base_type_id)));
+    }
+
+    for (std::size_t i = 0; i < shaderLayoutBinding->_sets.size(); ++i)
+    {
+        shaderLayoutBinding->_sets[i]._stageFlags |= shaderStageBits;
+    }
 
     return true;
 }

@@ -20,6 +20,16 @@ class TextureView;
 
 constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 2;
+enum class SetSlotCategory : uint8_t
+{
+    Bindless = 0,
+    PerFrame = 1,
+    PerRenderPass = 2,
+    PerDraw = 3,
+    Count = 4,
+};
+constexpr uint32_t MAX_NUM_SET_SLOTS =
+    static_cast<uint32_t>(SetSlotCategory::Count);
 
 enum DescriptorSetCycle : uint8_t
 {
@@ -161,8 +171,16 @@ struct RenderTargetsInfo
     bool operator==(const RenderTargetsInfo& other) const;
 };
 
-struct VertexInputLayout
+// Below helper types from
+// https://en.cppreference.com/w/cpp/utility/variant/visit
+template <class... Ts>
+struct overloaded : Ts...
 {
+    using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 };
 }  // namespace VoxFlow
