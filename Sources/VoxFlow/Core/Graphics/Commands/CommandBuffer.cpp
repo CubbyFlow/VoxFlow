@@ -54,11 +54,14 @@ void CommandBuffer::beginCommandBuffer(uint32_t swapChainIndex,
     vkBeginCommandBuffer(_vkCommandBuffer, &beginInfo);
     _hasBegun = true;
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     const std::string cmdDebugName =
         fmt::format("{}_SwapChainIndex({})_FrameIndex({})_BackBufferIndex({})",
-                    _debugName, swapChainIndex, frameIndex, backBufferIndex);
-    DebugUtil::setObjectName(_commandQueue->getLogicalDevice(),
-                             _vkCommandBuffer, cmdDebugName.c_str());
+                    _debugName, _frameContext._swapChainIndex,
+                    _frameContext._frameIndex, _frameContext._backBufferIndex);
+    DebugUtil::setObjectName(_logicalDevice, _vkCommandBuffer,
+                             cmdDebugName.c_str());
+#endif
 }
 
 void CommandBuffer::endCommandBuffer()

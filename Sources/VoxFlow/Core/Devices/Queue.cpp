@@ -23,7 +23,9 @@ Queue::Queue(const std::string& debugName, LogicalDevice* logicalDevice,
       _lastExecutedFence(this, 0ULL),
       _lastCompletedFence(this, 0ULL)
 {
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, queueHandle, _debugName.c_str());
+#endif
 
     VkSemaphoreTypeCreateInfo timelineCreateInfo;
     timelineCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;

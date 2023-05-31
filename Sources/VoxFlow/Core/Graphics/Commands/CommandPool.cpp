@@ -22,6 +22,7 @@ CommandPool::CommandPool(LogicalDevice* logicalDevice, Queue* ownerQueue)
     VK_ASSERT(vkCreateCommandPool(_logicalDevice->get(), &poolInfo, nullptr,
                                   &_commandPool));
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     const std::string debugName =
         _ownerQueue->getDebugName() + "_" +
         std::to_string(reinterpret_cast<uint64_t>(_commandPool));
@@ -32,8 +33,9 @@ CommandPool::CommandPool(LogicalDevice* logicalDevice, Queue* ownerQueue)
                                  debugName.c_str());
     }
     else
+#endif
     {
-        VOX_ASSERT(false, "Failed to create CommandPool({})", debugName);
+        VOX_ASSERT(false, "Failed to create CommandPool");
     }
 }
 

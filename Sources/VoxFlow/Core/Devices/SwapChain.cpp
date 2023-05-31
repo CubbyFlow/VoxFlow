@@ -129,7 +129,9 @@ bool SwapChain::create(const bool vsync)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _swapChain, _titleName.c_str());
+#endif // VK_DEBUG_NAME_ENABLED
 
     if (oldSwapChain != VK_NULL_HANDLE)
     {

@@ -144,11 +144,14 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     const std::string renderPassDebugName =
         fmt::format("{}_Color(#{})_Depth(#{})", _renderTargetLayout._debugName,
                     numColorAttachments, hasDepthStencilAttachment ? 1U : 0U);
     DebugUtil::setObjectName(_logicalDevice, _renderPass,
                              renderPassDebugName.c_str());
+#endif
+
     return true;
 }
 

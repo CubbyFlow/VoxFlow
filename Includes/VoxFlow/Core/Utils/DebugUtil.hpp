@@ -64,6 +64,8 @@ class DebugUtil
     {
         return { cmdBuffer, label };
     }
+
+#if defined(VK_DEBUG_NAME_ENABLED)
     static void setObjectName(LogicalDevice* logicalDevice,
                               VkCommandBuffer commandBuffer, const char* name)
     {
@@ -158,6 +160,9 @@ class DebugUtil
  private:
     static void setObjectName(LogicalDevice* logicalDevice, uint64_t object,
                               const char* name, VkObjectType type);
+#endif
+
+    static uint64_t NumValidationErrorDetected;
 };
 
 class DeviceRemoveTracker
