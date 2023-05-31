@@ -32,6 +32,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
@@ -70,6 +71,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
+    ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
