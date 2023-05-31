@@ -7,7 +7,6 @@
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow

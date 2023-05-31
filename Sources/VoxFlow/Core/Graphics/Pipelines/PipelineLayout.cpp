@@ -3,7 +3,6 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <algorithm>
 

@@ -5,7 +5,6 @@
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 
@@ -195,8 +194,11 @@ bool SwapChain::create(const bool vsync)
                 targetSemaphores.resize(numSwapChainImages);
                 for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
                 {
-                    VkSemaphoreCreateInfo semaphoreInfo =
-                        Initializer::MakeInfo<VkSemaphoreCreateInfo>();
+                    const VkSemaphoreCreateInfo semaphoreInfo = {
+                        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+                        .pNext = nullptr,
+                        .flags = 0
+                    };
                     vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
                                       nullptr, &targetSemaphores[i]);
                 }

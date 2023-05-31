@@ -6,7 +6,6 @@
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
@@ -46,11 +45,16 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
 
     std::for_each(
         _shaderModules.begin(), _shaderModules.end(),
-        [&shaderStageInfos](const std::shared_ptr<ShaderModule>& module) {
-            auto stageCreateInfo =
-                Initializer::MakeInfo<VkPipelineShaderStageCreateInfo>();
-            stageCreateInfo.stage = module->getStageFlagBits();
-            stageCreateInfo.module = module->get();
+        [&shaderStageInfos](const std::unique_ptr<ShaderModule>& module) {
+            const VkPipelineShaderStageCreateInfo stageCreateInfo = {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = module->getStageFlagBits(),
+                .module = module->get(),
+                .pName = "main",
+                .pSpecializationInfo = nullptr
+            };
             shaderStageInfos.push_back(stageCreateInfo);
         });
 

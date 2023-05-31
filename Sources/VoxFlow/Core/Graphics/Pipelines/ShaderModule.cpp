@@ -4,7 +4,6 @@
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <spirv-cross/spirv_common.hpp>
 #include <spirv-cross/spirv_cross.hpp>
@@ -29,11 +28,13 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
 
     _stageFlagBits = GlslangUtil::GlslangStageToVulkanStage(glslangStage);
 
-    [[maybe_unused]] auto moduleInfo =
-        Initializer::MakeInfo<VkShaderModuleCreateInfo>();
-    moduleInfo.codeSize = spirvBinary.size() * sizeof(unsigned int);
-    moduleInfo.pCode = spirvBinary.data();
-
+    const VkShaderModuleCreateInfo moduleInfo = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .codeSize = spirvBinary.size() * sizeof(unsigned int),
+        .pCode = spirvBinary.data()
+    };
     VK_ASSERT(vkCreateShaderModule(_logicalDevice->get(), &moduleInfo, nullptr,
                                    &_shaderModule));
 

@@ -3,7 +3,6 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Instance.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <glslang_c_interface.h>
 
@@ -63,7 +62,17 @@ Instance::Instance(const Context& ctx)
     //     enabledValidationFeatures;
     if (ctx.useValidationLayer)
     {
-        debugInfo = Initializer::MakeInfo<VkDebugUtilsMessengerCreateInfoEXT>();
+        debugInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = DebugUtil::DebugCallback,
+            .pUserData = nullptr,
+        };
         instanceInfo.pNext = &debugInfo;
     // 
     //     validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
