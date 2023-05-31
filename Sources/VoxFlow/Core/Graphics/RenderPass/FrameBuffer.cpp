@@ -14,6 +14,7 @@ FrameBuffer::FrameBuffer(LogicalDevice* logicalDevice)
 
 FrameBuffer::~FrameBuffer()
 {
+    release();
 }
 
 FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept

@@ -82,6 +82,7 @@ std::shared_ptr<FrameBuffer> RenderPassCollector::getOrCreateFrameBuffer(
 void RenderPassCollector::release()
 {
     _renderPassCollection.clear();
+    _frameBufferCollection.clear();
 }
 
 }  // namespace VoxFlow

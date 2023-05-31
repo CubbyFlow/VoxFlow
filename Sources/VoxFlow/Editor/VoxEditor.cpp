@@ -102,10 +102,7 @@ void VoxEditor::updateFrame()
 
 void VoxEditor::renderFrame()
 {
-    // TODO(snowapril) : customize logical device index
-    _renderDevice->beginFrame(0);
-    _renderDevice->presentSwapChains(0);
-}
+   }
 
 void VoxEditor::postRenderFrame()
 {
