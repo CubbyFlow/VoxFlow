@@ -66,7 +66,7 @@ CommandPool& CommandPool::operator=(CommandPool&& other) noexcept
     return *this;
 }
 
-std::shared_ptr<CommandBuffer> CommandPool::allocateCommandBuffer()
+std::shared_ptr<CommandBuffer> CommandPool::getOrCreateCommandBuffer()
 {
     VOX_ASSERT(std::this_thread::get_id() == _creationThreadId, "");
     std::shared_ptr<CommandBuffer> outCommandBuffer = nullptr;
@@ -93,7 +93,7 @@ std::shared_ptr<CommandBuffer> CommandPool::allocateCommandBuffer()
         VK_ASSERT(vkAllocateCommandBuffers(_logicalDevice->get(), &allocInfo,
                                            &vkCommandBuffer));
         outCommandBuffer =
-            std::make_shared<CommandBuffer>(_ownerQueue, this, vkCommandBuffer);
+            std::make_shared<CommandBuffer>(_logicalDevice, vkCommandBuffer);
     }
 
     return outCommandBuffer;

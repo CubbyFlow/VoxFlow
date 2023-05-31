@@ -8,8 +8,8 @@
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <queue>
-#include <thread>
 #include <string>
+#include <thread>
 
 namespace VoxFlow
 {
@@ -26,7 +26,10 @@ class CommandPool : private NonCopyable
     CommandPool& operator=(CommandPool&& other) noexcept;
 
  public:
-    std::shared_ptr<CommandBuffer> allocateCommandBuffer();
+    // Create new command buffer or get a freed one
+    std::shared_ptr<CommandBuffer> getOrCreateCommandBuffer();
+
+    // Release command buffer to the freed pool
     void releaseCommandBuffer(std::shared_ptr<CommandBuffer>&& commandBuffer);
 
  private:
