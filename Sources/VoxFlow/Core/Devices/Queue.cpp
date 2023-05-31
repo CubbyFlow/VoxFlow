@@ -165,8 +165,8 @@ FenceObject Queue::submitCommandBufferBatch(
     // Must sort given command buffers with fence value allocated to
     // guarantee sequential execution.
     std::sort(commandBuffersToSubmit.begin(), commandBuffersToSubmit.end(),
-              [](const std::shared_ptr < CommandBuffer >> &lhs,
-                 const std::shared_ptr < CommandBuffer >> &rhs) {
+              [](const std::shared_ptr<CommandBuffer>& lhs,
+                 const std::shared_ptr<CommandBuffer>& rhs) {
                   return lhs->getFenceToSignal().getFenceValue() <
                          rhs->getFenceToSignal().getFenceValue();
               });
@@ -179,7 +179,7 @@ FenceObject Queue::submitCommandBufferBatch(
     return _lastExecutedFence;
 }
 
-uint64_t Queue::getTimelineSemaphoreValue()
+uint64_t Queue::querySemaphoreValue()
 {
     uint64_t value = 0;
     VK_ASSERT(vkGetSemaphoreCounterValueKHR(_logicalDevice->get(),

@@ -94,7 +94,7 @@ class Queue : private NonCopyable
 
     // Returns Timeline semaphore's value which synchronized with queue
     // submission
-    [[nodiscard]] uint64_t getTimelineSemaphoreValue();
+    [[nodiscard]] uint64_t querySemaphoreValue();
 
  private:
     std::string _debugName;
@@ -104,9 +104,9 @@ class Queue : private NonCopyable
     uint32_t _familyIndex{ 0 };
     uint32_t _queueIndex{ 0 };
     VkSemaphore _submitTimelineSemaphore{ VK_NULL_HANDLE };
-    FenceObject _fenceToSignal;
-    FenceObject _lastExecutedFence;
-    FenceObject _lastCompletedFence;
+    FenceObject _fenceToSignal = FenceObject::Default();
+    FenceObject _lastExecutedFence = FenceObject::Default();
+    FenceObject _lastCompletedFence = FenceObject::Default();
 };
 }  // namespace VoxFlow
 
