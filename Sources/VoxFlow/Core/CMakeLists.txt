@@ -16,14 +16,13 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorPool.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetLayout.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp
@@ -55,8 +54,8 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp
-    ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorPool.cpp
-    ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetLayout.cpp
+    ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocator.cpp
+    ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayout.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtil.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
