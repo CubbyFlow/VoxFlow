@@ -10,11 +10,9 @@
 
 namespace VoxFlow
 {
-GraphicsPipeline::GraphicsPipeline(
-    LogicalDevice* logicalDevice,
-    std::vector<std::shared_ptr<ShaderModule>>&& shaderModules,
-    const std::shared_ptr<PipelineLayout>& layout)
-    : BasePipeline(logicalDevice, layout, std::move(shaderModules))
+GraphicsPipeline::GraphicsPipeline(LogicalDevice* logicalDevice,
+                                   std::vector<const char*>&& shaderPaths)
+    : BasePipeline(logicalDevice, std::move(shaderPaths))
 {
 }
 
@@ -180,7 +178,7 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
         .pDepthStencilState = &depthStencilInfo,
         .pColorBlendState = &colorBlendInfo,
         .pDynamicState = &dynamicInfo,
-        .layout = _layout->get(),
+        .layout = _pipelineLayout->get(),
         .renderPass = renderPass->get(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
