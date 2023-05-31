@@ -73,6 +73,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
+    ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
     ${SRC_DIR}/Core/RenderDevice.cpp
 )
