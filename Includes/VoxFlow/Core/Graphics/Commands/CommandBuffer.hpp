@@ -51,21 +51,40 @@ class CommandBuffer : private NonCopyable
     // Make final preparation to present recorded result to swapChain back buffer.
     void makeSwapChainFinalLayout(const std::shared_ptr<SwapChain>& swapChain);
 
-    inline const FenceObject& getFenceToSignal() const
+    // Bind given resource group to command buffer according to descriptor set layout informations
+    void bindResourceGroup(
+        SetSlotCategory setSlotCategory,
+        std::vector<std::pair<std::string_view, BindableResourceView*>>&&
+            bindGroup);
+
+    // Commit pending resource bindings to command buffer
+    void commitPendingResourceBindings();
+
+    const FenceObject& getFenceToSignal() const
     {
         return _fenceToSignal;
     }
 
+    void drawIndexed(uint32_t indexCount, uint32_t instanceCount,
+                     uint32_t firstIndex, int32_t vertexOffset,
+                     uint32_t firstInstance);
+
  private:
-    Queue* _commandQueue = nullptr;
-    // CommandPool* _ownerCommandPool = nullptr;
+    // Set pipeline barrier or transition for given resource to desired layout
+    void makeResourceLayout(
+        BindableResourceView* resourceView,
+        const DescriptorSetLayoutDesc::DescriptorType& descriptorDesc);
+
+ private:
+    LogicalDevice* _logicalDevice = nullptr;
     std::shared_ptr<RenderPass> _boundRenderPass = nullptr;
+    std::shared_ptr<BasePipeline> _boundPipeline = nullptr;
     RenderTargetsInfo _boundRenderTargetsInfo;
-    FenceObject _fenceToSignal;
+    FenceObject _fenceToSignal = FenceObject::Default();
     VkCommandBuffer _vkCommandBuffer = VK_NULL_HANDLE;
-    uint32_t _swapChainIndexCached = UINT32_MAX;
-    uint32_t _frameIndexCached = UINT32_MAX;
-    uint32_t _backBufferIndexCached = UINT32_MAX;
+    std::array<std::vector<std::pair<std::string_view, BindableResourceView*>>,
+               MAX_NUM_SET_SLOTS>
+        _pendingResourceBindings;
     std::string _debugName;
     bool _hasBegun = false;
 };

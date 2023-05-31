@@ -171,11 +171,171 @@ void CommandBuffer::makeSwapChainFinalLayout(
                               .layerCount = 1 },
     };
 
-    vkCmdPipelineBarrier(_vkCommandBuffer,
-                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                         VK_DEPENDENCY_BY_REGION_BIT, 0, nullptr, 0, nullptr, 1,
-                         &imageMemoryBarrier);
+    vkCmdPipelineBarrier(
+        _vkCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0,
+        nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+}
+
+void CommandBuffer::bindResourceGroup(
+    SetSlotCategory setSlotCategory,
+    std::vector<std::pair<std::string_view, BindableResourceView*>>&& bindGroup)
+{
+    std::vector<std::pair<std::string_view, BindableResourceView*>>&
+        dstBindingResources =
+            _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
+
+    if (dstBindingResources.empty())
+    {
+        dstBindingResources = std::move(bindGroup);
+    }
+    else
+    {
+        dstBindingResources.reserve(dstBindingResources.size() +
+                                    bindGroup.size());
+        std::move(std::make_move_iterator(bindGroup.begin()),
+                  std::make_move_iterator(bindGroup.end()),
+                  std::back_inserter(dstBindingResources));
+    }
+}
+
+void CommandBuffer::commitPendingResourceBindings()
+{
+    for (uint32_t setIndex = 0; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
+    {
+        const SetSlotCategory setSlotCategory =
+            static_cast<SetSlotCategory>(setIndex);
+        std::vector<std::pair<std::string_view, BindableResourceView*>>&
+            bindGroup = _pendingResourceBindings[setIndex];
+        PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+        DescriptorSetAllocator* setAllocator =
+            pipelineLayout->getDescSetAllocator(setSlotCategory);
+        const DescriptorSetLayoutDesc& setLayoutDesc =
+            setAllocator->getDescriptorSetLayoutDesc();
+
+        VkDescriptorSet pooledDescriptorSet =
+            setAllocator->getOrCreatePooledDescriptorSet(_fenceToSignal);
+
+        std::vector<VkWriteDescriptorSet> vkWrites;
+        vkWrites.reserve(bindGroup.size());
+
+        static VkDescriptorImageInfo sTmpImageInfo = {};
+        static VkDescriptorBufferInfo sTmpBufferInfo = {};
+
+        for (const std::pair<std::string_view, BindableResourceView*>&
+                 resourceBinding : bindGroup)
+        {
+            const std::string_view& resourceBindingName = resourceBinding.first;
+            BindableResourceView* bindingResourceView = resourceBinding.second;
+
+            const VkDescriptorImageInfo* imageInfo = nullptr;
+            const VkDescriptorBufferInfo* bufferInfo = nullptr;
+
+            DescriptorSetLayoutDesc::ContainerType::const_iterator it =
+                setLayoutDesc._bindingMap.find(
+                    std::string(resourceBindingName));
+
+            VOX_ASSERT(it != setLayoutDesc._bindingMap.end(),
+                       "Unknown binding name ({})", resourceBindingName);
+
+            uint32_t binding = 0;
+            uint32_t arraySize = 0;
+
+            VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+
+            std::visit(
+                overloaded{
+                    [this, &binding, &arraySize, &vkDescriptorType](
+                        DescriptorSetLayoutDesc::SampledImage setBinding) {
+                        binding = setBinding._binding;
+                        arraySize = setBinding._arraySize;
+                        vkDescriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                    },
+                    [this, &binding, &arraySize, &vkDescriptorType](
+                        DescriptorSetLayoutDesc::UniformBuffer setBinding) {
+                        binding = setBinding._binding;
+                        arraySize = setBinding._arraySize;
+                        vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    },
+                    [this, &binding, &arraySize, &vkDescriptorType](
+                        DescriptorSetLayoutDesc::StorageBuffer setBinding) {
+                        binding = setBinding._binding;
+                        arraySize = setBinding._arraySize;
+                        vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                    },
+                },
+                it->second);
+
+            VOX_ASSERT(vkDescriptorType != VK_DESCRIPTOR_TYPE_MAX_ENUM,
+                       "Unknown descriptor type {}", vkDescriptorType);
+
+            switch (bindingResourceView->getResourceViewType())
+            {
+                case ResourceViewType::BufferView:
+                    sTmpBufferInfo =
+                        static_cast<BufferView*>(bindingResourceView)
+                            ->getDescriptorBufferInfo();
+                    bufferInfo = &sTmpBufferInfo;
+                    break;
+                case ResourceViewType::ImageView:
+                    sTmpImageInfo =
+                        static_cast<TextureView*>(bindingResourceView)
+                            ->getDescriptorImageInfo();
+
+                    // TODO(snowapril) : set image layout
+                    // sTmpImageInfo.imageLayout = ;
+
+                    imageInfo = &sTmpImageInfo;
+                    break;
+            }
+
+            // TODO(snowapril) : get below information from descriptor set
+            // layout desc
+            VkWriteDescriptorSet vkWrite = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = pooledDescriptorSet,
+                .dstBinding = static_cast<uint32_t>(setSlotCategory),
+                .dstArrayElement = binding,
+                .descriptorCount = arraySize,
+                .descriptorType = vkDescriptorType,
+                .pImageInfo = imageInfo,
+                .pBufferInfo = bufferInfo,
+                .pTexelBufferView = nullptr
+            };
+
+            vkWrites.push_back(vkWrite);
+        }
+
+        vkUpdateDescriptorSets(_logicalDevice->get(),
+                               static_cast<uint32_t>(vkWrites.size()),
+                               vkWrites.data(), 0, nullptr);
+
+        vkCmdBindDescriptorSets(
+            _vkCommandBuffer, _boundPipeline->getBindPoint(),
+            pipelineLayout->get(), static_cast<uint32_t>(setSlotCategory), 1,
+            &pooledDescriptorSet, 0, nullptr);
+
+        bindGroup.clear();
+    }
+}
+
+void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
+                                uint32_t firstIndex, int32_t vertexOffset,
+                                uint32_t firstInstance)
+{
+    commitPendingResourceBindings();
+
+    vkCmdDrawIndexed(_vkCommandBuffer, indexCount, instanceCount, firstIndex,
+                     vertexOffset, firstInstance);
+}
+
+void CommandBuffer::makeResourceLayout(
+    BindableResourceView* resourceView,
+    const DescriptorSetLayoutDesc::DescriptorType& descriptorDesc)
+{
+    (void)resourceView;
+    (void)descriptorDesc;
 }
 
 }  // namespace VoxFlow
