@@ -33,7 +33,7 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         new LogicalDevice(deviceSetupCtx, _physicalDevice, _instance));
 
-    
+    RenderResourceGarbageCollector::Get().threadConstruct();
     auto mainSwapChain = _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
 
     RenderTargetLayoutKey rtLayoutKey = {
@@ -75,11 +75,14 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
 
 RenderDevice::~RenderDevice()
 {
-    delete _mainCommandPool;
-    for (LogicalDevice* logicalDevice : _logicalDevices)
+    for (std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
     {
-        delete logicalDevice;
+        logicalDevice->releaseDedicatedResources();
     }
+    
+    RenderResourceGarbageCollector::Get().threadTerminate();
+    _logicalDevices.clear();
+
     delete _physicalDevice;
     delete _instance;
     delete _deviceSetupCtx;

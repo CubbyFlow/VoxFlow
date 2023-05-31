@@ -62,6 +62,9 @@ class LogicalDevice : NonCopyable
         std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor);
 
  public:
+     // Release resources which derived from this LogicalDevice
+     void releaseDedicatedResources();
+
      // Release logical device and resources which derived from current logical device.
     void release();
 

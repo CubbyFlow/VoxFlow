@@ -203,15 +203,13 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     return swapChain;
 }
 
-std::shared_ptr<Texture> LogicalDevice::createTexture(std::string&& name,
-                                                      TextureInfo textureInfo)
+void LogicalDevice::releaseDedicatedResources()
 {
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(
-        std::move(name), this, _renderResourceMemoryPool);
-    if (texture->initialize(textureInfo) == false)
-        return nullptr;
+    vkDeviceWaitIdle(_device);
 
-    return texture;
+    if (_renderResourceMemoryPool != nullptr)
+    {
+        delete _renderResourceMemoryPool;
 }
 std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
                                                     BufferInfo bufferInfo)
@@ -221,7 +219,9 @@ std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
     if (buffer->initialize(bufferInfo) == false)
         return nullptr;
 
-    return buffer;
+    if (_renderPassCollector != nullptr)
+    {
+        delete _renderPassCollector;
 }
 
 void LogicalDevice::executeOnEachSwapChain(
@@ -230,8 +230,8 @@ void LogicalDevice::executeOnEachSwapChain(
     std::for_each(_swapChains.begin(), _swapChains.end(), swapChainExecutor);
 }
 
-void LogicalDevice::release()
-{
+    _swapChains.clear();
+
     std::for_each(
         _queueMap.begin(), _queueMap.end(),
         [](std::unordered_map<std::string, Queue*>::value_type& queue) {
@@ -240,7 +240,10 @@ void LogicalDevice::release()
                 delete queue.second;
             }
         });
+}
 
+void LogicalDevice::release()
+{
     if (_device != VK_NULL_HANDLE)
     {
         vkDeviceWaitIdle(_device);
