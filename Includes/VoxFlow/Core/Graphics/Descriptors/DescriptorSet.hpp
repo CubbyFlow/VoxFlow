@@ -20,7 +20,11 @@ struct DescriptorSetLayoutDesc
         uint32_t _arraySize = 0;
         uint32_t _binding = 0;
 
-        inline bool operator==(const SampledImage& rhs) const = default;
+        inline bool operator==(const SampledImage& rhs) const
+        {
+            return (_format == rhs._format) && (_arraySize == rhs._arraySize) &&
+                   (_binding == rhs._binding);   
+        }
     };
     struct UniformBuffer
     {
@@ -28,7 +32,11 @@ struct DescriptorSetLayoutDesc
         uint32_t _arraySize = 0;
         uint32_t _binding = 0;
 
-        inline bool operator==(const UniformBuffer& rhs) const = default;
+        inline bool operator==(const UniformBuffer& rhs) const
+        {
+            return (_size == rhs._size) && (_arraySize == rhs._arraySize) &&
+                   (_binding == rhs._binding);
+        }
     };
     struct StorageBuffer
     {
@@ -36,7 +44,11 @@ struct DescriptorSetLayoutDesc
         uint32_t _arraySize = 0;
         uint32_t _binding = 0;
 
-        inline bool operator==(const StorageBuffer& rhs) const = default;
+        inline bool operator==(const StorageBuffer& rhs) const
+        {
+            return (_size == rhs._size) && (_arraySize == rhs._arraySize) &&
+                   (_binding == rhs._binding);
+        }
     };
 
     using DescriptorType =
@@ -48,7 +60,9 @@ struct DescriptorSetLayoutDesc
 
     inline bool operator==(const DescriptorSetLayoutDesc& rhs) const
     {
-        return _bindingMap == rhs._bindingMap && _stageFlags == rhs._stageFlags;
+        return std::equal(_bindingMap.begin(), _bindingMap.end(),
+                          rhs._bindingMap.begin(), rhs._bindingMap.end()) &&
+               (_stageFlags == rhs._stageFlags);
     }
 };
 
