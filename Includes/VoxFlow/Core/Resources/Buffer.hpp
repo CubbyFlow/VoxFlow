@@ -86,7 +86,7 @@ class BufferView : public BindableResourceView
     // Returns VkDescriptorBufferInfo for this buffer view object.
     VkDescriptorBufferInfo getDescriptorBufferInfo() const;
 
-    ResourceViewType getResourceViewType() const override final
+    ResourceViewType getResourceViewType() const final
     {
         return ResourceViewType::BufferView;
     }

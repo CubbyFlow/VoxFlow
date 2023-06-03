@@ -91,7 +91,7 @@ class TextureView : public BindableResourceView
 
     VkDescriptorImageInfo getDescriptorImageInfo() const;
 
-    ResourceViewType getResourceViewType() const override final
+    ResourceViewType getResourceViewType() const final
     {
         return ResourceViewType::ImageView;
     }

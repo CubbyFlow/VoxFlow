@@ -71,9 +71,9 @@ class RenderResourceGarbageCollector : private Thread
     ~RenderResourceGarbageCollector() = default;
 
  public:
-    void threadConstruct() override final;
-    void threadProcess() override final;
-    void threadTerminate() override final;
+    void threadConstruct() final;
+    void threadProcess() final;
+    void threadTerminate() final;
 
  public:
     std::mutex _garbageCollectionLock;
