@@ -289,7 +289,7 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         uint32_t totalSize = 0;
         for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
         {
-            auto& memberType = compiler.get_type(resourceType.member_types[i]);
+            // auto& memberType = compiler.get_type(resourceType.member_types[i]);
             size_t memberSize =
                 compiler.get_declared_struct_member_size(resourceType, i);
             size_t offset = compiler.type_struct_member_offset(resourceType, i);
@@ -335,7 +335,7 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         uint32_t totalSize = 0;
         for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
         {
-            auto& memberType = compiler.get_type(resourceType.member_types[i]);
+            // auto& memberType = compiler.get_type(resourceType.member_types[i]);
             size_t memberSize =
                 compiler.get_declared_struct_member_size(resourceType, i);
             size_t offset = compiler.type_struct_member_offset(resourceType, i);
@@ -355,18 +355,18 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
     }
 
     // TODO(snowapril) : debug its member variables and fill implementation
-    for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
-    {
-        auto location =
-            compiler.get_decoration(attribute.id, spv::DecorationLocation);
-        // shaderLayout
-    }
-    for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
-    {
-        auto location =
-            compiler.get_decoration(attribute.id, spv::DecorationLocation);
-        // shaderLayout
-    }
+    // for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
+    // {
+    //     // auto location =
+    //     //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
+    //     // shaderLayout
+    // }
+    //for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
+    //{
+    //    // auto location =
+    //    //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
+    //    // shaderLayout
+    //}
 
     if (!shaderResources.push_constant_buffers.empty())
     {

@@ -12,15 +12,35 @@ ChromeTracer& ChromeTracer::Get()
     return sChromeTracer;
 }
 
+void ChromeTracer::beginTrace()
+{
+    _traceStartTime = std::chrono::system_clock::now();
+}
+
+void ChromeTracer::endTrace(const char* traceFilePath)
+{
+    (void)traceFilePath;
+    // TODO(snowapril) : implement shutdown and flushing
+}
+
+void ChromeTracer::addTraceEvent(ChromeTraceEvent eventType,
+                                 const char* eventName)
+{
+    (void)eventType;
+    (void)eventName;
+    // TODO(snowapril) : implement json logging
+}
+
 ChromeTracer::ScopedChromeTracing::ScopedChromeTracing(
-    ChromeTracer* ownerTracer, std::string_view&& eventName)
+    ChromeTracer* ownerTracer, const char* eventName)
     : _ownerTracer(ownerTracer), _eventName(std::move(eventName))
 {
+    _ownerTracer->addTraceEvent(ChromeTraceEvent::DurationBegin, _eventName);
 }
 
 ChromeTracer::ScopedChromeTracing::~ScopedChromeTracing()
 {
-    // TODO(snowapril) : add duration event to json object
+    _ownerTracer->addTraceEvent(ChromeTraceEvent::DurationEnd, _eventName);
 }
 }  // namespace VoxFlow
 
