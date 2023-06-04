@@ -6,6 +6,7 @@
 
 namespace VoxFlow
 {
+uint64_t DebugUtil::NumValidationErrorDetected = 0;
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT flags,
@@ -36,6 +37,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
 
     DebugUtil::DebugBreak();
 
+    ++NumValidationErrorDetected;
     return VK_FALSE;
 }
 
@@ -48,10 +50,15 @@ void DebugUtil::DebugBreak()
 {
 #if defined(_WIN32)
     ::DebugBreak();
+#elif defined(_ANDROID)
+    // TODO(snowapril) : check if debugger attached as SIGTRAP act as crash without debugger
+    signal(SIGTRAP);
 #endif
 }
 
-void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object, const char* name,
+#if defined(VK_DEBUG_NAME_ENABLED)
+void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object,
+                              const char* name,
                               VkObjectType type)
 {
     // static PFN_vkSetDebugUtilsObjectNameEXT setObjectName =
@@ -64,6 +71,7 @@ void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object, con
     };
     vkSetDebugUtilsObjectNameEXT(logicalDevice->get(), &nameInfo);
 }
+#endif 
 
 DeviceRemoveTracker* DeviceRemoveTracker::get()
 {

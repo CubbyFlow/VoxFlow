@@ -4,7 +4,6 @@
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -20,10 +19,13 @@ Queue::Queue(const std::string& debugName, LogicalDevice* logicalDevice,
       _queue(queueHandle),
       _familyIndex(familyIndex),
       _queueIndex(queueIndex),
+      _fenceToSignal(this, 0ULL),
       _lastExecutedFence(this, 0ULL),
       _lastCompletedFence(this, 0ULL)
 {
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, queueHandle, _debugName.c_str());
+#endif
 
     VkSemaphoreTypeCreateInfo timelineCreateInfo;
     timelineCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
@@ -153,11 +155,23 @@ FenceObject Queue::submitCommandBuffer(
 }
 
 FenceObject Queue::submitCommandBufferBatch(
-    const std::vector<std::shared_ptr<CommandBuffer>>& batchedCommandBuffers,
+    std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
     const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
     const bool waitAllCompletion)
 {
-    (void)batchedCommandBuffers;
+    std::vector<std::shared_ptr<CommandBuffer>>&& commandBuffersToSubmit =
+        std::move(batchedCommandBuffers);
+
+    // Must sort given command buffers with fence value allocated to
+    // guarantee sequential execution.
+    std::sort(commandBuffersToSubmit.begin(), commandBuffersToSubmit.end(),
+              [](const std::shared_ptr<CommandBuffer>& lhs,
+                 const std::shared_ptr<CommandBuffer>& rhs) {
+                  return lhs->getFenceToSignal().getFenceValue() <
+                         rhs->getFenceToSignal().getFenceValue();
+              });
+    
+    (void)commandBuffersToSubmit;
     (void)swapChain;
     (void)frameIndex;
     (void)waitAllCompletion;
@@ -165,7 +179,7 @@ FenceObject Queue::submitCommandBufferBatch(
     return _lastExecutedFence;
 }
 
-uint64_t Queue::getTimelineSemaphoreValue()
+uint64_t Queue::querySemaphoreValue()
 {
     uint64_t value = 0;
     VK_ASSERT(vkGetSemaphoreCounterValueKHR(_logicalDevice->get(),

@@ -14,6 +14,7 @@ FrameBuffer::FrameBuffer(LogicalDevice* logicalDevice)
 
 FrameBuffer::~FrameBuffer()
 {
+    release();
 }
 
 FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept
@@ -78,8 +79,10 @@ bool FrameBuffer::initialize(const std::shared_ptr<RenderPass>& renderPass,
         VOX_ASSERT(false, "Failed to create framebuffer({})", _renderTargetsInfo._debugName);
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkFrameBuffer,
                              _renderTargetsInfo._debugName.c_str());
+#endif
 
     return true;
 }

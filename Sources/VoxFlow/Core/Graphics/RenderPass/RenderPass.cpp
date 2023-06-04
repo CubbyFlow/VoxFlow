@@ -2,7 +2,6 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
@@ -57,15 +56,15 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout =
-                colorDesc._clearColor ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .initialLayout = colorDesc._clearColor
+                                 ? VK_IMAGE_LAYOUT_UNDEFINED
+                                 : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         attachmentDescs.push_back(colorAttachmentDesc);
 
-        VkAttachmentReference colorRef
-        {
-            .attachment = attachmentIndex++, 
+        VkAttachmentReference colorRef{
+            .attachment = attachmentIndex++,
             .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
         };
         colorAttachments.push_back(colorRef);
@@ -110,7 +109,7 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
         .preserveAttachmentCount = 0,
         .pPreserveAttachments = nullptr
     };
-    
+
     std::vector<VkSubpassDependency> dependencies = {
         /* VkSubpassDependency */ {
             .srcSubpass = VK_SUBPASS_EXTERNAL,
@@ -145,11 +144,14 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
     const std::string renderPassDebugName =
         fmt::format("{}_Color(#{})_Depth(#{})", _renderTargetLayout._debugName,
                     numColorAttachments, hasDepthStencilAttachment ? 1U : 0U);
     DebugUtil::setObjectName(_logicalDevice, _renderPass,
                              renderPassDebugName.c_str());
+#endif
+
     return true;
 }
 

@@ -66,6 +66,7 @@ include_directories(Dependencies/src/glslang/StandAlone)
 include_directories(Dependencies/src/glslang/src)
 include_directories(Dependencies/src/ImGuizmo/src)
 include_directories(Dependencies/src/spdlog/include)
+include_directories(Dependencies/src/json/include)
 
 set(VMA_BUILD_SAMPLE                    OFF CACHE BOOL "")
 set(VMA_BUILD_SAMPLE_SHADERS            OFF CACHE BOOL "")

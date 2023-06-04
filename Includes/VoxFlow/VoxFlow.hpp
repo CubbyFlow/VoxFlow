@@ -16,7 +16,6 @@
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
-#include <VoxFlow/Core/Utils/Initializer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 

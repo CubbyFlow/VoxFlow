@@ -14,8 +14,7 @@ class ComputePipeline : public BasePipeline
 {
  public:
     explicit ComputePipeline(LogicalDevice* logicalDevice,
-                             std::shared_ptr<ShaderModule> shaderModule,
-                             const std::shared_ptr<PipelineLayout>& layout);
+                             const char* shaderPath);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;
@@ -24,6 +23,8 @@ class ComputePipeline : public BasePipeline
     {
         return VK_PIPELINE_BIND_POINT_COMPUTE;
     }
+public:
+    bool initialize();
 };
 }  // namespace VoxFlow
 

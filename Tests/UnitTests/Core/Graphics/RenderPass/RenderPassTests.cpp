@@ -18,4 +18,5 @@ TEST_CASE("Vulkan RenderPass Initialization")
         std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());
 
     CHECK_NE(renderPass->get(), VK_NULL_HANDLE);
+    CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }

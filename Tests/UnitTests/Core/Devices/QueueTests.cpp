@@ -15,4 +15,5 @@ TEST_CASE("Vulkan Queue Initialization")
 
     VoxFlow::Queue* gctQueue = logicalDevice.getQueuePtr("GCT");
     CHECK_NE(gctQueue->get(), VK_NULL_HANDLE);
+    CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }

@@ -20,13 +20,24 @@ class TextureView;
 
 constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 2;
-
-enum DescriptorSetCycle : uint8_t
+enum class SetSlotCategory : uint8_t
 {
-    GLOBAL          = 0,
-    RENDERPASS      = 1,
-    PER_DRAW        = 2,
-    COUNT           = 3,
+    Bindless = 0,
+    PerFrame = 1,
+    PerRenderPass = 2,
+    PerDraw = 3,
+    Count = 4,
+};
+constexpr uint32_t MAX_NUM_SET_SLOTS =
+    static_cast<uint32_t>(SetSlotCategory::Count);
+
+enum class CommandBufferUsage : uint8_t 
+{
+    Graphics = 0,
+    Compute = 1,
+    Transfer = 2,
+    Count = 4,
+    Undefined = 5,
 };
 
 enum class BufferUsage : uint32_t
@@ -39,6 +50,22 @@ enum class BufferUsage : uint32_t
     CopyDst             = 0x00100000,
     CopySrc             = 0x01000000,
     Unknown             = 0,
+};
+
+enum class ResourceLayout : uint32_t 
+{
+    Undefined           = 0x00000001,
+    TransferSource      = 0x00000002,
+    TransferDest        = 0x00000004,
+    VertexBuffer        = 0x00000008,
+    IndexBuffer         = 0x00000010,
+    ColorAttachment     = 0x00000020,
+    DepthAttachment     = 0x00000040,
+    StencilAttachment   = 0x00000080,
+    DepthReadOnly       = 0x00000100,
+    StencilReadOnly     = 0x00000200,
+    ShaderReadOnly      = 0x00000400,
+    General             = 0x00000800,
 };
 
 inline uint32_t operator|(BufferUsage lhs, BufferUsage rhs)
@@ -161,10 +188,17 @@ struct RenderTargetsInfo
     bool operator==(const RenderTargetsInfo& other) const;
 };
 
-struct VertexInputLayout
+// Below helper types from
+// https://en.cppreference.com/w/cpp/utility/variant/visit
+template <class... Ts>
+struct overloaded : Ts...
 {
-
+    using Ts::operator()...;
 };
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
 }  // namespace VoxFlow
 
 template <>

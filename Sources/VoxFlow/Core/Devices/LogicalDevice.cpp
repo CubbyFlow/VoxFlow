@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
@@ -159,6 +160,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
     _renderPassCollector = new RenderPassCollector(this);
+    _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 }
 
 LogicalDevice::~LogicalDevice()
@@ -203,35 +205,27 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     return swapChain;
 }
 
-std::shared_ptr<Texture> LogicalDevice::createTexture(std::string&& name,
-                                                      TextureInfo textureInfo)
+void LogicalDevice::releaseDedicatedResources()
 {
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(
-        std::move(name), this, _renderResourceMemoryPool);
-    if (texture->initialize(textureInfo) == false)
-        return nullptr;
+    vkDeviceWaitIdle(_device);
 
-    return texture;
-}
-std::shared_ptr<Buffer> LogicalDevice::createBuffer(std::string&& name,
-                                                    BufferInfo bufferInfo)
-{
-    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
-        std::move(name), this, _renderResourceMemoryPool);
-    if (buffer->initialize(bufferInfo) == false)
-        return nullptr;
+    if (_renderResourceMemoryPool != nullptr)
+    {
+        delete _renderResourceMemoryPool;
+    }
 
-    return buffer;
-}
+    if (_renderPassCollector != nullptr)
+    {
+        delete _renderPassCollector;
+    }
 
-void LogicalDevice::executeOnEachSwapChain(
-    std::function<void(std::shared_ptr<SwapChain>)> swapChainExecutor)
-{
-    std::for_each(_swapChains.begin(), _swapChains.end(), swapChainExecutor);
-}
+    if (_descriptorSetAllocatorPool != nullptr)
+    {
+        delete _descriptorSetAllocatorPool;
+    }
 
-void LogicalDevice::release()
-{
+    _swapChains.clear();
+
     std::for_each(
         _queueMap.begin(), _queueMap.end(),
         [](std::unordered_map<std::string, Queue*>::value_type& queue) {
@@ -240,10 +234,12 @@ void LogicalDevice::release()
                 delete queue.second;
             }
         });
+}
 
+void LogicalDevice::release()
+{
     if (_device != VK_NULL_HANDLE)
     {
-        vkDeviceWaitIdle(_device);
         vkDestroyDevice(_device, nullptr);
         _device = VK_NULL_HANDLE;
     }

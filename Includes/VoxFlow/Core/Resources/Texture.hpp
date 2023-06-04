@@ -3,8 +3,9 @@
 #ifndef VOXEL_FLOW_TEXTURE_HPP
 #define VOXEL_FLOW_TEXTURE_HPP
 
-#include <volk/volk.h>
 #include <vma/include/vk_mem_alloc.h>
+#include <volk/volk.h>
+#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -17,7 +18,8 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class TextureView;
 
-class Texture : private NonCopyable, public std::enable_shared_from_this<Texture>
+class Texture : private NonCopyable,
+                public std::enable_shared_from_this<Texture>
 {
  public:
     explicit Texture(std::string&& debugName, LogicalDevice* logicalDevice,
@@ -38,12 +40,18 @@ class Texture : private NonCopyable, public std::enable_shared_from_this<Texture
         return _ownedTextureViews[viewIndex];
     }
 
-    bool initialize(const TextureInfo& textureInfo);
+    // Make the image allocation resident if evicted
+    bool makeResourceResident(const TextureInfo& textureInfo);
+
+    // Create texture instance from swapchain image which should be separated
+    // from others
     bool initializeFromSwapChain(const TextureInfo& swapChainSurfaceInfo,
                                  VkImage swapChainImage);
 
+    // Create image view and return its index for given image view info
     std::optional<uint32_t> createTextureView(const TextureViewInfo& viewInfo);
 
+    // Release image object to fence resource manager
     void release();
 
  protected:
@@ -54,12 +62,13 @@ class Texture : private NonCopyable, public std::enable_shared_from_this<Texture
     VkImage _vkImage = VK_NULL_HANDLE;
     VmaAllocation _textureAllocation = nullptr;
     TextureInfo _textureInfo;
-    bool _isFromSwapChain = false;
+    bool _isSwapChainBackBuffer = false;
 
     std::vector<std::shared_ptr<TextureView>> _ownedTextureViews;
+    std::vector<FenceObject> _accessedFences;
 };
 
-class TextureView : private NonCopyable
+class TextureView : public BindableResourceView
 {
  public:
     explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
@@ -80,10 +89,15 @@ class TextureView : private NonCopyable
 
     void release();
 
+    VkDescriptorImageInfo getDescriptorImageInfo() const;
+
+    ResourceViewType getResourceViewType() const final
+    {
+        return ResourceViewType::ImageView;
+    }
+
  protected:
  private:
-    std::string _debugName;
-    LogicalDevice* _logicalDevice = nullptr;
     std::weak_ptr<Texture> _ownerTexture;
     VkImageView _vkImageView = VK_NULL_HANDLE;
     TextureViewInfo _textureViewInfo;

@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <memory>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -16,8 +17,7 @@ class GraphicsPipeline : public BasePipeline
  public:
     explicit GraphicsPipeline(
         LogicalDevice* logicalDevice,
-        std::vector<std::shared_ptr<ShaderModule>>&& shaderModules,
-        const std::shared_ptr<PipelineLayout>& layout);
+        std::vector<const char*>&& shaderPaths);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;
