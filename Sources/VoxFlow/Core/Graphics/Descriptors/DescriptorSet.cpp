@@ -20,18 +20,18 @@ std::size_t std::hash<VoxFlow::DescriptorSetLayoutDesc>::operator()(
     {
         std::visit(
             VoxFlow::overloaded{
-                [this, &seed](VoxFlow::DescriptorSetLayoutDesc::SampledImage setBinding) {
+                [&seed](VoxFlow::DescriptorSetLayoutDesc::SampledImage setBinding) {
                     VoxFlow::hash_combine(seed, setBinding._arraySize);
                     VoxFlow::hash_combine(
                         seed, static_cast<uint32_t>(setBinding._format));
                     VoxFlow::hash_combine(seed, setBinding._binding);
                 },
-                [this, &seed](VoxFlow::DescriptorSetLayoutDesc::UniformBuffer setBinding) {
+                [&seed](VoxFlow::DescriptorSetLayoutDesc::UniformBuffer setBinding) {
                     VoxFlow::hash_combine(seed, setBinding._arraySize);
                     VoxFlow::hash_combine(seed, setBinding._binding);
                     VoxFlow::hash_combine(seed, setBinding._size);
                 },
-                [this, &seed](VoxFlow::DescriptorSetLayoutDesc::StorageBuffer setBinding) {
+                [&seed](VoxFlow::DescriptorSetLayoutDesc::StorageBuffer setBinding) {
                     VoxFlow::hash_combine(seed, setBinding._arraySize);
                     VoxFlow::hash_combine(seed, setBinding._binding);
                     VoxFlow::hash_combine(seed, setBinding._size);

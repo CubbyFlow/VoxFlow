@@ -38,19 +38,19 @@ DescriptorSetAllocator::DescriptorSetAllocator(
          it != setLayout._bindingMap.end(); ++it)
     {
         std::visit(overloaded{
-                       [this, &poolSizes](
+                       [&poolSizes](
                            DescriptorSetLayoutDesc::SampledImage setBinding) {
                            poolSizes.push_back(
                                { .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
                                  .descriptorCount = setBinding._arraySize });
                        },
-                       [this, &poolSizes](
+                       [&poolSizes](
                            DescriptorSetLayoutDesc::UniformBuffer setBinding) {
                            poolSizes.push_back(
                                { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                                  .descriptorCount = setBinding._arraySize });
                        },
-                       [this, &poolSizes](
+                       [&poolSizes](
                            DescriptorSetLayoutDesc::StorageBuffer setBinding) {
                            poolSizes.push_back(
                                { .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
