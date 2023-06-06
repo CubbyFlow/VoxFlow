@@ -24,8 +24,12 @@ BasePipeline::BasePipeline(LogicalDevice* logicalDevice,
             _shaderModules.back()->getShaderLayoutBinding());
     }
 
-    _pipelineLayout = std::make_unique<PipelineLayout>(
-        _logicalDevice, std::move(combinedLayoutBindings));
+    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
+
+    if (_pipelineLayout->initialize(std::move(combinedLayoutBindings)) == false)
+    {
+        VOX_ASSERT(false, "Failed to initialize pipeline layout");
+    }
 }
 
 BasePipeline::~BasePipeline()
@@ -43,6 +47,8 @@ BasePipeline& BasePipeline::operator=(BasePipeline&& other) noexcept
     if (&other != this)
     {
         _logicalDevice = other._logicalDevice;
+        _pipelineLayout.swap(other._pipelineLayout);
+        _shaderModules.swap(other._shaderModules);
         _pipeline = other._pipeline;
         other._pipeline = VK_NULL_HANDLE;
     }
