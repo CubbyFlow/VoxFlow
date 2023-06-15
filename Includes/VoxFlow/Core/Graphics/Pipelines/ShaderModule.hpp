@@ -29,22 +29,36 @@ class ShaderModule : private NonCopyable
         return _shaderModule;
     }
 
+    /**
+     * @return shader stage of this module
+     */
     [[nodiscard]] inline VkShaderStageFlagBits getStageFlagBits() const
     {
         return _stageFlagBits;
     }
 
-    // Get reflected shader layout binding of thie module
+    /**
+     * @return reflected shader layout binding of thie module
+     */
     [[nodiscard]] inline const ShaderLayoutBinding& getShaderLayoutBinding()
         const
     {
         return _shaderLayoutBinding;
     }
 
+    /**
+     * release shader module object
+     */
     void release();
 
  private:
-    // Reflect shader layout bindings from spirv binary data
+
+    /**
+     * Reflect shader layout bindings from spirv binary data.
+     * stage input/output, push constants, shader resource bindings for each
+     * slot category will be reflected
+     * @return whether reflection is successful or not
+     */
     static bool reflectShaderLayoutBindings(
         ShaderLayoutBinding* shaderLayoutBinding,
         std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);

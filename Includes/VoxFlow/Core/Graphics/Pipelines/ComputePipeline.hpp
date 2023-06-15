@@ -24,6 +24,9 @@ class ComputePipeline : public BasePipeline
         return VK_PIPELINE_BIND_POINT_COMPUTE;
     }
 public:
+    /**
+    * Create compute pipeline with owned shader modules
+    */
     bool initialize();
 };
 }  // namespace VoxFlow
