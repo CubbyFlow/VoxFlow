@@ -38,6 +38,12 @@ GraphicsPipeline& GraphicsPipeline::operator=(GraphicsPipeline&& other) noexcept
 
 bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
 {
+    if (initializePipelineLayout() == false)
+    {
+        VOX_ASSERT(false, "Failed to create pipeline layout");
+        return false;
+    }
+
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
     shaderStageInfos.reserve(_shaderModules.size());
 

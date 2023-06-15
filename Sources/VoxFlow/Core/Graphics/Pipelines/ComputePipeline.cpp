@@ -36,6 +36,12 @@ ComputePipeline& ComputePipeline::operator=(ComputePipeline&& other) noexcept
 
 bool ComputePipeline::initialize()
 {
+    if (initializePipelineLayout() == false)
+    {
+        VOX_ASSERT(false, "Failed to create pipeline layout");
+        return false;
+    }
+
     ShaderModule* computeShaderModule = _shaderModules.front().get();
     const VkPipelineShaderStageCreateInfo stageCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

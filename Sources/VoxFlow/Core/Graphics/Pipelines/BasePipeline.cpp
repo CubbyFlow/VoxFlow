@@ -15,20 +15,10 @@ BasePipeline::BasePipeline(LogicalDevice* logicalDevice,
                            std::vector<const char*>&& shaderFilePaths)
     : _logicalDevice(logicalDevice)
 {
-    std::vector<ShaderLayoutBinding> combinedLayoutBindings;
     for (const char* shaderPath : shaderFilePaths)
     {
         _shaderModules.push_back(
             std::make_unique<ShaderModule>(_logicalDevice, shaderPath));
-        combinedLayoutBindings.push_back(
-            _shaderModules.back()->getShaderLayoutBinding());
-    }
-
-    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
-
-    if (_pipelineLayout->initialize(std::move(combinedLayoutBindings)) == false)
-    {
-        VOX_ASSERT(false, "Failed to initialize pipeline layout");
     }
 }
 
@@ -53,6 +43,24 @@ BasePipeline& BasePipeline::operator=(BasePipeline&& other) noexcept
         other._pipeline = VK_NULL_HANDLE;
     }
     return *this;
+}
+
+bool BasePipeline::initializePipelineLayout()
+{
+    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
+
+    std::vector<ShaderLayoutBinding> combinedLayoutBindings;
+
+    const size_t numShaderModules = _shaderModules.size();
+    combinedLayoutBindings.reserve(numShaderModules);
+
+    for (size_t i = 0; i < numShaderModules; ++i)
+    {
+        combinedLayoutBindings.push_back(
+            _shaderModules[i]->getShaderLayoutBinding());
+    }
+
+    return _pipelineLayout->initialize(std::move(combinedLayoutBindings));
 }
 
 void BasePipeline::release()
