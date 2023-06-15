@@ -105,6 +105,8 @@ bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBind
 
     VK_ASSERT(vkCreatePipelineLayout(_logicalDevice->get(), &createInfo,
                                      nullptr, &_vkPipelineLayout));
+
+    return (_vkPipelineLayout != VK_NULL_HANDLE);
 }
 
 void PipelineLayout::release()
