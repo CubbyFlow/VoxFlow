@@ -93,7 +93,7 @@ void DeviceRemoveTracker::onDeviceRemoved()
     VOX_ASSERT(false, "Not implemented yet");
 }
 
-std::string getVkResultString(VkResult vkResult)
+const char* getVkResultString(VkResult vkResult)
 {
 #define VKSTR(str)   \
     case VK_##str:   \

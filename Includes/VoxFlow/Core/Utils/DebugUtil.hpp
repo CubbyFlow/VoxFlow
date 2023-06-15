@@ -181,7 +181,7 @@ class DeviceRemoveTracker
     std::vector<LogicalDevice*> _logicalDevices;
 };
 
-std::string getVkResultString(VkResult vkResult);
+const char* getVkResultString(VkResult vkResult);
 
 }  // namespace VoxFlow
 
