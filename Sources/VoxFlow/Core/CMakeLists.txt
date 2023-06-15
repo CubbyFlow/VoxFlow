@@ -13,6 +13,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/SwapChain.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/DependencyGraph.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
@@ -54,6 +55,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
     ${SRC_DIR}/Core/Devices/Queue.cpp
     ${SRC_DIR}/Core/Devices/SwapChain.cpp
+    ${SRC_DIR}/Core/FrameGraph/DependencyGraph.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp
