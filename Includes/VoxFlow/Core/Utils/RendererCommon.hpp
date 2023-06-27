@@ -12,6 +12,7 @@
 #include <string>
 #include <optional>
 #include <functional>
+#include <VoxFlow/Core/Utils/BitwiseOperators.hpp>
 #include <memory>
 
 namespace VoxFlow
@@ -53,6 +54,7 @@ enum class BufferUsage : uint32_t
     CopySrc             = 0x01000000,
     Unknown             = 0,
 };
+IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);
 
 enum class ResourceLayout : uint32_t 
 {
@@ -69,16 +71,7 @@ enum class ResourceLayout : uint32_t
     ShaderReadOnly      = 0x00000400,
     General             = 0x00000800,
 };
-
-inline uint32_t operator|(BufferUsage lhs, BufferUsage rhs)
-{
-    return static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs);
-}
-
-inline uint32_t operator&(BufferUsage lhs, BufferUsage rhs)
-{
-    return static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs);
-}
+IMPL_BITWISE_OPERATORS(ResourceLayout, uint32_t);
 
 struct BufferInfo
 {
@@ -103,16 +96,7 @@ enum class TextureUsage : uint32_t
     CopyDst         = 0x00100000,
     Unknown         = 0,
 };
-
-inline uint32_t operator|(TextureUsage lhs, TextureUsage rhs)
-{
-    return static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs);
-}
-
-inline uint32_t operator&(TextureUsage lhs, TextureUsage rhs)
-{
-    return static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs);
-}
+IMPL_BITWISE_OPERATORS(TextureUsage, uint32_t);
 
 struct TextureInfo
 {
