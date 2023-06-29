@@ -2,12 +2,14 @@
 
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+#include <stack>
 
 namespace VoxFlow
 {
 DependencyGraph::Node::Node(DependencyGraph* ownerGraph)
     : _ownerGraph(ownerGraph), _nodeId(ownerGraph->getNextNodeID())
 {
+    _ownerGraph->registerNode(this, _nodeId);
 }
 
 DependencyGraph::Edge::Edge(DependencyGraph* ownerGraph, Node* from, Node* to)
@@ -49,6 +51,13 @@ DependencyGraph::EdgeContainer DependencyGraph::getOutgoingEdges(NodeID id)
     return outgoingEdges;
 }
 
+void DependencyGraph::registerNode(Node* node, NodeID id)
+{ 
+    VOX_ASSERT(id == static_cast<NodeID>(_nodes.size()),
+               "Invalid Node ID {} was given", id);
+    _nodes.push_back(node);
+}
+
 DependencyGraph::Edge* DependencyGraph::link(NodeID fromID, NodeID toID)
 {
     Node* fromNode = getNode(fromID);
@@ -58,6 +67,42 @@ DependencyGraph::Edge* DependencyGraph::link(NodeID fromID, NodeID toID)
     _edges.push_back(edge);
 
     return edge;
+}
+
+void DependencyGraph::cullUnreferencedNodes()
+{
+    for (Edge* edge : _edges)
+    {
+        Node* node = getNode(edge->_fromNodeID);
+        node->_refCount++;
+    }
+
+    std::stack<Node*> unreferencedNodes;
+    for (Node* node : _nodes)
+    {
+        if (node->_refCount == 0)
+        {
+            unreferencedNodes.push(node);
+        }
+    }
+
+    while (unreferencedNodes.empty() == false)
+    {
+        Node* node = unreferencedNodes.top();
+        unreferencedNodes.pop();
+
+        EdgeContainer incomingEdges = getIncomingEdges(node->getNodeID());
+        for (Edge* incomingEdge : incomingEdges)
+        {
+            Node* linkedNode = getNode(incomingEdge->_fromNodeID);
+            VOX_ASSERT(linkedNode->_refCount > 0,
+                       "Reference count must not be zero");
+            if ((--linkedNode->_refCount) == 0)
+            {
+                unreferencedNodes.push(linkedNode);
+            }
+        }
+    }
 }
 
 void DependencyGraph::insertNode(Node* node, NodeID id)
