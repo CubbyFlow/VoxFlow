@@ -47,37 +47,10 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
 }
 
 template <ResourceConcept ResourceDataType>
-ResourceHandle FrameGraph::import(
-    std::string_view&& resourceName,
-    ResourceDataType::Descriptor&& resourceDescArgs,
-    const ResourceDataType& resource)
-{
-    (void)resourceName;
-
-    VirtualResource* virtualResource =
-        new Resource<ResourceDataType>(resource,
-                                                 std::move(resourceDescArgs));
-
-    ResourceHandle resourceHandle =
-        static_cast<ResourceHandle>(_resources.size());
-
-    _resourceSlots.push_back(
-        { ._resourceIndex =
-              static_cast<ResourceSlot::IndexType>(_resourceNodes.size()),
-          ._nodeIndex = static_cast<ResourceSlot::IndexType>(_resources.size()),
-          ._version = static_cast<ResourceSlot::VersionType>(0) });
-    _resources.push_back(virtualResource);
-
-    return resourceHandle;
-}
-
-template <ResourceConcept ResourceDataType>
 ResourceHandle FrameGraph::create(
     std::string_view&& resourceName,
     ResourceDataType::Descriptor&& resourceDescArgs)
 {
-    (void)resourceName;
-
     VirtualResource* virtualResource =
         new Resource<ResourceDataType>(std::move(resourceDescArgs));
 
@@ -90,6 +63,9 @@ ResourceHandle FrameGraph::create(
           ._nodeIndex = static_cast<ResourceSlot::IndexType>(_resources.size()),
           ._version = static_cast<ResourceSlot::VersionType>(0) });
     _resources.push_back(virtualResource);
+
+    ResourceNode* resourceNode = new ResourceNode(&_dependencyGraph, std::move(resourceName));
+    _resourceNodes.push_back(resourceNode);
 
     return resourceHandle;
 }

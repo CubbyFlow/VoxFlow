@@ -86,15 +86,13 @@ class FrameGraph : private NonCopyable
                                         ExecutePhase&& execute);
 
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] ResourceHandle import(
-        std::string_view&& resourceName,
-        ResourceDataType::Descriptor&& resourceDescArgs,
-        const ResourceDataType& resource);
-
-    template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
         std::string_view&& resourceName,
         ResourceDataType::Descriptor&& resourceDescArgs);
+
+    [[nodiscard]] ResourceHandle importRenderTarget(
+        std::string_view&& resourceName,
+        FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture);
 
     // Compile given frame graph
     bool compile();
@@ -159,6 +157,7 @@ private:
  private:
     std::vector<ResourceSlot> _resourceSlots;
     std::vector<PassNode*> _passNodes;
+    std::vector<PassNode*>::iterator _passNodeLast; 
     std::vector<ResourceNode*> _resourceNodes;
     std::vector<VirtualResource*> _resources;
 

@@ -37,6 +37,30 @@ void FrameGraph::reset(CommandExecutorBase* commandExecutor,
     _renderResourceAllocator = renderResourceAllocator;
 }
 
+ResourceHandle FrameGraph::importRenderTarget(
+    std::string_view&& resourceName,
+    FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture)
+{
+    VirtualResource* virtualResource =
+        new ImportedRenderTarget({}, std::move(resourceDescArgs), texture);
+
+    ResourceHandle resourceHandle =
+        static_cast<ResourceHandle>(_resources.size());
+
+    _resourceSlots.push_back(
+        { ._resourceIndex =
+              static_cast<ResourceSlot::IndexType>(_resourceNodes.size()),
+          ._nodeIndex = static_cast<ResourceSlot::IndexType>(_resources.size()),
+          ._version = static_cast<ResourceSlot::VersionType>(0) });
+    _resources.push_back(virtualResource);
+
+    ResourceNode* resourceNode =
+        new ResourceNode(&_dependencyGraph, std::move(resourceName));
+    _resourceNodes.push_back(resourceNode);
+
+    return resourceHandle;
+}
+
 bool FrameGraph::compile()
 {
     SCOPED_CHROME_TRACING("FrameGraph::compile");
@@ -47,9 +71,10 @@ bool FrameGraph::compile()
         return false;
     }
 
-#define FRAMEGRAPH_FULL_OPTIMIZE
-    //#define FRAMEGRAPH_CULLING_ONLY
+// #define FRAMEGRAPH_FULL_OPTIMIZE
+#define FRAMEGRAPH_CULLING_ONLY
 #if defined(FRAMEGRAPH_FULL_OPTIMIZE)
+    
     buildAdjacencyLists(numPassNodes);
 
     if (bool isCycleExist = topologicalSortPassNodes(numPassNodes))
@@ -61,58 +86,17 @@ bool FrameGraph::compile()
     // calcDependencyLevels(numPassNodes);
 
     // allotCommandQueueIndices(numPassNodes);
+
 #elif defined(FRAMEGRAPH_CULLING_ONLY)
-    for (uint32_t i = 0; i < numPassNodes; ++i)
-    {
-        PassNode& passNode = _passNodes[i];
-        const std::vector<ResourceHandle>& readResources =
-            passNode.getReadResources();
-        const std::vector<ResourceHandle>& writeResources =
-            passNode.getWriteResources();
 
-        passNode.addRefCount(static_cast<uint32_t>(writeResources.size()));
-        for (ResourceHandle readResourceHandle : readResources)
-        {
-            _resources[readResourceHandle].addRefCount(1);
-        }
-    }
+    _dependencyGraph.cullUnreferencedNodes();
 
-    const uint32_t numResourceRegistries =
-        static_cast<uint32_t>(_resources.size());
+    _passNodeLast = std::stable_partition(
+        _passNodes.begin(), _passNodes.end(),
+        [](PassNode* node) { return node->isCulled() == false; });
 
-    std::stack<ResourceHandle> unusedResources;
-    for (uint32_t i = 0; i < numResourceRegistries; ++i)
-    {
-        if (_resources[i].getRefCount() == 0)
-        {
-            unusedResources.push(ResourceHandle(i));
-        }
-    }
 
-    while (unusedResources.empty() == false)
-    {
-        ResourceHandle resourceHandle = unusedResources.top();
-        unusedResources.pop();
 
-        FrameGraphResourceRegistry& resourceRegistry =
-            _resources[resourceHandle];
-
-        PassNode* producer = resourceRegistry->getProducerNode();
-        if (producer->subRefCount(1) == 0)
-        {
-            for (const ResourceHandle& readResourceHandle :
-                 producer->getReadResources())
-            {
-                FrameGraphResourceRegistry& readResourceRegistry =
-                    _resources[readResourceHandle];
-
-                if (readResourceRegistry.subRefCount(1) == 0)
-                {
-                    unusedResources.push(readResourceHandle);
-                }
-            }
-        }
-    }
 #else
 
 #endif
@@ -324,13 +308,10 @@ void FrameGraph::execute()
 {
     SCOPED_CHROME_TRACING("FrameGraph::execute");
 
-    for (const uint32_t passNodeIndex : _topologicalSortedPassNodes)
+    for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
+         iter != _passNodeLast; ++iter)
     {
-        PassNode* passNode = _passNodes[passNodeIndex];
-
-        // TODO(snowapril) : make resources resident
-
-        passNode->execute(this, _commandExecutor);
+        (*iter)->execute(this, _commandExecutor);
     }
 }
 
