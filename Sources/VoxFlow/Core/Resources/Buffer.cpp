@@ -135,6 +135,8 @@ bool BufferView::initialize(const BufferViewInfo& viewInfo)
 
 void BufferView::release()
 {
+    // No need to release buffer view as it is just pointing to subregion of the
+    // owner buffer.
 }
 
 VkDescriptorBufferInfo BufferView::getDescriptorBufferInfo() const
