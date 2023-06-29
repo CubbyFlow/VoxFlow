@@ -5,11 +5,15 @@
 
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
+#include <string_view>
 
 namespace VoxFlow
 {
+class Texture;
+
 namespace FrameGraph
 {
 class PassNode;
@@ -31,13 +35,6 @@ class Resource : public VirtualResource
 {
  public:
     Resource(ResourceDataType::Descriptor&& resourceArgs);
-
-    Resource(const ResourceDataType& resource,
-                       ResourceDataType::Descriptor&& resourceArgs);
-
-    Resource(Resource<ResourceDataType>&& rhs);
-    Resource& operator=(Resource<ResourceDataType>&& rhs);
-
     ~Resource();
 
  public:
@@ -46,21 +43,56 @@ class Resource : public VirtualResource
         return _producerPassNode;
     }
 
-    inline bool isImported() const
+    virtual bool isImported() const
     {
-        return _isImportedResource;
+        return false;
     }
 
  protected:
- private:
-    ResourceDataType _resource;
     ResourceDataType::Descriptor _descriptor;
     PassNode* _producerPassNode = nullptr;
-    bool _isImportedResource = false;
+};
+
+template <ResourceConcept ResourceDataType>
+class ImportedResource : public Resource<ResourceDataType>
+{
+ public:
+    ImportedResource(const ResourceDataType& resource,
+             ResourceDataType::Descriptor&& resourceArgs);
+    ~ImportedResource();
+
+ public:
+
+    inline bool isImported() const override final
+    {
+        return true;
+    }
+
+ protected:
+    ResourceDataType _resource;
+};
+
+class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
+{
+ public:
+    ImportedRenderTarget(const FrameGraphTexture& resource,
+                         FrameGraphTexture::Descriptor&& resourceArgs,
+                         Texture* texture);
+    ~ImportedRenderTarget();
+
+ protected:
+ private:
+    Texture* _textureHandle = nullptr;
 };
 
 class ResourceNode : public DependencyGraph::Node
 {
+ public:
+    explicit ResourceNode(DependencyGraph* dependencyGraph,
+                          std::string_view&& resourceName);
+
+ private:
+    std::string _resourceName;
 };
 }  // namespace FrameGraph
 }  // namespace VoxFlow
