@@ -118,7 +118,7 @@ ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
     DependencyGraph::EdgeContainer incomingEdges =
         _dependencyGraph.getIncomingEdges(resourceNode->getNodeID());
 
-    _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
+    _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
 
     return id;
 }
@@ -153,7 +153,7 @@ ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
     }
     else
     {
-        _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
+        _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
     }
 
     // If the given pass is writing to imported resource, it must not be culled.
