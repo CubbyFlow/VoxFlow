@@ -64,7 +64,8 @@ ResourceHandle FrameGraph::create(
           ._version = static_cast<ResourceSlot::VersionType>(0) });
     _resources.push_back(virtualResource);
 
-    ResourceNode* resourceNode = new ResourceNode(&_dependencyGraph, std::move(resourceName));
+    ResourceNode* resourceNode = new ResourceNode(
+        &_dependencyGraph, std::move(resourceName), resourceHandle);
     _resourceNodes.push_back(resourceNode);
 
     return resourceHandle;

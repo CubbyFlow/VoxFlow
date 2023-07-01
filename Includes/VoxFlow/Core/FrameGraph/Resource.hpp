@@ -89,10 +89,12 @@ class ResourceNode : public DependencyGraph::Node
 {
  public:
     explicit ResourceNode(DependencyGraph* dependencyGraph,
-                          std::string_view&& resourceName);
+                          std::string_view&& resourceName,
+        ResourceHandle resourceHandle);
 
  private:
     std::string _resourceName;
+    ResourceHandle _resourceHandle;
 };
 }  // namespace FrameGraph
 }  // namespace VoxFlow

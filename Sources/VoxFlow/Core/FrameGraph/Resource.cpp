@@ -28,9 +28,11 @@ ImportedRenderTarget::~ImportedRenderTarget()
 }
 
 ResourceNode::ResourceNode(DependencyGraph* dependencyGraph,
-                           std::string_view&& resourceName)
+                           std::string_view&& resourceName,
+                           ResourceHandle resourceHandle)
     : DependencyGraph::Node(dependencyGraph),
-      _resourceName(std::move(resourceName))
+      _resourceName(std::move(resourceName)),
+      _resourceHandle(resourceHandle)
 {
 }
 
