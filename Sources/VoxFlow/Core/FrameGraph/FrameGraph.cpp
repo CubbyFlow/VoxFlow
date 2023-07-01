@@ -1,9 +1,9 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <stack>
-#include "VoxFlow/Core/Utils/ChromeTracer.hpp"
-#include "VoxFlow/Core/Utils/Logger.hpp"
 
 namespace VoxFlow
 {
@@ -154,6 +154,12 @@ ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
     else
     {
         _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
+    }
+
+    // If the given pass is writing to imported resource, it must not be culled.
+    if (resource->isImported())
+    {
+        passNode->setSideEffectPass();
     }
 
     return id;

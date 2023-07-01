@@ -27,6 +27,11 @@ class VirtualResource : private NonCopyable
     VirtualResource();
     virtual ~VirtualResource();
 
+    virtual bool isImported() const
+    {
+        return false;
+    }
+
  protected:
 };
 
@@ -41,11 +46,6 @@ class Resource : public VirtualResource
     inline PassNode* getProducerNode() const
     {
         return _producerPassNode;
-    }
-
-    virtual bool isImported() const
-    {
-        return false;
     }
 
  protected:

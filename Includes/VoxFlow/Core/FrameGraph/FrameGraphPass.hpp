@@ -76,6 +76,11 @@ class PassNode : public DependencyGraph::Node
         _passImpl->execute(frameGraph, commandExecutor);
     }
 
+    void setSideEffectPass()
+    {
+        _refCount = UINT32_MAX;
+    }
+
  protected:
 
  private:
