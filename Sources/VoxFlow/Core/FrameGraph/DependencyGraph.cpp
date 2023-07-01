@@ -74,7 +74,10 @@ void DependencyGraph::cullUnreferencedNodes()
     for (Edge* edge : _edges)
     {
         Node* node = getNode(edge->_fromNodeID);
-        node->_refCount++;
+        if (node->_refCount < UINT32_MAX)
+        {
+            ++node->_refCount;
+        }
     }
 
     std::stack<Node*> unreferencedNodes;
