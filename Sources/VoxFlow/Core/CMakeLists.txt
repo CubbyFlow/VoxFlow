@@ -15,6 +15,15 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/SwapChain.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/BlackBoard.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/DependencyGraph.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/TypeTraits.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
@@ -59,6 +68,10 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/Queue.cpp
     ${SRC_DIR}/Core/Devices/SwapChain.cpp
     ${SRC_DIR}/Core/FrameGraph/DependencyGraph.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraph.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraphPass.cpp
+    ${SRC_DIR}/Core/FrameGraph/Resource.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraphTexture.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp

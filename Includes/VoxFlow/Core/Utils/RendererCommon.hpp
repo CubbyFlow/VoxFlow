@@ -20,6 +20,8 @@ class TextureView;
 
 constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 2;
+constexpr uint32_t MAX_RENDER_TARGET_COUNTS = 8;
+
 enum class SetSlotCategory : uint8_t
 {
     Bindless = 0,
