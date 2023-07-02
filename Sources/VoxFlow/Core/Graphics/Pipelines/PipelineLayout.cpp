@@ -13,7 +13,6 @@ PipelineLayout::PipelineLayout(
     LogicalDevice* logicalDevice)
     : _logicalDevice(logicalDevice)
 {
-    
 }
 
 PipelineLayout::~PipelineLayout()

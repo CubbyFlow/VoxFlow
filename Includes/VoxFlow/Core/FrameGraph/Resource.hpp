@@ -62,8 +62,7 @@ class ImportedResource : public Resource<ResourceDataType>
     ~ImportedResource();
 
  public:
-
-    inline bool isImported() const override final
+    inline bool isImported() const final
     {
         return true;
     }

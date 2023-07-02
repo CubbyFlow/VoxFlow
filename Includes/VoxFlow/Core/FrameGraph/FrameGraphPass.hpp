@@ -50,7 +50,7 @@ class FrameGraphPass : public FrameGraphPassBase
     }
 
     void execute(FrameGraph* frameGraph,
-                 CommandExecutorBase* commandExecutor) override final
+                 CommandExecutorBase* commandExecutor) final
     {
         std::invoke(_executionPhaseLambda, frameGraph, _resourceData,
                     commandExecutor);
@@ -67,7 +67,7 @@ class PassNode : public DependencyGraph::Node
     explicit PassNode(
         FrameGraph* ownerFrameGraph, std::string_view&& passName,
         std::unique_ptr<FrameGraphPassBase>&& pass);
-    ~PassNode() override final;
+    ~PassNode() final;
     PassNode(PassNode&& passNode);
     PassNode& operator=(PassNode&& passNode);
 
@@ -87,7 +87,6 @@ class PassNode : public DependencyGraph::Node
     }
 
  protected:
-
  private:
     FrameGraph* _ownerFrameGraph = nullptr;
     std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;

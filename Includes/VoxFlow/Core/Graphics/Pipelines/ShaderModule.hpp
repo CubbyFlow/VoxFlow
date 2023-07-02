@@ -52,7 +52,6 @@ class ShaderModule : private NonCopyable
     void release();
 
  private:
-
     /**
      * Reflect shader layout bindings from spirv binary data.
      * stage input/output, push constants, shader resource bindings for each

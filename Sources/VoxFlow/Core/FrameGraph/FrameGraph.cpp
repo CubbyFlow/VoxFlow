@@ -150,7 +150,7 @@ ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
 
     if (alreadyWritten)
     {
-
+        // TODO(snowapril) : update resource usage or something else
     }
     else
     {

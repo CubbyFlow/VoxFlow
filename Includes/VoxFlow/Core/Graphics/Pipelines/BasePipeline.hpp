@@ -48,7 +48,6 @@ class BasePipeline : NonCopyable
     [[nodiscard]] virtual VkPipelineBindPoint getBindPoint() const noexcept = 0;
 
  protected:
-
     /**
      * Initialize pipeline layout with combined shader layout bindings.
      * @return whether pipeline layout initialization success or not
