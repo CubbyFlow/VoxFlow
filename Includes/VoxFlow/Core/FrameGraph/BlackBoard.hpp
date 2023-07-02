@@ -54,7 +54,13 @@ class BlackBoard : private NonCopyable
 
     bool removeHandle(std::string_view name)
     {
-        _handleContainer.erase(_handleContainer.find(name));
+        const ContainerType::iterator iter = _handleContainer.find(name);
+        if (iter != _handleContainer.end())
+        {
+            _handleContainer.erase(iter);
+            return true;
+        }
+        return false;
     }
 
  private:
