@@ -182,7 +182,7 @@ bool SwapChain::create(const bool vsync)
     {
         LogicalDevice* logicalDevice = _logicalDevice;
         auto recreateSemaphores =
-            [logicalDevice](const uint32_t numSwapChainImages,
+            [logicalDevice, this](const uint32_t numSwapChainImages,
                             std::vector<VkSemaphore>& targetSemaphores) {
                 for (uint32_t i = numSwapChainImages;
                      i < targetSemaphores.size(); ++i)
@@ -203,6 +203,14 @@ bool SwapChain::create(const bool vsync)
                     };
                     vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
                                       nullptr, &targetSemaphores[i]);
+
+#if defined(VK_DEBUG_NAME_ENABLED)
+                    std::string swapChainSemaphoreDebugName =
+                        fmt::format("{}_SwapChain_Semaphore_{}", _titleName, i);
+                    DebugUtil::setObjectName(
+                        _logicalDevice, targetSemaphores[i],
+                        swapChainSemaphoreDebugName.c_str());
+#endif
                 }
             };
 

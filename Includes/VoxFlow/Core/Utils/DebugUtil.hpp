@@ -160,6 +160,7 @@ class DebugUtil
  private:
     static void setObjectName(LogicalDevice* logicalDevice, uint64_t object,
                               const char* name, VkObjectType type);
+ public:
 #endif
 
     static uint64_t NumValidationErrorDetected;

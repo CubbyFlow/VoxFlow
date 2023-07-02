@@ -40,6 +40,13 @@ Queue::Queue(const std::string& debugName, LogicalDevice* logicalDevice,
 
     vkCreateSemaphore(_logicalDevice->get(), &createInfo, NULL,
                       &_submitTimelineSemaphore);
+
+#if defined(VK_DEBUG_NAME_ENABLED)
+    std::string timelineSemaphoreDebugName =
+        fmt::format("{}_TimelineSemaphore", _debugName);
+    DebugUtil::setObjectName(_logicalDevice, _submitTimelineSemaphore,
+                             timelineSemaphoreDebugName.c_str());
+#endif
 }
 
 Queue::~Queue()
