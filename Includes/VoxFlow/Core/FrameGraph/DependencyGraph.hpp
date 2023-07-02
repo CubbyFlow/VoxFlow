@@ -20,7 +20,7 @@ class DependencyGraph : private NonCopyable
         friend class DependencyGraph;
 
      public:
-        Node(DependencyGraph* ownerGraph);
+        explicit Node(DependencyGraph* ownerGraph);
         Node(Node&& rhs)
         {
             operator=(std::move(rhs));
@@ -31,7 +31,7 @@ class DependencyGraph : private NonCopyable
             {
                 _ownerGraph = rhs._ownerGraph;
                 _nodeId = rhs._nodeId;
-                rhs._nodeId = UINT32_MAX;
+                _refCount = rhs._refCount;
             }
             return *this;
         }

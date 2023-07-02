@@ -39,7 +39,7 @@ template <ResourceConcept ResourceDataType>
 class Resource : public VirtualResource
 {
  public:
-    Resource(ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(ResourceDataType::Descriptor&& resourceArgs);
     ~Resource();
 
  public:

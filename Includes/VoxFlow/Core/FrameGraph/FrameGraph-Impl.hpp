@@ -36,7 +36,6 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
 
     PassDataType& passData = pass->getPassData();
 
-    const uint32_t passNodeId = static_cast<uint32_t>(_passNodes.size());
     _passNodes.emplace_back(
         new PassNode(this, std::move(passName), std::move(pass)));
 

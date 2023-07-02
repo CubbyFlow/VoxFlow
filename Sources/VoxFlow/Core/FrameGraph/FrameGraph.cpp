@@ -115,7 +115,6 @@ ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
                static_cast<uint32_t>(id));
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
-    VirtualResource* resource = _resources[resourceSlot._resourceIndex];
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
 
     DependencyGraph::EdgeContainer incomingEdges =
@@ -339,7 +338,7 @@ void FrameGraph::clear()
 class AlphabetPermutator
 {
  public:
-    AlphabetPermutator(uint32_t numNodes)
+    explicit AlphabetPermutator(uint32_t numNodes)
     {
         constexpr uint32_t numLowerAlphabets = 'z' - 'a' + 1;
         uint32_t numPermutationIndex = 0;
