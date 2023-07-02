@@ -106,7 +106,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
 		-Wno-register			# -> disable warning: ISO c++1z does not allow 'register' storage class specifier [-wregister] (caused by pybind11)
         -Wno-error=register		# -> disable warning: ISO c++1z does not allow 'register' storage class specifier [-wregister] (caused by pybind11)
 		${WARN_AS_ERROR_FLAGS}
-		-std=c++1z
+		-std=c++2a
 	)
 endif ()
 
