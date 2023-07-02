@@ -10,7 +10,6 @@
 
 namespace VoxFlow
 {
-
 class DependencyGraph : private NonCopyable
 {
  public:
@@ -18,6 +17,8 @@ class DependencyGraph : private NonCopyable
 
     class Node : private NonCopyable
     {
+        friend class DependencyGraph;
+
      public:
         Node(DependencyGraph* ownerGraph);
         Node(Node&& rhs)
@@ -41,13 +42,20 @@ class DependencyGraph : private NonCopyable
             return _nodeId;
         }
 
-     private:
+        inline bool isCulled() const
+        {
+            return _refCount == 0;
+        }
+
         DependencyGraph* _ownerGraph = nullptr;
         NodeID _nodeId = UINT32_MAX;
+        uint32_t _refCount = 0;
     };
 
     class Edge : private NonCopyable
     {
+        friend class DependencyGraph;
+
      public:
         Edge(DependencyGraph* ownerGraph, Node* from, Node* to);
         Edge(Edge&& rhs)
@@ -67,18 +75,13 @@ class DependencyGraph : private NonCopyable
             return *this;
         }
 
-     public:
-        inline bool isCulled() const
-        {
-            return _refCount == 0;
-        }
-
-     private:
         DependencyGraph* _ownerGraph = nullptr;
         NodeID _fromNodeID = UINT32_MAX;
         NodeID _toNodeID = UINT32_MAX;
-        uint32_t _refCount = 0;
     };
+
+    using NodeContainer = std::vector<Node*>;
+    using EdgeContainer = std::vector<Edge*>;
 
  public:
     DependencyGraph();
@@ -91,17 +94,31 @@ class DependencyGraph : private NonCopyable
     {
         if (this != &rhs)
         {
+            _nodes = std::move(rhs._nodes);
+            _edges = std::move(rhs._edges);
+            _nextNodeID.store(rhs._nextNodeID.load());
         }
         return *this;
     }
 
  public:
-    uint32_t getNextNodeID();
+    NodeID getNextNodeID();
+    Node* getNode(NodeID id)
+    {
+        return _nodes[id];
+    }
+
+    EdgeContainer getIncomingEdges(NodeID id);
+    EdgeContainer getOutgoingEdges(NodeID id);
+
+    Edge* link(NodeID fromID, NodeID toID);
+    void insertNode(Node* node, NodeID id);
+    bool isEdgeValid(const Edge* edge) const;
 
  private:
-    std::vector<Node*> _nodes;
-    std::vector<Edge*> _edges;
-    std::atomic<uint32_t> _nextNodeID;
+    NodeContainer _nodes;
+    EdgeContainer _edges;
+    std::atomic<NodeID> _nextNodeID;
 };
 
 }  // namespace VoxFlow
