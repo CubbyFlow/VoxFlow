@@ -43,7 +43,7 @@ class LogicalDevice : NonCopyable
     }
 
     /**
-     * @param queue name specified when created
+     * @param queueName queue name specified when created
      * @return vulkan queue wrapping class created
      */
     [[nodiscard]] Queue* getQueuePtr(const std::string& queueName);
@@ -68,15 +68,15 @@ class LogicalDevice : NonCopyable
 
  public:
     /**
-     * @param swapchain window title name
-     * @param window resolution to create
+     * @param title swapchain window title name
+     * @param resolution window resolution to create
      * @return swapchain wrappging class instance
      */
     std::shared_ptr<SwapChain> addSwapChain(const char* title,
                                             const glm::ivec2 resolution);
 
     /**
-     * @param swapchain index to querying
+     * @param swapChainIndex swapchain index to querying
      * @return swapchain ref-counted instance matched to given index
      */
     [[nodiscard]] inline const std::shared_ptr<SwapChain>& getSwapChain(

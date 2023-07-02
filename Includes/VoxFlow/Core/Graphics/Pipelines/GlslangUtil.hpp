@@ -38,8 +38,8 @@ class GlslangUtil
     /**
      * Read given filename as glsl shader file and return its texts to dst
      * argument.
-     * @param filename to read as glsl shader file
-     * @param destination of shader file text read operation
+     * @param filename filename to read as glsl shader file
+     * @param dst destination of shader file text read operation
      * @return whether file open is successful or not
      */
     [[nodiscard]] static bool ReadShaderFile(const char* filename,
@@ -47,9 +47,9 @@ class GlslangUtil
 
     /**
      * Compile given shader text with glslangValidator into SPIR-V binary
-     * @param compilation stage
-     * @param glsl shader source text data
-     * @param compiled spir-v binary data is passed to given vector pointer
+     * @param stage compilation stage
+     * @param shaderSource glsl shader source text data
+     * @param pSpirvBinary compiled spir-v binary data is passed to given vector pointer
      * @return whether spir-v compilation is successful or not
      */
     [[nodiscard]] static bool CompileShader(

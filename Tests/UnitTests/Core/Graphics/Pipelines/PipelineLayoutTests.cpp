@@ -31,8 +31,10 @@ TEST_CASE("Vulkan Pipeline Layout Initialization")
     }
 
     const auto pipelineLayout = std::make_shared<VoxFlow::PipelineLayout>(
-        logicalDevice.get(), std::move(combinedLayoutBindings));
+        logicalDevice.get());
 
+    CHECK_EQ(pipelineLayout->initialize(std::move(combinedLayoutBindings)),
+             true);
     CHECK_NE(pipelineLayout->get(), VK_NULL_HANDLE);
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }

@@ -33,6 +33,7 @@ class PipelineLayout : NonCopyable
     }
 
     /**
+     * @param category descriptor set slot category to be queried
      * @return descriptor set allocator which match layout of shader resource
      * reflection contained in given category
      */
@@ -47,7 +48,7 @@ class PipelineLayout : NonCopyable
      * The shader resource binding declared in different shader module can be resolved by this process.
      * Get descriptor set allocator from the pool which match to each combined descriptor set layout
      * 
-     * @param shader layout binding which match to reflections of each shader module
+     * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
     bool initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings);
