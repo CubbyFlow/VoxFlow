@@ -148,11 +148,29 @@ ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     VirtualResource* resource = _resources[resourceSlot._resourceIndex];
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
+    const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
 
     DependencyGraph::EdgeContainer outgoingEdges =
-        _dependencyGraph.getOutgoingEdges(resourceNode->getNodeID());
+        _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
 
-    _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
+    bool alreadyWritten = false;
+    for (const DependencyGraph::Edge* edge : outgoingEdges)
+    {
+        if (edge->_toNodeID == resourceNodeID)
+        {
+            alreadyWritten = true;
+            break;
+        }
+    }
+
+    if (alreadyWritten)
+    {
+
+    }
+    else
+    {
+        _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
+    }
 
     return id;
 }
@@ -173,19 +191,17 @@ void FrameGraph::buildAdjacencyLists(const uint32_t numPassNodes)
             if (i == j)
                 continue;
 
-            for (ResourceHandle writeResource :
-                 _passNodes[i]->getWriteResources())
+            for (const DependencyGraph::Edge* writeEdge :
+                 _dependencyGraph.getOutgoingEdges(_passNodes[i]->getNodeID()))
             {
-                const std::vector<ResourceHandle>& readResources =
-                    _passNodes[j]->getReadResources();
-
-                std::vector<ResourceHandle>::const_iterator iter =
-                    std::find(readResources.begin(), readResources.end(),
-                              writeResource);
-
-                if (iter != readResources.end())
+                for (const DependencyGraph::Edge* readEdge :
+                     _dependencyGraph.getIncomingEdges(
+                         _passNodes[j]->getNodeID()))
                 {
-                    singleAdjacencyList.emplace_back(j);
+                    if (writeEdge->_toNodeID == readEdge->_fromNodeID)
+                    {
+                        singleAdjacencyList.emplace_back(j);
+                    }
                 }
             }
         }
