@@ -5,6 +5,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandExecutor.hpp>
 #include <sstream>
 #include <string>
+#include <fstream>
 #include "../../UnitTestUtils.hpp"
 
 TEST_CASE("FrameGraph")
@@ -132,11 +133,4 @@ TEST_CASE("FrameGraph")
     CHECK_EQ(samplePass1._isExecuted, true);
     CHECK_EQ(samplePass2._isExecuted, false);
     CHECK_EQ(samplePass3._isExecuted, true);
-
-    std::ostringstream osstr;
-    frameGraph.dumpGraphViz(osstr);
-
-    std::string dumpedGraphViz(osstr.str());
-    std::string expectedGraphVizText = "";
-    CHECK_EQ(dumpedGraphViz, expectedGraphVizText);
 }

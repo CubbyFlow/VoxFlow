@@ -81,6 +81,11 @@ class PassNode : public DependencyGraph::Node
         _refCount = UINT32_MAX;
     }
 
+    inline const std::string& getPassName() const
+    {
+        return _passName;
+    }
+
  protected:
 
  private:

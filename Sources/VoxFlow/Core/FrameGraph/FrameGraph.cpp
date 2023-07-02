@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <stack>
+#include <map>
 
 namespace VoxFlow
 {
@@ -333,9 +334,78 @@ void FrameGraph::clear()
     _commandQueueIndices.clear();
 }
 
+class AlphabetPermutator
+{
+ public:
+    AlphabetPermutator(uint32_t numNodes)
+    {
+        constexpr uint32_t numLowerAlphabets = 'z' - 'a' + 1;
+        uint32_t numPermutationIndex = 0;
+        while (numNodes > 0)
+        {
+            numNodes /= numLowerAlphabets;
+            ++numPermutationIndex;
+        }
+        _permutationIndices.resize(numPermutationIndex, 0);
+    }
+
+    std::string getNextAlphabetPermutation()
+    {
+        std::string alphabetPermutation;
+        for (uint8_t& permutationIndex : _permutationIndices)
+        {
+            alphabetPermutation += 'a' + permutationIndex;
+            if (permutationIndex == ('z' - 'a' + 1))
+            {
+                permutationIndex = 0;
+            }
+            else
+            {
+                permutationIndex++;
+            }
+        }
+        return alphabetPermutation;
+    }
+
+ private:
+    std::vector<uint8_t> _permutationIndices;
+};
+
 void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
 {
-    (void)osstr;
+    osstr << "digraph D {\n\tnode [fontname=\"Arial\"];\n\tedge "
+             "[style=dashed];\n";
+
+    std::map<DependencyGraph::NodeID, std::string> nodeLabelMap;
+    const uint32_t numTotalNodes =
+        static_cast<uint32_t>(_passNodes.size() + _resourceNodes.size());
+
+    AlphabetPermutator permutator(numTotalNodes);
+
+    for (PassNode* passNode : _passNodes)
+    {
+        const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
+        nodeLabelMap[passNode->getNodeID()] = nodeLabel;
+        osstr << "\t" << nodeLabel << "[ label=\"" << passNode->getPassName()
+              << "\" shape=record style=filled bgcolor=\"grey\"];\n";
+    }
+    osstr << '\n';
+
+    for (ResourceNode* resourceNode : _resourceNodes)
+    {
+        const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
+        nodeLabelMap[resourceNode->getNodeID()] = nodeLabel;
+        osstr << "\t" << nodeLabel << "[ label=\""
+              << resourceNode->getResourceName() << "\" shape=label];\n";
+    }
+    osstr << '\n';
+
+    for (const DependencyGraph::Edge* edge : _dependencyGraph.getLinkedEdges())
+    {
+        osstr << '\t' << nodeLabelMap[edge->_fromNodeID] << " -> "
+              << nodeLabelMap[edge->_toNodeID] << '\n';
+    }
+    osstr << '}';
 }
 }  // namespace FrameGraph
 

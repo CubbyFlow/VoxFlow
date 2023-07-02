@@ -90,7 +90,12 @@ class ResourceNode : public DependencyGraph::Node
  public:
     explicit ResourceNode(DependencyGraph* dependencyGraph,
                           std::string_view&& resourceName,
-        ResourceHandle resourceHandle);
+                          ResourceHandle resourceHandle);
+
+    inline const std::string& getResourceName() const
+    {
+        return _resourceName;
+    }
 
  private:
     std::string _resourceName;

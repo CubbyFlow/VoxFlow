@@ -117,6 +117,11 @@ class DependencyGraph : private NonCopyable
     void insertNode(Node* node, NodeID id);
     bool isEdgeValid(const Edge* edge) const;
 
+    inline const EdgeContainer& getLinkedEdges() const
+    {
+        return _edges;
+    }
+
  private:
     NodeContainer _nodes;
     EdgeContainer _edges;
