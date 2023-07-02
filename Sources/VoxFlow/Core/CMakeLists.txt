@@ -38,6 +38,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Handle.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
