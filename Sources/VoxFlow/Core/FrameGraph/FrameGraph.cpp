@@ -57,6 +57,8 @@ ResourceHandle FrameGraph::importRenderTarget(
 
     ResourceNode* resourceNode = new ResourceNode(
         &_dependencyGraph, std::move(resourceName), resourceHandle);
+    resourceNode->_refCount = UINT32_MAX;
+
     _resourceNodes.push_back(resourceNode);
 
     return resourceHandle;
@@ -387,7 +389,9 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[passNode->getNodeID()] = nodeLabel;
         osstr << "\t" << nodeLabel << "[ label=\"" << passNode->getPassName()
-              << "\" shape=record style=filled bgcolor=\"grey\"];\n";
+              << "\" shape=record bgcolor=\"grey\" "
+              << "style=\"filled" << (passNode->isCulled() ? ",dashed\"" : "\"")
+              << "];\n";
     }
     osstr << '\n';
 
@@ -396,7 +400,8 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[resourceNode->getNodeID()] = nodeLabel;
         osstr << "\t" << nodeLabel << "[ label=\""
-              << resourceNode->getResourceName() << "\" shape=label];\n";
+              << resourceNode->getResourceName() << "\" shape=label "
+              << (resourceNode->isCulled() ? "style=dashed" : "") << "];\n";
     }
     osstr << '\n';
 
