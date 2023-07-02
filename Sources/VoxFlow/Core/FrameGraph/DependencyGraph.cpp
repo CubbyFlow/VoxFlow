@@ -56,6 +56,8 @@ DependencyGraph::Edge* DependencyGraph::link(NodeID fromID, NodeID toID)
 
     Edge *edge = new Edge(this, fromNode, toNode);
     _edges.push_back(edge);
+
+    return edge;
 }
 
 void DependencyGraph::insertNode(Node* node, NodeID id)
@@ -63,6 +65,7 @@ void DependencyGraph::insertNode(Node* node, NodeID id)
     VOX_ASSERT(_nodes.size() == static_cast<size_t>(id), "Invalid NodeID");
     _nodes.push_back(node);
 }
+
 bool DependencyGraph::isEdgeValid(const Edge* edge) const
 {
     return _nodes[edge->_fromNodeID]->isCulled() == false &&
