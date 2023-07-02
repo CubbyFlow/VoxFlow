@@ -49,8 +49,8 @@ class FrameGraphBuilder
     [[nodiscard]] ResourceHandle allocate(
         std::string_view&& resourceName,
         ResourceDataType::Descriptor&& initArgs);
-    [[nodiscard]] ResourceHandle read(ResourceHandle id);
-    [[nodiscard]] ResourceHandle write(ResourceHandle id);
+    ResourceHandle read(ResourceHandle id);
+    ResourceHandle write(ResourceHandle id);
 
     template <RenderPassConcept RenderPassType>
     [[nodiscard]] ResourceHandle declareRenderPass(

@@ -12,17 +12,22 @@ TEST_CASE("FrameGraph")
     using namespace VoxFlow;
 
     FrameGraph::FrameGraph frameGraph;
+    FrameGraph::BlackBoard& blackBoard = frameGraph.getBlackBoard();
 
-    FrameGraph::ResourceHandle backBuffer =
-        frameGraph.importRenderTarget("BackBuffer",
-                                      FrameGraph::FrameGraphTexture::Descriptor{
-                                          ._width = 1200,
-                                          ._height = 900,
-                                          ._depth = 1,
-                                          ._level = 1,
-                                          ._sampleCounts = 1,
-                                          ._format = VK_FORMAT_R8G8B8A8_UNORM },
-                                      nullptr);
+    {
+        FrameGraph::ResourceHandle backBuffer = frameGraph.importRenderTarget(
+            "BackBuffer",
+            FrameGraph::FrameGraphTexture::Descriptor{
+                ._width = 1200,
+                ._height = 900,
+                ._depth = 1,
+                ._level = 1,
+                ._sampleCounts = 1,
+                ._format = VK_FORMAT_R8G8B8A8_UNORM },
+            nullptr);
+
+        blackBoard["BackBuffer"] = backBuffer;
+    }
 
     struct SamplePassData1
     {
@@ -115,7 +120,7 @@ TEST_CASE("FrameGraph")
             [&](FrameGraph::FrameGraphBuilder& builder,
                 SamplePassData3& passData) {
                 passData._input1 = builder.read(samplePass1._output1);
-                backBuffer = builder.write(backBuffer);
+                builder.write(blackBoard.getHandle("BackBuffer"));
             },
             [&](FrameGraph::FrameGraph*, SamplePassData3& passData,
                 CommandExecutorBase*) { passData._isExecuted = true; });

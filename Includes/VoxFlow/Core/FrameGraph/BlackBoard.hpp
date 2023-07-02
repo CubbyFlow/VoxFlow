@@ -45,7 +45,7 @@ class BlackBoard : private NonCopyable
         }
         return InvalidFrameGraphResource;
     }
-    ResourceHandle& operator=(std::string_view name)
+    ResourceHandle& operator[](std::string_view name)
     {
         auto [iter, _] =
             _handleContainer.insert_or_assign(name, InvalidFrameGraphResource);
