@@ -4,8 +4,9 @@
 #define VOXEL_FLOW_RENDER_RESOURCE_ALLOCATOR_HPP
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <string>
+#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
+#include <string>
 
 namespace VoxFlow
 {
@@ -34,8 +35,7 @@ class RenderResourceAllocator : private NonCopyable
  protected:
  private:
     LogicalDevice* _logicalDevice = nullptr;
-    std::unique_ptr<RenderResourceMemoryPool> _renderResourceMemoryPool =
-        nullptr;
+    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
 };
 }  // namespace VoxFlow
 

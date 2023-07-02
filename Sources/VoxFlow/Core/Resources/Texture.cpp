@@ -40,7 +40,7 @@ Texture::~Texture()
     release();
 }
 
-bool Texture::makeResourceResident(const TextureInfo& textureInfo)
+bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
 {
     release();
 

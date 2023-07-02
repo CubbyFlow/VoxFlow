@@ -6,9 +6,10 @@
 #include <volk/volk.h>
 #include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
 
 namespace VoxFlow
