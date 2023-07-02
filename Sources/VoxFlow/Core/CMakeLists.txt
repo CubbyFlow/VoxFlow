@@ -33,6 +33,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
@@ -75,6 +76,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/BindableResourceView.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
+    ${SRC_DIR}/Core/Resources/RenderResourceAllocator.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceGarbageCollector.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
