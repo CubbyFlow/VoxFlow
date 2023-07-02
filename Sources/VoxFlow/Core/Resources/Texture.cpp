@@ -13,17 +13,17 @@ namespace VoxFlow
 static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
 {
     VkImageUsageFlags resultUsage = 0;
-    if (textureUsage & TextureUsage::RenderTarget)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::RenderTarget) > 0)
         resultUsage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    if (textureUsage & TextureUsage::DepthStencil)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::DepthStencil) > 0)
         resultUsage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-    if (textureUsage & TextureUsage::Sampled)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::Sampled) > 0)
         resultUsage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    if (textureUsage & TextureUsage::Storage)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::Storage) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    if (textureUsage & TextureUsage::CopySrc)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::CopySrc) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    if (textureUsage & TextureUsage::CopyDst)
+    if (static_cast<uint32_t>(textureUsage & TextureUsage::CopyDst) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     return resultUsage;
 }
@@ -40,7 +40,7 @@ Texture::~Texture()
     release();
 }
 
-bool Texture::makeResourceResident(const TextureInfo& textureInfo)
+bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
 {
     release();
 

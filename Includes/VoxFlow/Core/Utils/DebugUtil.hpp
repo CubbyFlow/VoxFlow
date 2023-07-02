@@ -160,6 +160,7 @@ class DebugUtil
  private:
     static void setObjectName(LogicalDevice* logicalDevice, uint64_t object,
                               const char* name, VkObjectType type);
+ public:
 #endif
 
     static uint64_t NumValidationErrorDetected;
@@ -181,7 +182,7 @@ class DeviceRemoveTracker
     std::vector<LogicalDevice*> _logicalDevices;
 };
 
-std::string getVkResultString(VkResult vkResult);
+const char* getVkResultString(VkResult vkResult);
 
 }  // namespace VoxFlow
 

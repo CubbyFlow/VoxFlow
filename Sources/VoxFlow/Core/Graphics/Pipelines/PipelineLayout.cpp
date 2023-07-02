@@ -10,70 +10,9 @@
 namespace VoxFlow
 {
 PipelineLayout::PipelineLayout(
-    LogicalDevice* logicalDevice,
-    std::vector<ShaderLayoutBinding>&& setLayoutBindings)
-    : _logicalDevice(logicalDevice), _setLayoutBindings(setLayoutBindings)
+    LogicalDevice* logicalDevice)
+    : _logicalDevice(logicalDevice)
 {
-    std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> combinedSetLayouts;
-    for (const ShaderLayoutBinding& shaderBinding : setLayoutBindings)
-    {
-        for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
-        {
-            std::for_each(
-                shaderBinding._sets[set]._bindingMap.begin(),
-                shaderBinding._sets[set]._bindingMap.end(),
-                [&combinedSetLayouts,
-                 set](const DescriptorSetLayoutDesc::ContainerType::value_type&
-                          bindingPair) {
-                    DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-                        combinedSetLayouts[set]._bindingMap.find(
-                            bindingPair.first);
-                    if (it != combinedSetLayouts[set]._bindingMap.end())
-                    {
-                        // TODO(snowapril) : Check given resource is collided
-                        // with already collected one.
-                    }
-                    else
-                    {
-                        combinedSetLayouts[set]._bindingMap.emplace(
-                            bindingPair);
-                    }
-                });
-                
-            combinedSetLayouts[set]._stageFlags |=
-                shaderBinding._sets[set]._stageFlags;
-        }
-    }
-
-    DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
-        _logicalDevice->getDescriptorSetAllocatorPool();
-
-    std::vector<VkDescriptorSetLayout> vkSetLayouts;
-    for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
-    {
-        if (combinedSetLayouts[set]._stageFlags != 0)
-        {
-            _setAllocators[set] =
-                descriptorSetAllocatorPool->getOrCreateDescriptorSetAllocator(
-                    combinedSetLayouts[set]);
-            vkSetLayouts.push_back(
-                _setAllocators[set]->getVkDescriptorSetLayout());
-        }
-    }
-
-    // TODO(snowapril) : implement push constants
-    VkPipelineLayoutCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .setLayoutCount = static_cast<uint32_t>(vkSetLayouts.size()),
-        .pSetLayouts = vkSetLayouts.data(),
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
-    };
-
-    VK_ASSERT(vkCreatePipelineLayout(_logicalDevice->get(), &createInfo,
-                                     nullptr, &_vkPipelineLayout));
 }
 
 PipelineLayout::~PipelineLayout()
@@ -93,17 +32,94 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
         _logicalDevice = std::move(other._logicalDevice);
         _vkPipelineLayout = other._vkPipelineLayout;
         _setAllocators.swap(other._setAllocators);
-        _setLayoutBindings.swap(other._setLayoutBindings);
+        _combinedSetLayouts.swap(other._combinedSetLayouts);
     }
     return *this;
 }
 
+static void organizeCombinedDescSetLayouts(
+    std::vector<ShaderLayoutBinding>&& setLayoutBindings,
+    DescriptorSetLayoutDesc* pSetLayouts)
+{
+    for (const ShaderLayoutBinding& shaderBinding : setLayoutBindings)
+    {
+        for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
+        {
+            std::for_each(
+                shaderBinding._sets[set]._bindingMap.begin(),
+                shaderBinding._sets[set]._bindingMap.end(),
+                [&pSetLayouts,
+                 set](const DescriptorSetLayoutDesc::ContainerType::value_type&
+                          bindingPair) {
+                    DescriptorSetLayoutDesc::ContainerType::const_iterator it =
+                        pSetLayouts[set]._bindingMap.find(bindingPair.first);
+                    if (it != pSetLayouts[set]._bindingMap.end())
+                    {
+                        // TODO(snowapril) : Check given resource is collided
+                        // with already collected one.
+                    }
+                    else
+                    {
+                        pSetLayouts[set]._bindingMap.emplace(bindingPair);
+                    }
+                });
+
+            pSetLayouts[set]._stageFlags |=
+                shaderBinding._sets[set]._stageFlags;
+        }
+    }
+}
+
+bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings)
+{
+    organizeCombinedDescSetLayouts(std::move(setLayoutBindings),
+                                   _combinedSetLayouts.data());
+
+    DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
+        _logicalDevice->getDescriptorSetAllocatorPool();
+
+    std::vector<VkDescriptorSetLayout> vkSetLayouts;
+    for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
+    {
+        if (_combinedSetLayouts[set]._stageFlags != 0)
+        {
+            _setAllocators[set] =
+                descriptorSetAllocatorPool->getOrCreateDescriptorSetAllocator(
+                    _combinedSetLayouts[set]);
+            vkSetLayouts.push_back(
+                _setAllocators[set]->getVkDescriptorSetLayout());
+        }
+    }
+
+    // TODO(snowapril) : implement push constants
+    VkPipelineLayoutCreateInfo createInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .setLayoutCount = static_cast<uint32_t>(vkSetLayouts.size()),
+        .pSetLayouts = vkSetLayouts.data(),
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
+
+    VK_ASSERT(vkCreatePipelineLayout(_logicalDevice->get(), &createInfo,
+                                     nullptr, &_vkPipelineLayout));
+
+    return (_vkPipelineLayout != VK_NULL_HANDLE);
+}
+
 void PipelineLayout::release()
 {
+    for (std::shared_ptr<DescriptorSetAllocator>& setAllocator : _setAllocators)
+    {
+        setAllocator.reset();
+    }
+
     if (_vkPipelineLayout)
     {
         vkDestroyPipelineLayout(_logicalDevice->get(), _vkPipelineLayout, nullptr);
         _vkPipelineLayout = VK_NULL_HANDLE;
     }
 }
+
 }  // namespace VoxFlow

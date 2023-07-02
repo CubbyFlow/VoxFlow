@@ -12,19 +12,19 @@ namespace VoxFlow
 static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
 {
     VkBufferUsageFlags resultUsage = 0;
-    if (usage & BufferUsage::ConstantBuffer)
+    if (static_cast<uint32_t>(usage & BufferUsage::ConstantBuffer) > 0)
         resultUsage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    if (usage & BufferUsage::RwStructuredBuffer)
+    if (static_cast<uint32_t>(usage & BufferUsage::RwStructuredBuffer) > 0)
         resultUsage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-    if (usage & BufferUsage::VertexBuffer)
+    if (static_cast<uint32_t>(usage & BufferUsage::VertexBuffer) > 0)
         resultUsage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    if (usage & BufferUsage::IndexBuffer)
+    if (static_cast<uint32_t>(usage & BufferUsage::IndexBuffer) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    if (usage & BufferUsage::IndirectCommand)
+    if (static_cast<uint32_t>(usage & BufferUsage::IndirectCommand) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    if (usage & BufferUsage::CopyDst)
+    if (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    if (usage & BufferUsage::CopySrc)
+    if (static_cast<uint32_t>(usage & BufferUsage::CopySrc) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     return resultUsage;
 }
@@ -135,6 +135,8 @@ bool BufferView::initialize(const BufferViewInfo& viewInfo)
 
 void BufferView::release()
 {
+    // No need to release buffer view as it is just pointing to subregion of the
+    // owner buffer.
 }
 
 VkDescriptorBufferInfo BufferView::getDescriptorBufferInfo() const

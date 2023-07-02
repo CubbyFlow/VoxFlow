@@ -41,7 +41,7 @@ class Texture : private NonCopyable,
     }
 
     // Make the image allocation resident if evicted
-    bool makeResourceResident(const TextureInfo& textureInfo);
+    bool makeAllocationResident(const TextureInfo& textureInfo);
 
     // Create texture instance from swapchain image which should be separated
     // from others

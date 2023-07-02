@@ -165,6 +165,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
 LogicalDevice::~LogicalDevice()
 {
+    releaseDedicatedResources();
     release();
 }
 

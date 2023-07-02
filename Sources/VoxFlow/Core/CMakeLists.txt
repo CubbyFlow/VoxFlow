@@ -13,6 +13,17 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/SwapChain.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/BlackBoard.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/DependencyGraph.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/TypeTraits.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
@@ -31,10 +42,13 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/BitwiseOperators.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Handle.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
@@ -54,6 +68,11 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
     ${SRC_DIR}/Core/Devices/Queue.cpp
     ${SRC_DIR}/Core/Devices/SwapChain.cpp
+    ${SRC_DIR}/Core/FrameGraph/DependencyGraph.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraph.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraphPass.cpp
+    ${SRC_DIR}/Core/FrameGraph/Resource.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraphTexture.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp
@@ -72,6 +91,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/BindableResourceView.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
+    ${SRC_DIR}/Core/Resources/RenderResourceAllocator.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceGarbageCollector.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp

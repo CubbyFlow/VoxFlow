@@ -8,10 +8,10 @@
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <functional>
+#include <glm/vec2.hpp>
 #include <memory>
 #include <unordered_map>
-#include <glm/vec2.hpp>
-#include <functional>
 
 namespace VoxFlow
 {
@@ -28,34 +28,57 @@ class DescriptorSetAllocatorPool;
 class LogicalDevice : NonCopyable
 {
  public:
-    LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice, Instance* instance);
+    LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
+                  Instance* instance);
     ~LogicalDevice() override;
     LogicalDevice(LogicalDevice&& other) noexcept;
     LogicalDevice& operator=(LogicalDevice&& other) noexcept;
 
+    /**
+     * @return created vulkan logical device
+     */
     [[nodiscard]] VkDevice get() const noexcept
     {
         return _device;
     }
-    [[nodiscard]] Queue* getQueuePtr(
-        const std::string& queueName);
 
+    /**
+     * @param queueName queue name specified when created
+     * @return vulkan queue wrapping class created
+     */
+    [[nodiscard]] Queue* getQueuePtr(const std::string& queueName);
+
+    /**
+     * @return render pass and framebuffer manager
+     */
     [[nodiscard]] RenderPassCollector* getRenderPassCollector() const
     {
         return _renderPassCollector;
     }
 
-    [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool() const
+    /**
+     * @return descriptor set allocator pool which manage set and pool laid in
+     * each layout
+     */
+    [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool()
+        const
     {
         return _descriptorSetAllocatorPool;
     }
-    
+
  public:
-     // Create new swapChain with given desc.
+    /**
+     * @param title swapchain window title name
+     * @param resolution window resolution to create
+     * @return swapchain wrappging class instance
+     */
     std::shared_ptr<SwapChain> addSwapChain(const char* title,
                                             const glm::ivec2 resolution);
 
-    // Get swapchain instance with given index
+    /**
+     * @param swapChainIndex swapchain index to querying
+     * @return swapchain ref-counted instance matched to given index
+     */
     [[nodiscard]] inline const std::shared_ptr<SwapChain>& getSwapChain(
         const uint32_t swapChainIndex) const
     {
@@ -66,10 +89,15 @@ class LogicalDevice : NonCopyable
     }
 
  public:
-     // Release resources which derived from this LogicalDevice
-     void releaseDedicatedResources();
+    /**
+     * release resources which derived from this logical device
+     */
+    void releaseDedicatedResources();
 
-     // Release logical device and resources which derived from current logical device.
+    /**
+     * release logical device and resources which derived from this logical
+     * device.
+     */
     void release();
 
  private:

@@ -14,6 +14,7 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
                            const char* shaderFilePath)
     : _logicalDevice(logicalDevice), _shaderFilePath(shaderFilePath)
 {
+    // TODO(snowapril) : move compilation process to external management class
     std::vector<char> shaderSource;
     VOX_ASSERT(GlslangUtil::ReadShaderFile(shaderFilePath, &shaderSource),
                "Failed to read shader file : {}", shaderFilePath);
