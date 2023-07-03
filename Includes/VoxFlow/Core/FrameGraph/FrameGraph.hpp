@@ -48,13 +48,14 @@ class FrameGraphBuilder
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle allocate(
         std::string_view&& resourceName,
-        ResourceDataType::Descriptor&& initArgs);
+        typename ResourceDataType::Descriptor&& initArgs);
     ResourceHandle read(ResourceHandle id);
     ResourceHandle write(ResourceHandle id);
 
     template <RenderPassConcept RenderPassType>
     [[nodiscard]] ResourceHandle declareRenderPass(
-        std::string_view&& passName, RenderPassType::Descriptor&& initArgs);
+        std::string_view&& passName,
+        typename RenderPassType::Descriptor&& initArgs);
 
  protected:
  private:
@@ -88,7 +89,7 @@ class FrameGraph : private NonCopyable
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
         std::string_view&& resourceName,
-        ResourceDataType::Descriptor&& resourceDescArgs);
+        typename ResourceDataType::Descriptor&& resourceDescArgs);
 
     [[nodiscard]] ResourceHandle importRenderTarget(
         std::string_view&& resourceName,

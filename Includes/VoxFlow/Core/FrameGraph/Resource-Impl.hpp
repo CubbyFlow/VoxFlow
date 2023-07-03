@@ -11,7 +11,7 @@ namespace FrameGraph
 {
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
-    ResourceDataType::Descriptor&& resourceArgs)
+    typename ResourceDataType::Descriptor&& resourceArgs)
     : _descriptor(resourceArgs)
 {
 }
@@ -24,7 +24,7 @@ Resource<ResourceDataType>::~Resource()
 template <ResourceConcept ResourceDataType>
 ImportedResource<ResourceDataType>::ImportedResource(
     const ResourceDataType& resource,
-    ResourceDataType::Descriptor&& resourceArgs)
+    typename ResourceDataType::Descriptor&& resourceArgs)
     : Resource<ResourceDataType>(std::move(resourceArgs)), _resource(resource)
 {
 }

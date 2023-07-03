@@ -16,7 +16,8 @@ constexpr uint32_t EXECUTION_LAMBDA_SIZE_LIMIT = 1024U;
 
 template <ResourceConcept ResourceDataType>
 ResourceHandle FrameGraphBuilder::allocate(
-    std::string_view&& resourceName, ResourceDataType::Descriptor&& initArgs)
+    std::string_view&& resourceName,
+    typename ResourceDataType::Descriptor&& initArgs)
 {
     return _frameGraph->create<ResourceDataType>(std::move(resourceName),
                                                  std::move(initArgs));
@@ -48,7 +49,7 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
 template <ResourceConcept ResourceDataType>
 ResourceHandle FrameGraph::create(
     std::string_view&& resourceName,
-    ResourceDataType::Descriptor&& resourceDescArgs)
+    typename ResourceDataType::Descriptor&& resourceDescArgs)
 {
     VirtualResource* virtualResource =
         new Resource<ResourceDataType>(std::move(resourceDescArgs));

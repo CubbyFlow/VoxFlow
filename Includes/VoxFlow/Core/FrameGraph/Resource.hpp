@@ -39,7 +39,7 @@ template <ResourceConcept ResourceDataType>
 class Resource : public VirtualResource
 {
  public:
-    explicit Resource(ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(typename ResourceDataType::Descriptor&& resourceArgs);
     ~Resource();
 
  public:
@@ -49,7 +49,7 @@ class Resource : public VirtualResource
     }
 
  protected:
-    ResourceDataType::Descriptor _descriptor;
+    typename ResourceDataType::Descriptor _descriptor;
     PassNode* _producerPassNode = nullptr;
 };
 
@@ -58,7 +58,7 @@ class ImportedResource : public Resource<ResourceDataType>
 {
  public:
     ImportedResource(const ResourceDataType& resource,
-             ResourceDataType::Descriptor&& resourceArgs);
+                     typename ResourceDataType::Descriptor&& resourceArgs);
     ~ImportedResource();
 
  public:
