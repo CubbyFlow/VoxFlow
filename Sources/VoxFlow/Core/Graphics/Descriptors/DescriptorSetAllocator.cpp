@@ -14,9 +14,61 @@ DescriptorSetAllocator::DescriptorSetAllocator(
     : _logicalDevice(logicalDevice), _setLayoutDesc(setLayout)
 {
     const uint32_t numBindings =
-        static_cast<uint32_t>(setLayout._bindingMap.size());
+        static_cast<uint32_t>(_setLayoutDesc._bindingMap.size());
+
     std::vector<VkDescriptorSetLayoutBinding> descSetLayoutBindings;
-    descSetLayoutBindings.resize(numBindings);
+    std::vector<VkDescriptorPoolSize> poolSizes;
+
+    descSetLayoutBindings.reserve(numBindings);
+    poolSizes.reserve(numBindings);
+
+    for (DescriptorSetLayoutDesc::ContainerType::const_iterator it =
+             _setLayoutDesc._bindingMap.begin();
+         it != _setLayoutDesc._bindingMap.end(); ++it)
+    {
+        std::visit(
+            overloaded{
+                [this, &descSetLayoutBindings, &poolSizes](
+                    DescriptorSetLayoutDesc::CombinedImage setBinding) {
+                    descSetLayoutBindings.push_back(
+                        { .binding = setBinding._binding,
+                          .descriptorType =
+                              VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                          .descriptorCount = setBinding._arraySize,
+                          .stageFlags = _setLayoutDesc._stageFlags,
+                          .pImmutableSamplers = nullptr });
+                    poolSizes.push_back(
+                        { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                          .descriptorCount = setBinding._arraySize });
+                },
+                [this, &descSetLayoutBindings, &poolSizes](
+                    DescriptorSetLayoutDesc::UniformBuffer setBinding) {
+                    descSetLayoutBindings.push_back(
+                        { .binding = setBinding._binding,
+                          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                          .descriptorCount = setBinding._arraySize,
+                          .stageFlags = _setLayoutDesc._stageFlags,
+                          .pImmutableSamplers = nullptr });
+                    poolSizes.push_back(
+                        { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                          .descriptorCount = setBinding._arraySize });
+                },
+                [this, &descSetLayoutBindings, &poolSizes](
+                    DescriptorSetLayoutDesc::StorageBuffer setBinding) {
+                    descSetLayoutBindings.push_back(
+                        { .binding = setBinding._binding,
+                          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                          .descriptorCount = setBinding._arraySize,
+                          .stageFlags = _setLayoutDesc._stageFlags,
+                          .pImmutableSamplers = nullptr });
+                    poolSizes.push_back(
+                        { .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                          .descriptorCount = setBinding._arraySize });
+                },
+            },
+            it->second);
+    }
+
 
     // TODO(snowapril) : sort setLayout descriptorBindings according to binding
     // id
@@ -30,36 +82,6 @@ DescriptorSetAllocator::DescriptorSetAllocator(
 
     VK_ASSERT(vkCreateDescriptorSetLayout(_logicalDevice->get(), &createInfo,
                                           nullptr, &_vkSetLayout));
-
-    std::vector<VkDescriptorPoolSize> poolSizes;
-    poolSizes.reserve(numBindings);
-    for (DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-             setLayout._bindingMap.begin();
-         it != setLayout._bindingMap.end(); ++it)
-    {
-        std::visit(overloaded{
-                       [&poolSizes](
-                           DescriptorSetLayoutDesc::SampledImage setBinding) {
-                    DescriptorSetLayoutDesc::CombinedImage setBinding) {
-                           poolSizes.push_back(
-                        { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                 .descriptorCount = setBinding._arraySize });
-                       },
-                       [&poolSizes](
-                           DescriptorSetLayoutDesc::UniformBuffer setBinding) {
-                           poolSizes.push_back(
-                               { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                 .descriptorCount = setBinding._arraySize });
-                       },
-                       [&poolSizes](
-                           DescriptorSetLayoutDesc::StorageBuffer setBinding) {
-                           poolSizes.push_back(
-                               { .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                                 .descriptorCount = setBinding._arraySize });
-                       },
-                   },
-                   it->second);
-    }
 
     VkDescriptorPoolCreateInfo poolCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
