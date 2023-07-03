@@ -3,7 +3,7 @@
 precision mediump float;
 
 layout(location = 0) in vec4 vTex;
-layout(binding = 0) uniform sampler2D uTex;
+layout(set = 2, binding = 0) uniform sampler2D uTex;
 layout(location = 0) out vec4 FragColor;
 
 void main()
