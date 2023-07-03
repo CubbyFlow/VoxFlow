@@ -20,7 +20,7 @@ std::size_t std::hash<VoxFlow::DescriptorSetLayoutDesc>::operator()(
     {
         std::visit(
             VoxFlow::overloaded{
-                [&seed](VoxFlow::DescriptorSetLayoutDesc::SampledImage setBinding) {
+                [&seed](VoxFlow::DescriptorSetLayoutDesc::CombinedImage setBinding) {
                     VoxFlow::hash_combine(seed, setBinding._arraySize);
                     VoxFlow::hash_combine(
                         seed, static_cast<uint32_t>(setBinding._format));

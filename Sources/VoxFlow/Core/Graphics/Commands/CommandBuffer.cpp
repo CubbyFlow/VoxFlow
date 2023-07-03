@@ -243,10 +243,10 @@ void CommandBuffer::commitPendingResourceBindings()
             std::visit(
                 overloaded{
                     [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::SampledImage setBinding) {
+                        DescriptorSetLayoutDesc::CombinedImage setBinding) {
                         binding = setBinding._binding;
                         arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                        vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                     },
                     [&binding, &arraySize, &vkDescriptorType](
                         DescriptorSetLayoutDesc::UniformBuffer setBinding) {

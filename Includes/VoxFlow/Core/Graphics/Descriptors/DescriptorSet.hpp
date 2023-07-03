@@ -14,13 +14,13 @@ namespace VoxFlow
 
 struct DescriptorSetLayoutDesc
 {
-    struct SampledImage
+    struct CombinedImage
     {
         VkFormat _format = VK_FORMAT_UNDEFINED;
         uint32_t _arraySize = 0;
         uint32_t _binding = 0;
 
-        inline bool operator==(const SampledImage& rhs) const
+        inline bool operator==(const CombinedImage& rhs) const
         {
             return (_format == rhs._format) && (_arraySize == rhs._arraySize) &&
                    (_binding == rhs._binding);   
@@ -52,7 +52,7 @@ struct DescriptorSetLayoutDesc
     };
 
     using DescriptorType =
-        std::variant<SampledImage, UniformBuffer, StorageBuffer>;
+        std::variant<CombinedImage, UniformBuffer, StorageBuffer>;
     using ContainerType = std::unordered_map<std::string, DescriptorType>;
 
     ContainerType _bindingMap;

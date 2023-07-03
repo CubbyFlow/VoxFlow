@@ -242,9 +242,7 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
             "Bindless resource must use set = {}",
             static_cast<uint32_t>(SetSlotCategory::Bindless));
 
-        
-        
-        const std::string& blockName = compiler.get_name(resource.base_type_id);
+        //const std::string& blockName = compiler.get_name(resource.base_type_id);
 
         spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
                       resource.name, set, binding, count);
@@ -258,8 +256,8 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
             VkFormat imageFormat =
                 convertSpirvImageFormat(resourceType.image.format);
             shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-                blockName, DescriptorSetLayoutDesc::SampledImage{
-                               imageFormat, count, binding });
+                resource.name, DescriptorSetLayoutDesc::CombinedImage{
+                                   imageFormat, count, binding });
         }
     }
 

@@ -40,8 +40,9 @@ DescriptorSetAllocator::DescriptorSetAllocator(
         std::visit(overloaded{
                        [&poolSizes](
                            DescriptorSetLayoutDesc::SampledImage setBinding) {
+                    DescriptorSetLayoutDesc::CombinedImage setBinding) {
                            poolSizes.push_back(
-                               { .type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+                        { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                  .descriptorCount = setBinding._arraySize });
                        },
                        [&poolSizes](
