@@ -61,7 +61,7 @@ class FrameGraphPass : public FrameGraphPassBase
     ExecutePhase _executionPhaseLambda;
 };
 
-class PassNode : public DependencyGraph::Node
+class PassNode final : public DependencyGraph::Node
 {
  public:
     explicit PassNode(
