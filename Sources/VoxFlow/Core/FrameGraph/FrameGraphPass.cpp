@@ -18,7 +18,6 @@ FrameGraphPassBase::~FrameGraphPassBase()
 PassNode::PassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName,
                    std::unique_ptr<FrameGraphPassBase>&& pass)
     : DependencyGraph::Node(ownerFrameGraph->getDependencyGraph()),
-      _ownerFrameGraph(ownerFrameGraph),
       _passImpl(std::move(pass)),
       _passName(passName)
 {

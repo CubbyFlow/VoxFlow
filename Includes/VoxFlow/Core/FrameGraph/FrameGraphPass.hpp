@@ -88,7 +88,6 @@ class PassNode final : public DependencyGraph::Node
 
  protected:
  private:
-    FrameGraph* _ownerFrameGraph = nullptr;
     std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;
     std::vector<VirtualResource*> _devirtualizes;
     std::vector<VirtualResource*> _destroyes;
