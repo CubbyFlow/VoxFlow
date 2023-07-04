@@ -21,6 +21,11 @@ class DependencyGraph : private NonCopyable
 
      public:
         explicit Node(DependencyGraph* ownerGraph);
+
+        virtual ~Node()
+        {
+        }
+
         Node(Node&& rhs)
         {
             operator=(std::move(rhs));
@@ -58,6 +63,11 @@ class DependencyGraph : private NonCopyable
 
      public:
         Edge(DependencyGraph* ownerGraph, Node* from, Node* to);
+
+        virtual ~Edge()
+        {
+        }
+
         Edge(Edge&& rhs)
         {
             operator=(std::move(rhs));

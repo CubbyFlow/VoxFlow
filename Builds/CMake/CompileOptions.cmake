@@ -26,7 +26,9 @@ endif()
 #
 
 set(DEFAULT_PROJECT_OPTIONS
-	CXX_STANDARD              20 # Not available before CMake 3.8.2; see below for manual command line argument addition
+	# Not available before CMake 3.8.2; see below for manual command line argument addition
+	CXX_STANDARD		      20
+	CXX_STANDARD_REQUIRED     20
 	LINKER_LANGUAGE           "CXX"
 	POSITION_INDEPENDENT_CODE ON
 )
@@ -104,7 +106,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
 		-Wno-register			# -> disable warning: ISO c++1z does not allow 'register' storage class specifier [-wregister] (caused by pybind11)
         -Wno-error=register		# -> disable warning: ISO c++1z does not allow 'register' storage class specifier [-wregister] (caused by pybind11)
 		${WARN_AS_ERROR_FLAGS}
-		-std=c++1z
+		-std=c++2a
 	)
 endif ()
 
