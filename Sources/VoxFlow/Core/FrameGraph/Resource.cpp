@@ -21,6 +21,7 @@ ImportedRenderTarget::ImportedRenderTarget(
     : ImportedResource<FrameGraphTexture>(resource, std::move(resourceArgs)),
       _textureHandle(texture)
 {
+    (void)_textureHandle;
 }
 
 ImportedRenderTarget::~ImportedRenderTarget()
@@ -34,6 +35,7 @@ ResourceNode::ResourceNode(DependencyGraph* dependencyGraph,
       _resourceName(std::move(resourceName)),
       _resourceHandle(resourceHandle)
 {
+    (void)_resourceHandle;
 }
 
 }  // namespace FrameGraph
