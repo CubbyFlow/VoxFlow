@@ -161,6 +161,11 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
     _deviceDefaultResourceMemoryPool =
         new RenderResourceMemoryPool(this, _physicalDevice, _instance); 
+
+    VOX_ASSERT(
+        _deviceDefaultResourceMemoryPool->initialize(),
+        "Failed to initialize device-default render resource memory pool");
+
     _renderPassCollector = new RenderPassCollector(this);
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 }
