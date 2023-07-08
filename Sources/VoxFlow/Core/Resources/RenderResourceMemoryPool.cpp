@@ -25,6 +25,11 @@ RenderResourceMemoryPool::~RenderResourceMemoryPool()
 bool RenderResourceMemoryPool::initialize()
 {
     // TODO(snowapril) : prepare multiple allocators according to resource type
+
+    VmaVulkanFunctions vmaVulkanFunctions = {
+        .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+        .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+    };
     VmaAllocatorCreateInfo allocatorInfo{
         .flags = 0,
         .physicalDevice = _physicalDevice->get(),
@@ -33,7 +38,7 @@ bool RenderResourceMemoryPool::initialize()
         .pAllocationCallbacks = nullptr,
         .pDeviceMemoryCallbacks = nullptr,
         .pHeapSizeLimit = nullptr, // TODO(snowapril) : customize fields
-        .pVulkanFunctions = nullptr,
+        .pVulkanFunctions = &vmaVulkanFunctions,
         .instance = _instance->get(),
         .vulkanApiVersion = VK_API_VERSION_1_3, // TODO(snowapril) : customize fields
         .pTypeExternalMemoryHandleTypes = nullptr,
