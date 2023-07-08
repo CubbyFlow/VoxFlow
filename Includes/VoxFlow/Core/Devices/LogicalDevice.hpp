@@ -49,6 +49,14 @@ class LogicalDevice : NonCopyable
     [[nodiscard]] Queue* getQueuePtr(const std::string& queueName);
 
     /**
+     * @return device default generated render resource memory pool
+     */
+    [[nodiscard]] RenderResourceMemoryPool* getDeviceDefaultResourceMemoryPool()
+    {
+        return _deviceDefaultResourceMemoryPool;
+    }
+
+    /**
      * @return render pass and framebuffer manager
      */
     [[nodiscard]] RenderPassCollector* getRenderPassCollector() const
@@ -88,6 +96,11 @@ class LogicalDevice : NonCopyable
         return _swapChains[swapChainIndex];
     }
 
+    inline const PhysicalDevice* getPhysicalDevice() const
+    {
+        return _physicalDevice;
+    }
+
  public:
     /**
      * release resources which derived from this logical device
@@ -107,7 +120,7 @@ class LogicalDevice : NonCopyable
     std::unordered_map<std::string, Queue*> _queueMap{};
     Queue* _mainQueue = nullptr;
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
-    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
+    RenderResourceMemoryPool* _deviceDefaultResourceMemoryPool = nullptr;
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
 };

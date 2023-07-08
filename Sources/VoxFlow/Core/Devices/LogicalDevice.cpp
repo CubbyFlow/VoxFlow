@@ -159,6 +159,8 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     volkLoadDevice(_device);
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
+    _deviceDefaultResourceMemoryPool =
+        new RenderResourceMemoryPool(this, _physicalDevice, _instance); 
     _renderPassCollector = new RenderPassCollector(this);
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 }
@@ -210,9 +212,9 @@ void LogicalDevice::releaseDedicatedResources()
 {
     vkDeviceWaitIdle(_device);
 
-    if (_renderResourceMemoryPool != nullptr)
+    if (_deviceDefaultResourceMemoryPool != nullptr)
     {
-        delete _renderResourceMemoryPool;
+        delete _deviceDefaultResourceMemoryPool;
     }
 
     if (_renderPassCollector != nullptr)
