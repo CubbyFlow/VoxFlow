@@ -10,6 +10,7 @@ set(PUBLIC_HDRS
 
 # Sources
 set(SRCS
+    ${SRC_DIR}/Core/Devices/DeviceQueryContextTests.cpp
     ${SRC_DIR}/Core/Devices/InstanceTests.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDeviceTests.cpp
     ${SRC_DIR}/Core/Devices/LogicalDeviceTests.cpp
