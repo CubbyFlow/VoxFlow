@@ -23,6 +23,8 @@ class PhysicalDevice : NonCopyable
     [[nodiscard]] VkPhysicalDeviceMemoryProperties getMemoryProperty() const;
     [[nodiscard]] std::vector<VkQueueFamilyProperties>
     getQueueFamilyProperties() const;
+    [[nodiscard]] VkPhysicalDeviceProperties getPhysicalDeviceProperties()
+        const;
 
     [[nodiscard]] VkPhysicalDevice get() const noexcept
     {
