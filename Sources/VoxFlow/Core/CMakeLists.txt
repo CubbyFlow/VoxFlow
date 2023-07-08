@@ -8,6 +8,7 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
 # Set public headers
 set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Context.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/DeviceQueryContext.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Instance.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
@@ -63,6 +64,7 @@ set(PUBLIC_HDRS
 # Set Sources
 set(SRCS
     ${SRC_DIR}/Core/Devices/Context.cpp
+    ${SRC_DIR}/Core/Devices/DeviceQueryContext.cpp
     ${SRC_DIR}/Core/Devices/Instance.cpp
     ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
