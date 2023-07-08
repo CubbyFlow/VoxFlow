@@ -46,12 +46,13 @@ enum class CommandBufferUsage : uint8_t
 enum class BufferUsage : uint32_t
 {
     ConstantBuffer      = 0x00000001,
-    RwStructuredBuffer  = 0x00000010,
-    VertexBuffer        = 0x00000100,
-    IndexBuffer         = 0x00001000,
-    IndirectCommand     = 0x00010000,
-    CopyDst             = 0x00100000,
-    CopySrc             = 0x01000000,
+    RwStructuredBuffer  = 0x00000002,
+    VertexBuffer        = 0x00000004,
+    IndexBuffer         = 0x00000008,
+    IndirectCommand     = 0x00000010,
+    CopyDst             = 0x00000020,
+    CopySrc             = 0x00000040,
+    Readback            = 0x00000080,
     Unknown             = 0,
 };
 IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);

@@ -54,6 +54,16 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
     // Release buffer object to fence resource manager
     void release();
 
+    /**
+     * @return buffer memory mapped address
+     */
+    [[nodiscard]] void* map();
+
+    /**
+     * unmap permanently mapped address. At now, it just ignore for performance consideration.
+     */
+    void unmap();
+
  protected:
  private:
     std::string _debugName;
@@ -65,6 +75,8 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
 
     std::vector<std::shared_ptr<BufferView>> _ownedBufferViews;
     std::vector<FenceObject> _accessedFences;
+
+    void* _permanentMappedAddress = nullptr;
 };
 
 class BufferView : public BindableResourceView

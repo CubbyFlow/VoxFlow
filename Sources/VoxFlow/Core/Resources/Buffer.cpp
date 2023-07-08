@@ -105,6 +105,12 @@ void Buffer::release()
 {
     _ownedBufferViews.clear();
 
+    if (_permanentMappedAddress != nullptr)
+    {
+        vmaUnmapMemory(_renderResourceMemoryPool->get(), _bufferAllocation);
+        _permanentMappedAddress = nullptr;
+    }
+
     if (_vkBuffer != VK_NULL_HANDLE)
     {
         RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
@@ -113,6 +119,28 @@ void Buffer::release()
                                  _bufferAllocation);
             }));
     }
+}
+
+void* Buffer::map()
+{
+    VOX_ASSERT(
+        static_cast<uint32_t>(_bufferInfo._usage & BufferUsage::Readback) > 0,
+        "Buffer without Readback flag must not be mapped");
+
+    if (_permanentMappedAddress == nullptr)
+    {
+        void* memoryAddress = nullptr;
+        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(),
+                               _bufferAllocation, &memoryAddress));
+        _permanentMappedAddress = memoryAddress;
+    }
+
+    return _permanentMappedAddress;
+}
+
+void Buffer::unmap()
+{
+    // TODO(snowapril) : consider unmap or not
 }
 
 BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
