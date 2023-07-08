@@ -49,7 +49,7 @@ bool DeviceQueryContext::initialize(DeviceQueryMode queryMode)
         default:
             VOX_ASSERT(false, "Unknown query mode is given : {}",
                        static_cast<uint32_t>(_queryMode));
-            return;
+            return false;
     }
 
     VkQueryPoolCreateInfo createInfo = {
