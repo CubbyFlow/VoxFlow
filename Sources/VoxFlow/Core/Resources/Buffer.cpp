@@ -22,7 +22,8 @@ static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
         resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::IndirectCommand) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    if (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0)
+    if ((static_cast<uint32_t>(usage & BufferUsage::Readback) > 0) ||
+        (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0))
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::CopySrc) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
