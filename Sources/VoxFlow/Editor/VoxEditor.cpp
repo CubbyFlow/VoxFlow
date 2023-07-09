@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <VoxFlow/Editor/VoxEditor.hpp>
-#include <VoxFlow/Core/Devices/RenderDevice.hpp>
+#include <VoxFlow/Core/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <GLFW/glfw3.h>
@@ -52,6 +52,14 @@ VoxEditor::VoxEditor()
     }
 
     _renderDevice = new RenderDevice(context);
+
+    _inputRegistrator.addObserveTargetWindow(
+        _renderDevice->getLogicalDevice(0)->getSwapChain(0)->getGlfwWindow());
+
+    using namespace std::placeholders;
+    auto processKeyCallback = std::mem_fn(&VoxEditor::processKeyInput);
+    _inputRegistrator.registerDeviceKeyCallback(
+        uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
 }
 
 VoxEditor::~VoxEditor()
@@ -67,11 +75,10 @@ VoxEditor::~VoxEditor()
 void VoxEditor::runEditorLoop()
 {
     using namespace std::chrono;
-    bool exit = false;
 
     // system_clock::time_point previousTime = system_clock::now();
 
-    while (exit == false)
+    while (_shouldCloseEditor == false)
     {
         // system_clock::time_point currentTime = system_clock::now();
         // const uint64_t elapsed =
@@ -106,6 +113,19 @@ void VoxEditor::renderFrame()
 
 void VoxEditor::postRenderFrame()
 {
+}
+
+void VoxEditor::processKeyInput(DeviceKeyInputType key, const bool isReleased)
+{
+    if (isReleased == false)
+    {
+        switch (key)
+        {
+            case DeviceKeyInputType::Escape:
+                _shouldCloseEditor = true;
+                break;
+        }
+    }
 }
 
 }  // namespace VoxFlow
