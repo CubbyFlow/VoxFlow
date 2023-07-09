@@ -3,10 +3,10 @@
 #ifndef VOXEL_FLOW_SCENE_RENDERER_HPP
 #define VOXEL_FLOW_SCENE_RENDERER_HPP
 
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <string>
+#include <taskflow/taskflow.hpp>
 #include <unordered_map>
 
 namespace VoxFlow
@@ -25,7 +25,7 @@ class SceneRenderer : NonCopyable
     bool initialize();
 
     void beginFrameGraph(const FrameContext& frameContext);
-    void renderScene();
+    tf::Future<void> resolveSceneRenderPasses();
 
     template <typename SceneRenderPassType, typename... Args,
               typename = typename std::enable_if_t<
@@ -39,7 +39,7 @@ class SceneRenderer : NonCopyable
         _sceneRenderPasses.emplace(passName, std::move(newPass));
         return newPassPtr;
     }
-    
+
  protected:
  private:
     LogicalDevice* _logicalDevice = nullptr;

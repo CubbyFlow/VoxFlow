@@ -21,7 +21,6 @@ SceneRenderer::~SceneRenderer()
 
 bool SceneRenderer::initialize()
 {
-    // TODO(snowapril) : pass proper arguments to framegraph
     return true;
 }
 
@@ -57,11 +56,37 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
-void SceneRenderer::renderScene()
+tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
 {
-}
-void SceneRenderer::endFrame()
-{
+    tf::Taskflow taskflow;
+    std::unordered_map<std::string, tf::Task> tasks;
+
+    // Prepare tasks from registered scene render passes
+    for (const auto& [passName, pass] : _sceneRenderPasses)
+    {
+        tf::Task fgTask =
+            taskflow
+                .emplace([this, &pass]() { pass->renderScene(_frameGraph); })
+                .name(passName);
+
+        tasks.emplace(passName, std::move(fgTask));
+    }
+
+    // Resolve dependency between tasks
+    for (const auto& [passName, pass] : _sceneRenderPasses)
+    {
+        const std::vector<std::string>* dependentPasses =
+            pass->getDepenentPasses();
+        tf::Task& fgTask = tasks.find(passName)->second;
+
+        for (const std::string& dependentPassName : *dependentPasses)
+        {
+            fgTask.precede(tasks.find(dependentPassName)->second);
+        }
+    }
+
+    tf::Executor executor;
+    return executor.run(taskflow);
 }
 
 }  // namespace VoxFlow
