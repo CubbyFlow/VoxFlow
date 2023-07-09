@@ -49,7 +49,6 @@ VoxEditor::VoxEditor()
         }
         context.addDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
-    context.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 
     _renderDevice = new RenderDevice(context);
 }

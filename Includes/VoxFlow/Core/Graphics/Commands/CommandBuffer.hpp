@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <string>
 #include <array>
 

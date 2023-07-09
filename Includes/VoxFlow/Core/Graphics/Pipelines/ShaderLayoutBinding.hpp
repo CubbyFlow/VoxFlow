@@ -5,6 +5,7 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <array>
 #include <vector>
 

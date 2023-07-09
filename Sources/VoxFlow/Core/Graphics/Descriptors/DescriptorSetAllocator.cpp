@@ -2,17 +2,46 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
-#include <utility>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <type_traits>
+#include <utility>
 
 namespace VoxFlow
 {
 
-DescriptorSetAllocator::DescriptorSetAllocator(
-    LogicalDevice* logicalDevice, const DescriptorSetLayoutDesc& setLayout)
-    : _logicalDevice(logicalDevice), _setLayoutDesc(setLayout)
+DescriptorSetAllocator::DescriptorSetAllocator(LogicalDevice* logicalDevice, const bool isBindless)
+    : _logicalDevice(logicalDevice), _isBindless(isBindless)
 {
+}
+
+DescriptorSetAllocator::~DescriptorSetAllocator()
+{
+    release();
+}
+
+DescriptorSetAllocator::DescriptorSetAllocator(
+    DescriptorSetAllocator&& other) noexcept
+{
+    operator=(std::move(other));
+}
+
+DescriptorSetAllocator& DescriptorSetAllocator::operator=(
+    DescriptorSetAllocator&& other) noexcept
+{
+    if (&other != this)
+    {
+        _logicalDevice = other._logicalDevice;
+        _setLayoutDesc = other._setLayoutDesc;
+        _vkSetLayout = other._vkSetLayout;
+    }
+    return *this;
+}
+
+bool DescriptorSetAllocator::initialize(
+    const DescriptorSetLayoutDesc& setLayout, const uint32_t numSets)
+{
+    _setLayoutDesc = setLayout;
+
     const uint32_t numBindings =
         static_cast<uint32_t>(_setLayoutDesc._bindingMap.size());
 
@@ -69,13 +98,31 @@ DescriptorSetAllocator::DescriptorSetAllocator(
             it->second);
     }
 
-
     // TODO(snowapril) : sort setLayout descriptorBindings according to binding
     // id
+
+    const VkDescriptorBindingFlags bindingFlag =
+        (_isBindless) ? (VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT |
+                         VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT)
+                      : 0;
+    std::vector<VkDescriptorBindingFlags> bindingFlags(numBindings,
+                                                       bindingFlag);
+
+    VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo = {
+        .sType =
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+        .pNext = nullptr,
+        .bindingCount = numBindings,
+        .pBindingFlags = bindingFlags.data()
+    };
+
     VkDescriptorSetLayoutCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
+        .pNext = &bindingFlagsCreateInfo,
+        .flags =
+            _isBindless
+                ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
+                : 0U,
         .bindingCount = static_cast<uint32_t>(numBindings),
         .pBindings = descSetLayoutBindings.data()
     };
@@ -86,48 +133,88 @@ DescriptorSetAllocator::DescriptorSetAllocator(
     VkDescriptorPoolCreateInfo poolCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0,
-        .maxSets = MAX_NUM_DESC_SETS,
+        .flags =
+            _isBindless ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT : 0U,
+        .maxSets = numSets,
         .poolSizeCount = numBindings,
         .pPoolSizes = poolSizes.data(),
     };
     VK_ASSERT(vkCreateDescriptorPool(_logicalDevice->get(), &poolCreateInfo,
                                      nullptr, &_vkDescPool));
+
+    // Prepare VkDescriptorSets early if bindless
+    if (_isBindless)
+    {
+        std::vector<VkDescriptorSet> vkDescSets(numSets);
+        std::vector<VkDescriptorSetLayout> vkDescSetLayouts(numSets,
+                                                            _vkSetLayout);
+        VkDescriptorSetAllocateInfo allocInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .descriptorPool = _vkDescPool,
+            .descriptorSetCount = numSets,
+            .pSetLayouts = vkDescSetLayouts.data()
+        };
+        vkAllocateDescriptorSets(_logicalDevice->get(), &allocInfo,
+                                 vkDescSets.data());
+
+        for (VkDescriptorSet set : vkDescSets)
+        {
+            _descriptorSetNodes.emplace_back(set, FenceObject::Default());
+        }
+    }
+
+    return true;
 }
 
-DescriptorSetAllocator::~DescriptorSetAllocator()
+void DescriptorSetAllocator::release()
 {
-    release();
+    if (_vkDescPool)
+    {
+        vkDestroyDescriptorPool(_logicalDevice->get(), _vkDescPool, nullptr);
+    }
+
+    if (_vkSetLayout)
+    {
+        vkDestroyDescriptorSetLayout(_logicalDevice->get(), _vkSetLayout,
+                                     nullptr);
+    }
 }
 
-DescriptorSetAllocator::DescriptorSetAllocator(
-    DescriptorSetAllocator&& other) noexcept
+PooledDescriptorSetAllocator::PooledDescriptorSetAllocator(
+    LogicalDevice* logicalDevice)
+    : DescriptorSetAllocator(logicalDevice, false)
+{
+}
+
+PooledDescriptorSetAllocator::~PooledDescriptorSetAllocator()
+{
+}
+
+PooledDescriptorSetAllocator::PooledDescriptorSetAllocator(
+    PooledDescriptorSetAllocator&& other) noexcept
+    : DescriptorSetAllocator(std::move(other))
 {
     operator=(std::move(other));
 }
 
-DescriptorSetAllocator& DescriptorSetAllocator::operator=(
-    DescriptorSetAllocator&& other) noexcept
+PooledDescriptorSetAllocator& PooledDescriptorSetAllocator::operator=(
+    PooledDescriptorSetAllocator&& other) noexcept
 {
-    if (&other != this)
-    {
-        _logicalDevice = other._logicalDevice;
-        _setLayoutDesc = other._setLayoutDesc;
-        _vkSetLayout = other._vkSetLayout;
-    }
+    DescriptorSetAllocator::operator=(std::move(other));
     return *this;
 }
 
-VkDescriptorSet DescriptorSetAllocator::getOrCreatePooledDescriptorSet(
+VkDescriptorSet PooledDescriptorSetAllocator::getOrCreatePooledDescriptorSet(
     const FenceObject& fenceObject)
 {
     VkDescriptorSet vkPooledDescriptorSet = VK_NULL_HANDLE;
-    for (PooledDescriptorSetNode& node : _pooledDescriptorSetNodes)
+    for (DescriptorSetNode& node : _descriptorSetNodes)
     {
         if (node._lastAccessedFenceObject.isCompleted())
         {
             node._lastAccessedFenceObject = fenceObject;
-            vkPooledDescriptorSet = node._vkPooledDescriptorSet;
+            vkPooledDescriptorSet = node._vkDescriptorSet;
         }
     }
 
@@ -143,31 +230,52 @@ VkDescriptorSet DescriptorSetAllocator::getOrCreatePooledDescriptorSet(
         VK_ASSERT(vkAllocateDescriptorSets(_logicalDevice->get(), &allocInfo,
                                            &vkPooledDescriptorSet));
 
-        _pooledDescriptorSetNodes.push_back(
-            { vkPooledDescriptorSet, fenceObject });
+        _descriptorSetNodes.emplace_back(vkPooledDescriptorSet, fenceObject);
     }
 
     return vkPooledDescriptorSet;
 }
 
-VkDescriptorSet DescriptorSetAllocator::allocateBindlessDescriptorSet()
+BindlessDescriptorSetAllocator::BindlessDescriptorSetAllocator(
+    LogicalDevice* logicalDevice)
+    : DescriptorSetAllocator(logicalDevice, true)
 {
-    // TODO(snowapril) : fill implementation
-    return VK_NULL_HANDLE;
 }
 
-void DescriptorSetAllocator::release()
+BindlessDescriptorSetAllocator::~BindlessDescriptorSetAllocator()
 {
-    if (_vkDescPool)
-    {
-        vkDestroyDescriptorPool(_logicalDevice->get(), _vkDescPool, nullptr);
-    }
+}
 
-    if (_vkSetLayout)
+BindlessDescriptorSetAllocator::BindlessDescriptorSetAllocator(
+    BindlessDescriptorSetAllocator&& other) noexcept
+    : DescriptorSetAllocator(std::move(other))
+{
+    operator=(std::move(other));
+}
+
+BindlessDescriptorSetAllocator& BindlessDescriptorSetAllocator::operator=(
+    BindlessDescriptorSetAllocator&& other) noexcept
+{
+    DescriptorSetAllocator::operator=(std::move(other));
+    return *this;
+}
+
+VkDescriptorSet BindlessDescriptorSetAllocator::getBindlessDescriptorSet(
+    const uint32_t setIndex, const FenceObject& fenceObject)
+{
+    if (setIndex >= static_cast<uint32_t>(_descriptorSetNodes.size()))
     {
-        vkDestroyDescriptorSetLayout(_logicalDevice->get(), _vkSetLayout,
-                                     nullptr);
+        VOX_ASSERT(false, "setIndex must be under {}",
+                   _descriptorSetNodes.size());
+        return VK_NULL_HANDLE;
     }
+    DescriptorSetNode& setNode = _descriptorSetNodes[setIndex];
+
+    setNode._lastAccessedFenceObject = fenceObject;
+    // TODO(snowapril) : avoid synchronization issue if different queue request
+    // same set
+
+    return setNode._vkDescriptorSet;
 }
 
 }  // namespace VoxFlow

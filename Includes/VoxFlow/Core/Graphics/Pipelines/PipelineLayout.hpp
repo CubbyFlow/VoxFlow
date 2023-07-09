@@ -6,6 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <memory>
 #include <vector>
 #include <array>

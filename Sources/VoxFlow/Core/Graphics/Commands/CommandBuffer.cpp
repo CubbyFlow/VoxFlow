@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandPool.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
@@ -198,20 +199,24 @@ void CommandBuffer::bindResourceGroup(
 
 void CommandBuffer::commitPendingResourceBindings()
 {
-    for (uint32_t setIndex = 0; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
+    // TODO(snowapril) : split update descriptor sets according to set frequency
+    PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
         const SetSlotCategory setSlotCategory =
             static_cast<SetSlotCategory>(setIndex);
+
         std::vector<std::pair<std::string_view, BindableResourceView*>>&
             bindGroup = _pendingResourceBindings[setIndex];
-        PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+
         DescriptorSetAllocator* setAllocator =
             pipelineLayout->getDescSetAllocator(setSlotCategory);
         const DescriptorSetLayoutDesc& setLayoutDesc =
             setAllocator->getDescriptorSetLayoutDesc();
 
         VkDescriptorSet pooledDescriptorSet =
-            setAllocator->getOrCreatePooledDescriptorSet(_fenceToSignal);
+            static_cast<PooledDescriptorSetAllocator*>(setAllocator)
+                ->getOrCreatePooledDescriptorSet(_fenceToSignal);
 
         std::vector<VkWriteDescriptorSet> vkWrites;
         vkWrites.reserve(bindGroup.size());

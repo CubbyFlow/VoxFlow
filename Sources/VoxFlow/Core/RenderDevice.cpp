@@ -25,6 +25,9 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
         1.0F, true);
     deviceSetupCtx.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
                                         false);
+    deviceSetupCtx.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
+    deviceSetupCtx.addDeviceExtension(
+        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 
     _deviceSetupCtx = new Context(deviceSetupCtx);
     _instance = new Instance(deviceSetupCtx);

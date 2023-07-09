@@ -3,6 +3,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <algorithm>
@@ -79,7 +80,11 @@ bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBind
         _logicalDevice->getDescriptorSetAllocatorPool();
 
     std::vector<VkDescriptorSetLayout> vkSetLayouts;
-    for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
+
+    // Set index 0 is always bindless descriptor set.
+    _setAllocators[0] =
+        descriptorSetAllocatorPool->getBindlessDescriptorSetAllocator();
+    for (uint32_t set = 1; set < MAX_NUM_SET_SLOTS; ++set)
     {
         if (_combinedSetLayouts[set]._stageFlags != 0)
         {
