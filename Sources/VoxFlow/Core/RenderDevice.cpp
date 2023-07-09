@@ -9,9 +9,10 @@
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/RenderDevice.hpp>
+#include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 
@@ -37,6 +38,9 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
     _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
+
+    _sceneRenderer =
+        std::make_unique<SceneRenderer>(_logicalDevices[0].get(), &_frameGraph);
 
     RenderResourceGarbageCollector::Get().threadConstruct();
 }

@@ -31,6 +31,7 @@ class Texture : private NonCopyable,
     {
         return _vkImage;
     }
+
     [[nodiscard]] inline std::shared_ptr<TextureView> getView(
         const uint32_t viewIndex) const
     {
@@ -38,6 +39,11 @@ class Texture : private NonCopyable,
                    "Given Index ({}), Num Image Views ({})", viewIndex,
                    _ownedTextureViews.size());
         return _ownedTextureViews[viewIndex];
+    }
+
+    [[nodiscard]] inline const TextureInfo& getTextureInfo() const
+    {
+        return _textureInfo;
     }
 
     // Make the image allocation resident if evicted

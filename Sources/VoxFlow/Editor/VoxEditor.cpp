@@ -2,7 +2,8 @@
 
 #include <chrono>
 #include <VoxFlow/Editor/VoxEditor.hpp>
-#include <VoxFlow/Core/RenderDevice.hpp>
+#include <VoxFlow/Core/Devices/RenderDevice.hpp>
+#include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <GLFW/glfw3.h>
 

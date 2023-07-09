@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_RENDER_DEVICE_HPP
 
 #include <VoxFlow/Core/Devices/Context.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <vector>
@@ -12,6 +13,7 @@ namespace VoxFlow
 {
 class Instance;
 class PhysicalDevice;
+class SceneRenderer;
 class LogicalDevice;
 
 class RenderDevice : private NonCopyable
@@ -43,8 +45,9 @@ class RenderDevice : private NonCopyable
     Instance* _instance = nullptr;
     PhysicalDevice* _physicalDevice = nullptr;
     std::vector<std::unique_ptr<LogicalDevice>> _logicalDevices;
+    std::unique_ptr<SceneRenderer> _sceneRenderer;
     Context* _deviceSetupCtx = nullptr;
-    
+    FrameGraph::FrameGraph _frameGraph;
 };
 }  // namespace VoxFlow
 
