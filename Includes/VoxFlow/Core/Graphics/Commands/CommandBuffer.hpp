@@ -21,13 +21,6 @@ class SwapChain;
 class BasePipeline;
 class BindableResourceView;
 
-struct FrameContext
-{
-    uint32_t _swapChainIndex = UINT32_MAX;
-    uint32_t _frameIndex = UINT32_MAX;
-    uint32_t _backBufferIndex = UINT32_MAX;
-};
-
 class CommandBuffer : private NonCopyable
 {
  public:

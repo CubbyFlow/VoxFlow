@@ -32,6 +32,13 @@ enum class CommandBufferUsage : uint8_t
     Undefined = 5,
 };
 
+struct FrameContext
+{
+    uint32_t _swapChainIndex = UINT32_MAX;
+    uint32_t _frameIndex = UINT32_MAX;
+    uint32_t _backBufferIndex = UINT32_MAX;
+};
+
 enum class BufferUsage : uint32_t
 {
     ConstantBuffer      = 0x00000001,
