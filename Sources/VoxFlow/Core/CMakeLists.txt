@@ -13,6 +13,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/LogicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/PhysicalDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/Queue.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/RenderDevice.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Devices/SwapChain.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/BlackBoard.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/DependencyGraph.hpp
@@ -42,7 +43,6 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderer.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
@@ -62,7 +62,6 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/RendererCommon.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/RenderDevice.hpp
 )
 
 # Set Sources
@@ -73,6 +72,7 @@ set(SRCS
     ${SRC_DIR}/Core/Devices/LogicalDevice.cpp
     ${SRC_DIR}/Core/Devices/PhysicalDevice.cpp
     ${SRC_DIR}/Core/Devices/Queue.cpp
+    ${SRC_DIR}/Core/Devices/RenderDevice.cpp
     ${SRC_DIR}/Core/Devices/SwapChain.cpp
     ${SRC_DIR}/Core/FrameGraph/DependencyGraph.cpp
     ${SRC_DIR}/Core/FrameGraph/FrameGraph.cpp
@@ -94,8 +94,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/RenderPass/FrameBuffer.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassCollector.cpp
-    ${SRC_DIR}/Core/Renderer/SceneRenderer.cpp
-    ${SRC_DIR}/Core/Renderer/SceneRenderPass.cpp
+    ${SRC_DIR}/Core/Renderer/SceneRenderer.hpp
     ${SRC_DIR}/Core/Resources/BindableResourceView.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
@@ -108,7 +107,6 @@ set(SRCS
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
-    ${SRC_DIR}/Core/RenderDevice.cpp
 )
 
 # Build library
