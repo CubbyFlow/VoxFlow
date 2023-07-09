@@ -55,6 +55,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Handle.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DeviceInputSubscriber.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Thread.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
@@ -103,6 +104,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
+    ${SRC_DIR}/Core/Utils/DeviceInputSubscriber.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
