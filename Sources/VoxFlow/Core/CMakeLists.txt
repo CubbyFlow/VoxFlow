@@ -94,7 +94,7 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/RenderPass/FrameBuffer.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassCollector.cpp
-    ${SRC_DIR}/Core/Renderer/SceneRenderer.hpp
+    ${SRC_DIR}/Core/Renderer/SceneRenderer.cpp
     ${SRC_DIR}/Core/Resources/BindableResourceView.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
