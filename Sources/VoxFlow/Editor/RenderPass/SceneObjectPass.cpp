@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
 
 namespace VoxFlow
@@ -22,6 +23,8 @@ bool SceneObjectPass::initialize()
 void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
 {
     (void)frameGraph;
+
+    spdlog::info("SceneObjectPass");
 }
 
 }  // namespace VoxFlow

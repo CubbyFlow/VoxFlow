@@ -30,12 +30,14 @@ class SceneRenderer : NonCopyable
     template <typename SceneRenderPassType, typename... Args,
               typename = typename std::enable_if_t<
                   std::is_base_of<SceneRenderPass, SceneRenderPassType>::value>>
-    SceneRenderPass* getOrCreateSceneRenderPass(const std::string& passName,
+    SceneRenderPassType* getOrCreateSceneRenderPass(const std::string& passName,
                                                 Args... args)
     {
-        std::unique_ptr<SceneRenderPass> newPass =
-            std::make_unique<SceneRenderPassType>(args...);
-        SceneRenderPass* newPassPtr = newPass.get();
+        SceneRenderPassType* newPassPtr =
+            new SceneRenderPassType(args...);
+
+        std::unique_ptr<SceneRenderPass> newPass(newPassPtr);
+
         _sceneRenderPasses.emplace(passName, std::move(newPass));
         return newPassPtr;
     }
