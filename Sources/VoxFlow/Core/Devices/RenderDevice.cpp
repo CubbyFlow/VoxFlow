@@ -60,4 +60,31 @@ RenderDevice::~RenderDevice()
     delete _deviceSetupCtx;
 }
 
+void RenderDevice::updateRender(const double deltaTime)
+{
+    (void)deltaTime;
+}
+
+void RenderDevice::renderScene()
+{
+    // TODO(snowapril) : 
+    FrameContext tempFrameContext = {
+        ._swapChainIndex = 0,
+        ._frameIndex = 0,
+        ._backBufferIndex = 0,
+    };
+
+    waitForRenderReady(0);
+
+    _sceneRenderer->beginFrameGraph(tempFrameContext);
+
+    tf::Future<void> resolveFence = _sceneRenderer->resolveSceneRenderPasses();
+    resolveFence.wait();
+}
+
+void RenderDevice::waitForRenderReady(const uint32_t frameIndex)
+{
+    (void)frameIndex;
+}
+
 }  // namespace VoxFlow

@@ -27,10 +27,12 @@ class RenderDevice : private NonCopyable
     {
         return _instance;
     }
+
     [[nodiscard]] inline PhysicalDevice* getPhysicalDevice() const
     {
         return _physicalDevice;
     }
+
     [[nodiscard]] inline LogicalDevice* getLogicalDevice(
         const uint32_t deviceIndex) const
     {
@@ -40,6 +42,18 @@ class RenderDevice : private NonCopyable
         return _logicalDevices.at(deviceIndex).get();
     }
 
+    [[nodiscard]] inline SceneRenderer* getSceneRenderer() const
+    {
+        return _sceneRenderer.get();
+    }
+
+ public:
+    void updateRender(const double deltaTime);
+    void renderScene();
+
+ private:
+    void waitForRenderReady(const uint32_t frameIndex);
+
  protected:
  private:
     Instance* _instance = nullptr;
@@ -48,6 +62,7 @@ class RenderDevice : private NonCopyable
     std::unique_ptr<SceneRenderer> _sceneRenderer;
     Context* _deviceSetupCtx = nullptr;
     FrameGraph::FrameGraph _frameGraph;
+    FrameContext _frameContext;
 };
 }  // namespace VoxFlow
 

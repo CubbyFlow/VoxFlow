@@ -2,9 +2,12 @@
 
 #include <chrono>
 #include <VoxFlow/Editor/VoxEditor.hpp>
+#include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
+#include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <GLFW/glfw3.h>
 
 namespace VoxFlow
@@ -60,6 +63,15 @@ VoxEditor::VoxEditor()
     auto processKeyCallback = std::mem_fn(&VoxEditor::processKeyInput);
     _inputRegistrator.registerDeviceKeyCallback(
         uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
+
+    SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
+    _sceneObjectPass =
+        sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>(
+            "SceneObjectPass");
+    _postProcessPass =
+        sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>(
+            "PostProcessPass");
+    _postProcessPass->addDependency("SceneObjectPass");
 }
 
 VoxEditor::~VoxEditor()
@@ -74,45 +86,21 @@ VoxEditor::~VoxEditor()
 
 void VoxEditor::runEditorLoop()
 {
-    using namespace std::chrono;
-
-    // system_clock::time_point previousTime = system_clock::now();
+    auto previousTime = std::chrono::system_clock::now();
 
     while (_shouldCloseEditor == false)
     {
-        // system_clock::time_point currentTime = system_clock::now();
-        // const uint64_t elapsed =
-        //     duration_cast<milliseconds>(currentTime - previousTime).count();
-        // previousTime = currentTime;
+        const auto currentTime = std::chrono::system_clock::now();
+        const double elapsed =
+            std::chrono::duration<double>(currentTime - previousTime).count();
+        previousTime = currentTime;
 
-        processInput();
+        glfwPollEvents();
 
-        preUpdateFrame();
-        updateFrame();
-        renderFrame();
-        postRenderFrame();
+        _renderDevice->updateRender(elapsed);
+
+        _renderDevice->renderScene();
     }
-}
-
-void VoxEditor::processInput()
-{
-    glfwPollEvents();
-}
-
-void VoxEditor::preUpdateFrame()
-{
-}
-
-void VoxEditor::updateFrame()
-{
-}
-
-void VoxEditor::renderFrame()
-{
-   }
-
-void VoxEditor::postRenderFrame()
-{
 }
 
 void VoxEditor::processKeyInput(DeviceKeyInputType key, const bool isReleased)

@@ -8,6 +8,8 @@
 namespace VoxFlow
 {
 class RenderDevice;
+class SceneObjectPass;
+class PostProcessPass;
 
 class VoxEditor
 {
@@ -18,13 +20,6 @@ class VoxEditor
  public:
     void runEditorLoop();
 
- protected:
-    void processInput();
-    void preUpdateFrame();
-    void updateFrame();
-    void renderFrame();
-    void postRenderFrame();
-
 private:
     void processKeyInput(DeviceKeyInputType key, const bool isReleased);
 
@@ -33,6 +28,9 @@ private:
     RenderDevice* _renderDevice = nullptr;
     DeviceInputSubscriber _inputRegistrator;
     bool _shouldCloseEditor = false;
+
+    SceneObjectPass* _sceneObjectPass = nullptr;
+    PostProcessPass* _postProcessPass = nullptr;
 };
 }  // namespace VoxFlow
 
