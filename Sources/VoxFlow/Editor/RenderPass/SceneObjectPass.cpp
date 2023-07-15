@@ -22,9 +22,21 @@ bool SceneObjectPass::initialize()
 
 void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
 {
-    (void)frameGraph;
+    FrameGraph::ResourceHandle backBufferHandle =
+        frameGraph->getBlackBoard().getHandle("BackBuffer");
 
-    spdlog::info("SceneObjectPass");
+    struct TempPassData
+    {
+    };
+
+    frameGraph->addCallbackPass<TempPassData>(
+        "SceneObjectPass",
+        [&](FrameGraph::FrameGraphBuilder& builder, TempPassData&) {
+            builder.write(backBufferHandle);
+        },
+        [&](FrameGraph::FrameGraph*, TempPassData&, CommandExecutorBase*) {
+            spdlog::info("SceneObjectPass");
+        });
 }
 
 }  // namespace VoxFlow

@@ -22,9 +22,21 @@ bool PostProcessPass::initialize()
 
 void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
 {
-    (void)frameGraph;
+    FrameGraph::ResourceHandle backBufferHandle =
+        frameGraph->getBlackBoard().getHandle("BackBuffer");
 
-    spdlog::info("PostProcessPas");
+    struct TempPassData
+    {
+    };
+
+    frameGraph->addCallbackPass<TempPassData>(
+        "PostProcessPass",
+        [&](FrameGraph::FrameGraphBuilder& builder, TempPassData&) {
+            builder.write(backBufferHandle);
+        },
+        [&](FrameGraph::FrameGraph*, TempPassData&, CommandExecutorBase*) {
+            spdlog::info("PostProcesPass");
+        });
 }
 
 }  // namespace VoxFlow
