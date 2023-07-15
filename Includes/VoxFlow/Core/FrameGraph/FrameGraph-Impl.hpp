@@ -38,12 +38,22 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
     PassDataType& passData = pass->getPassData();
 
     _passNodes.emplace_back(
-        new PassNode(this, std::move(passName), std::move(pass)));
+        new RenderPassNode(this, std::move(passName), std::move(pass)));
 
     FrameGraphBuilder builder(this, _passNodes.back());
     std::invoke(setup, builder, passData);
 
     return passData;
+}
+
+template <typename SetupPhase>
+void FrameGraph::addPresentPass(std::string_view&& passName, SetupPhase&& setup)
+{
+    _passNodes.emplace_back(new PresentPassNode(this, std::move(passName)));
+
+    FrameGraphBuilder builder(this, _passNodes.back());
+    std::invoke(setup, builder);
+    builder._currentPassNode->setSideEffectPass();
 }
 
 template <ResourceConcept ResourceDataType>

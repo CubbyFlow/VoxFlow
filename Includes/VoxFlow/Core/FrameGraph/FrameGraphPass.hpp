@@ -61,20 +61,17 @@ class FrameGraphPass : public FrameGraphPassBase
     ExecutePhase _executionPhaseLambda;
 };
 
-class PassNode final : public DependencyGraph::Node
+class PassNode : public DependencyGraph::Node
 {
  public:
     explicit PassNode(
-        FrameGraph* ownerFrameGraph, std::string_view&& passName,
-        std::unique_ptr<FrameGraphPassBase>&& pass);
-    ~PassNode() final;
+        FrameGraph* ownerFrameGraph, std::string_view&& passName);
+    ~PassNode() override;
     PassNode(PassNode&& passNode);
     PassNode& operator=(PassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandExecutorBase* commandExecutor)
-    {
-        _passImpl->execute(frameGraph, commandExecutor);
-    }
+    virtual void execute(FrameGraph* frameGraph,
+                         CommandExecutorBase* commandExecutor) = 0;
 
     void setSideEffectPass()
     {
@@ -87,12 +84,46 @@ class PassNode final : public DependencyGraph::Node
     }
 
  protected:
- private:
-    std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;
     std::vector<VirtualResource*> _devirtualizes;
     std::vector<VirtualResource*> _destroyes;
     std::string _passName;
     bool _hasSideEffect = false;
+};
+
+class RenderPassNode final : public PassNode
+{
+ public:
+    explicit RenderPassNode(FrameGraph* ownerFrameGraph,
+                            std::string_view&& passName,
+                      std::unique_ptr<FrameGraphPassBase>&& pass);
+    ~RenderPassNode() override;
+    RenderPassNode(RenderPassNode&& passNode);
+    RenderPassNode& operator=(RenderPassNode&& passNode);
+
+    void execute(FrameGraph* frameGraph, CommandExecutorBase* commandExecutor) override
+    {
+        _passImpl->execute(frameGraph, commandExecutor);
+    }
+
+ protected:
+ private:
+    std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;
+};
+
+class PresentPassNode final : public PassNode
+{
+ public:
+    explicit PresentPassNode(FrameGraph* ownerFrameGraph,
+                             std::string_view&& passName);
+    ~PresentPassNode() final;
+    PresentPassNode(PresentPassNode&& passNode);
+    PresentPassNode& operator=(PresentPassNode&& passNode);
+
+    void execute(FrameGraph* frameGraph, CommandExecutorBase* commandExecutor) override
+    {
+        (void)frameGraph;
+        (void)commandExecutor;
+    }
 };
 }  // namespace FrameGraph
 }  // namespace VoxFlow

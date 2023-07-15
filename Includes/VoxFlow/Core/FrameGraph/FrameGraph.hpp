@@ -86,6 +86,9 @@ class FrameGraph : private NonCopyable
                                         SetupPhase&& setup,
                                         ExecutePhase&& execute);
 
+    template <typename SetupPhase>
+    void addPresentPass(std::string_view&& passName, SetupPhase&& setup);
+
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
         std::string_view&& resourceName,
