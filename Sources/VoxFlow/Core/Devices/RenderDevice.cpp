@@ -80,6 +80,8 @@ void RenderDevice::renderScene()
 
     tf::Future<void> resolveFence = _sceneRenderer->resolveSceneRenderPasses();
     resolveFence.wait();
+
+    _sceneRenderer->submitFrameGraph();
 }
 
 void RenderDevice::waitForRenderReady(const uint32_t frameIndex)

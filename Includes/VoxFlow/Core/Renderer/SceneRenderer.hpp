@@ -26,6 +26,7 @@ class SceneRenderer : NonCopyable
 
     void beginFrameGraph(const FrameContext& frameContext);
     tf::Future<void> resolveSceneRenderPasses();
+    void submitFrameGraph();
 
     template <typename SceneRenderPassType, typename... Args,
               typename = typename std::enable_if_t<

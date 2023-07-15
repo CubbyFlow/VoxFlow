@@ -107,8 +107,18 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
         fgTask.precede(presentTask);
     }
 
+    // Add frame graph compilation task
+    taskflow.emplace([&]() { _frameGraph->compile(); })
+        .name("Compilation")
+        .succeed(presentTask);
+
     tf::Executor executor;
     return executor.run(taskflow);
+}
+
+void SceneRenderer::submitFrameGraph()
+{
+    _frameGraph->execute();
 }
 
 }  // namespace VoxFlow
