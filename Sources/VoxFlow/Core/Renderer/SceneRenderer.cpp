@@ -81,8 +81,30 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
 
         for (const std::string& dependentPassName : *dependentPasses)
         {
-            fgTask.precede(tasks.find(dependentPassName)->second);
+            fgTask.succeed(tasks.find(dependentPassName)->second);
         }
+    }
+
+    // Add present pass which followed by all other passes
+    FrameGraph::ResourceHandle backBufferHandle =
+        _frameGraph->getBlackBoard().getHandle("BackBuffer");
+
+    tf::Task presentTask =
+        taskflow
+            .emplace([&]() {
+                _frameGraph->addPresentPass(
+                    "PresentPass",
+                    std::move([&](FrameGraph::FrameGraphBuilder& builder) {
+                        builder.read(backBufferHandle);
+                    }));
+            })
+            .name("PresentPass");
+
+    for (const auto& [passName, pass] : _sceneRenderPasses)
+    {
+        tf::Task& fgTask = tasks.find(passName)->second;
+
+        fgTask.precede(presentTask);
     }
 
     tf::Executor executor;
