@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <algorithm>
 
 namespace VoxFlow
@@ -21,6 +22,8 @@ void RenderResourceGarbageCollector::pushRenderResourceGarbage(
 
 void RenderResourceGarbageCollector::processRenderResourceGarbage()
 {
+    SCOPED_CHROME_TRACING("RenderResourceGarbageCollector::processRenderResourceGarbage");
+
     static std::vector<RenderResourceGarbage> sTmpGarbageCollection;
 
     {

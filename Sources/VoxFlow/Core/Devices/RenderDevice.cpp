@@ -15,6 +15,7 @@
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 
 namespace VoxFlow
 {
@@ -62,11 +63,14 @@ RenderDevice::~RenderDevice()
 
 void RenderDevice::updateRender(const double deltaTime)
 {
+    SCOPED_CHROME_TRACING("RenderDevice::updateRender");
     (void)deltaTime;
 }
 
 void RenderDevice::renderScene()
 {
+    SCOPED_CHROME_TRACING("RenderDevice::renderScene");
+
     // TODO(snowapril) : 
     FrameContext tempFrameContext = {
         ._swapChainIndex = 0,
@@ -86,6 +90,7 @@ void RenderDevice::renderScene()
 
 void RenderDevice::waitForRenderReady(const uint32_t frameIndex)
 {
+    SCOPED_CHROME_TRACING("RenderDevice::waitForRenderReady");
     (void)frameIndex;
 }
 

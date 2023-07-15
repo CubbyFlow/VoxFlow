@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 
 namespace VoxFlow
 {
@@ -26,6 +27,8 @@ bool SceneRenderer::initialize()
 
 void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 {
+    SCOPED_CHROME_TRACING("SceneRenderer::beginFrameGraph");
+
     _currentFrameContext = frameContext;
 
     _frameGraph->reset(nullptr, nullptr);
@@ -58,6 +61,8 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 
 tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
 {
+    SCOPED_CHROME_TRACING("SceneRenderer::resolveSceneRenderPasses");
+
     tf::Taskflow taskflow;
     std::unordered_map<std::string, tf::Task> tasks;
 
@@ -118,6 +123,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
 
 void SceneRenderer::submitFrameGraph()
 {
+    SCOPED_CHROME_TRACING("SceneRenderer::submitFrameGraph");
     _frameGraph->execute();
 }
 

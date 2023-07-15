@@ -36,14 +36,19 @@ endif()
 # Build Options
 option(BUILD_COVERAGE "Build code coverage" OFF)
 option(GPU_RESOURCE_DEBUG_NAME "Enable vulkan object debug name" ON)
+option(CHROME_TRACING "Enable Chrome Tracing for CPU profiling" ON)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX AND BUILD_COVERAGE)
     include(CodeCoverage)
     setup_target_for_coverage(${PROJECT_NAME}_coverage UnitTests coverage)
 endif()
 
-if (GPU_RESOURCE_DEBUG_NAME)
+if (CHROME_TRACING)
     add_definitions(-DVK_DEBUG_NAME_ENABLED)
+endif()
+
+if (CHROME_TRACING)
+    add_definitions(-DENABLE_CHROME_TRACING)
 endif()
 
 # Overrides

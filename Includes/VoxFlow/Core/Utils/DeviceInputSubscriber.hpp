@@ -24,7 +24,8 @@ enum class DeviceKeyInputType : uint32_t
     Escape = 0,
     LeftClick = 1,
     RightClick = 2,
-    Undefined = 3,
+    KeyC = 3,
+    Undefined = 4,
     Count = Undefined
 };
 

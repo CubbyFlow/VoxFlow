@@ -27,6 +27,9 @@ void deviceKeyInputCallback(GLFWwindow* window, int key, int scancode,
         case GLFW_KEY_ESCAPE:
             keyInputType = DeviceKeyInputType::Escape;
             break;
+        case GLFW_KEY_C:
+            keyInputType = DeviceKeyInputType::KeyC;
+            break;
     }
 
     switch (action)

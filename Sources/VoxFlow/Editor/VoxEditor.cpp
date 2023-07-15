@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <GLFW/glfw3.h>
 
 namespace VoxFlow
@@ -111,6 +112,16 @@ void VoxEditor::processKeyInput(DeviceKeyInputType key, const bool isReleased)
         {
             case DeviceKeyInputType::Escape:
                 _shouldCloseEditor = true;
+                break;
+            case DeviceKeyInputType::KeyC:
+                if (HAS_TRACING_BEGIN())
+                {
+                    END_CHROME_TRACING("editor_tracing.json");
+                }
+                else
+                {
+                    BEGIN_CHROME_TRACING();
+                }
                 break;
         }
     }
