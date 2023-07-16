@@ -37,8 +37,10 @@ Buffer::Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
       _renderResourceMemoryPool(renderResourceMemoryPool)
 {
 }
+
 Buffer::~Buffer()
 {
+    release();
 }
 
 bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
@@ -114,11 +116,20 @@ void Buffer::release()
 
     if (_vkBuffer != VK_NULL_HANDLE)
     {
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences), [this]() {
-                vmaDestroyBuffer(_renderResourceMemoryPool->get(), _vkBuffer,
-                                 _bufferAllocation);
-            }));
+        VmaAllocator vmaAllocator =
+            _renderResourceMemoryPool->get();
+        VkBuffer vkBuffer = _vkBuffer;
+        VmaAllocation vmaAllocation = _bufferAllocation;
+        
+        _logicalDevice->getRenderResourceGarbageCollector()
+            ->pushRenderResourceGarbage(RenderResourceGarbage(
+                std::move(_accessedFences),
+                [vmaAllocator, vkBuffer, vmaAllocation]() {
+                    vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation);
+                }));
+
+        _vkBuffer = VK_NULL_HANDLE;
+        _bufferAllocation = VK_NULL_HANDLE;
     }
 }
 

@@ -1,16 +1,17 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <algorithm>
 
 namespace VoxFlow
 {
-
-RenderResourceGarbageCollector& RenderResourceGarbageCollector::Get()
+RenderResourceGarbageCollector::RenderResourceGarbageCollector(
+    LogicalDevice* logicalDevice)
+    : _logicalDevice(logicalDevice)
 {
-    static RenderResourceGarbageCollector sGarbageCollectorInstance;
-    return sGarbageCollectorInstance;
 }
 
 void RenderResourceGarbageCollector::pushRenderResourceGarbage(
@@ -52,7 +53,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
             }
         }
 
-        if (isUsingResource == false)
+       if (isUsingResource == false)
         {
             std::invoke(resourceGarbage._deletionDelegate);
             std::swap(resourceGarbage, sTmpGarbageCollection[numGarbages - 1]);

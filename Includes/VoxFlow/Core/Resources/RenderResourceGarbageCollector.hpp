@@ -4,7 +4,6 @@
 #define VOXEL_FLOW_RENDER_RESOURCE_GARBAGE_COLLECTOR_HPP
 
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/Thread.hpp>
 #include <functional>
 #include <mutex>
@@ -13,7 +12,6 @@
 namespace VoxFlow
 {
 class LogicalDevice;
-
 struct RenderResourceGarbage
 {
     std::vector<FenceObject> _accessedFences;
@@ -55,29 +53,29 @@ struct RenderResourceGarbage
     }
 };
 
+
 class RenderResourceGarbageCollector : private Thread
 {
  public:
-    static RenderResourceGarbageCollector& Get();
+    RenderResourceGarbageCollector(LogicalDevice* logicalDevice);
+    ~RenderResourceGarbageCollector() = default;
 
+ public:
     // Push render resource garbage (buffer, texture, or etc..) to the queue
     void pushRenderResourceGarbage(RenderResourceGarbage&& garbage);
 
     // Process collected garbages deletion if possible
     void processRenderResourceGarbage();
 
- private:
-    RenderResourceGarbageCollector() = default;
-    ~RenderResourceGarbageCollector() = default;
-
  public:
     void threadConstruct() final;
     void threadProcess() final;
     void threadTerminate() final;
 
- public:
+ private:
     std::mutex _garbageCollectionLock;
     std::vector<RenderResourceGarbage> _garbageCollection;
+    LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow
 

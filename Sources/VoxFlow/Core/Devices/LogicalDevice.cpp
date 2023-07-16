@@ -5,6 +5,7 @@
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
@@ -169,6 +170,9 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
     _renderPassCollector = new RenderPassCollector(this);
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
+
+    _garbageCollector = new RenderResourceGarbageCollector(this);
+    _garbageCollector->threadConstruct();
 }
 
 LogicalDevice::~LogicalDevice()
@@ -218,6 +222,10 @@ void LogicalDevice::releaseDedicatedResources()
 {
     vkDeviceWaitIdle(_device);
 
+    _swapChains.clear();
+
+    _garbageCollector->threadTerminate();
+
     if (_deviceDefaultResourceMemoryPool != nullptr)
     {
         delete _deviceDefaultResourceMemoryPool;
@@ -232,8 +240,6 @@ void LogicalDevice::releaseDedicatedResources()
     {
         delete _descriptorSetAllocatorPool;
     }
-
-    _swapChains.clear();
 
     std::for_each(
         _queueMap.begin(), _queueMap.end(),

@@ -43,12 +43,6 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
 
 RenderDevice::~RenderDevice()
 {
-    for (std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
-    {
-        logicalDevice->releaseDedicatedResources();
-    }
-    
-    RenderResourceGarbageCollector::Get().threadTerminate();
     _logicalDevices.clear();
 
     delete _physicalDevice;

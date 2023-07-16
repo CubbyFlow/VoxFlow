@@ -136,8 +136,18 @@ void Texture::release()
     _ownedTextureViews.clear();
     if ((_isSwapChainBackBuffer == false) && (_vkImage != VK_NULL_HANDLE))
     {
-        vmaDestroyImage(_renderResourceMemoryPool->get(), _vkImage,
-                        _textureAllocation);
+        VmaAllocator vmaAllocator = _renderResourceMemoryPool->get();
+        VkImage vkImage = _vkImage;
+        VmaAllocation vmaAllocation = _textureAllocation;
+        _logicalDevice->getRenderResourceGarbageCollector()
+            ->pushRenderResourceGarbage(RenderResourceGarbage(
+                std::move(_accessedFences),
+                [vmaAllocator, vkImage, vmaAllocation]() {
+                    vmaDestroyImage(vmaAllocator, vkImage, vmaAllocation);
+                }));
+
+        _vkImage = VK_NULL_HANDLE;
+        _textureAllocation = VK_NULL_HANDLE;
     }
 }
 
@@ -186,6 +196,10 @@ bool TextureView::initialize(const TextureViewInfo& viewInfo)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
+    DebugUtil::setObjectName(_logicalDevice, _vkImageView, _debugName.c_str());
+#endif
+
     return true;
 }
 
@@ -193,11 +207,15 @@ void TextureView::release()
 {
     if (_vkImageView != VK_NULL_HANDLE)
     {
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences), [this]() {
-                vkDestroyImageView(_logicalDevice->get(), _vkImageView,
-                                   nullptr);
-            }));
+        VkDevice vkDevice = _logicalDevice->get();
+        VkImageView vkImageView = _vkImageView;
+        _logicalDevice->getRenderResourceGarbageCollector()
+            ->pushRenderResourceGarbage(RenderResourceGarbage(
+                std::move(_accessedFences), [vkDevice, vkImageView]() {
+                    vkDestroyImageView(vkDevice, vkImageView, nullptr);
+                }));
+
+        _vkImageView = VK_NULL_HANDLE;
     }
 }
 
