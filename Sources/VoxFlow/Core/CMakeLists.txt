@@ -63,6 +63,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/RendererCommon.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/VertexFormat.hpp
 )
 
 # Set Sources
@@ -109,6 +110,7 @@ set(SRCS
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
+    ${SRC_DIR}/Core/Utils/VertexFormat.cpp
 )
 
 # Build library

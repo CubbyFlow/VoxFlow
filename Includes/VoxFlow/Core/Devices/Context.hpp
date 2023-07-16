@@ -1,5 +1,5 @@
-#ifndef VOX_FLOW_CONTEXT_HPP
-#define VOX_FLOW_CONTEXT_HPP
+#ifndef VOXEL_FLOW_CONTEXT_HPP
+#define VOXEL_FLOW_CONTEXT_HPP
 
 #include <volk/volk.h>
 #include <string>
