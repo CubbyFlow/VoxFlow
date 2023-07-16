@@ -10,8 +10,9 @@
 
 namespace VoxFlow
 {
-GraphicsPipeline::GraphicsPipeline(LogicalDevice* logicalDevice,
-                                   std::vector<const char*>&& shaderPaths)
+GraphicsPipeline::GraphicsPipeline(
+    LogicalDevice* logicalDevice,
+    std::initializer_list<const char*>&& shaderPaths)
     : BasePipeline(logicalDevice, std::move(shaderPaths))
 {
 }

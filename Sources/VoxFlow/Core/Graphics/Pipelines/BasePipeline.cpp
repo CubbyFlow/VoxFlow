@@ -12,7 +12,7 @@
 namespace VoxFlow
 {
 BasePipeline::BasePipeline(LogicalDevice* logicalDevice,
-                           std::vector<const char*>&& shaderFilePaths)
+                           std::initializer_list<const char*>&& shaderFilePaths)
     : _logicalDevice(logicalDevice)
 {
     for (const char* shaderPath : shaderFilePaths)

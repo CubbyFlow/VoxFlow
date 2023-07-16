@@ -7,6 +7,8 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
+#include <initializer_list>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -17,9 +19,8 @@ class PipelineLayout;
 class BasePipeline : NonCopyable
 {
  public:
-    explicit BasePipeline(
-        LogicalDevice* logicalDevice,
-        std::vector<const char*>&& shaderFilePaths);
+    explicit BasePipeline(LogicalDevice* logicalDevice,
+                          std::initializer_list<const char*>&& shaderFilePaths);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;
