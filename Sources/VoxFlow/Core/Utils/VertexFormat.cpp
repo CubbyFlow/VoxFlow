@@ -1,6 +1,6 @@
 // Author : snowapril
 
-#include <Core/Vertex.hpp>
+#include <VoxFlow/Core/Utils/VertexFormat.hpp>
 
 namespace VoxFlow
 {
