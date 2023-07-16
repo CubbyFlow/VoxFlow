@@ -23,8 +23,17 @@ SceneRenderer::~SceneRenderer()
 {
 }
 
-bool SceneRenderer::initialize()
+bool SceneRenderer::initializePasses()
 {
+    for (auto& [passName, pass] : _sceneRenderPasses)
+    {
+        if (pass->initialize() == false)
+        {
+            VOX_ASSERT(false, "Failed to initialize scene render pass {}",
+                       passName);
+            return false;
+        }
+    }
     return true;
 }
 

@@ -5,10 +5,15 @@
 
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <memory>
 
 namespace VoxFlow
 {
 class RenderDevice;
+class Buffer;
+class GraphicsPipeline;
+class LogicalDevice;
+
 namespace FrameGraph
 {
 class FrameGraph;
@@ -17,7 +22,7 @@ class FrameGraph;
 class SceneObjectPass : public SceneRenderPass
 {
  public:
-    SceneObjectPass();
+    SceneObjectPass(LogicalDevice* logicalDevice);
     ~SceneObjectPass() override;
 
  public:
@@ -26,6 +31,10 @@ class SceneObjectPass : public SceneRenderPass
 
  protected:
  private:
+    std::unique_ptr<GraphicsPipeline> _sceneObjectPipeline;
+    std::unique_ptr<Buffer> _cubeVertexBuffer;
+    std::unique_ptr<Buffer> _cubeIndexBuffer;
+    LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow
 
