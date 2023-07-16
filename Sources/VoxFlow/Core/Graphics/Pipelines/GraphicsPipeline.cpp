@@ -48,9 +48,11 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
     shaderStageInfos.reserve(_shaderModules.size());
 
+    const ShaderLayoutBinding* vertexShaderBinding = nullptr;
     std::for_each(
         _shaderModules.begin(), _shaderModules.end(),
-        [&shaderStageInfos](const std::unique_ptr<ShaderModule>& module) {
+        [&shaderStageInfos,
+         &vertexShaderBinding](const std::unique_ptr<ShaderModule>& module) {
             const VkPipelineShaderStageCreateInfo stageCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -61,15 +63,34 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
                 .pSpecializationInfo = nullptr
             };
             shaderStageInfos.push_back(stageCreateInfo);
+
+            if (module->getStageFlagBits() == VK_SHADER_STAGE_VERTEX_BIT)
+            {
+                vertexShaderBinding = &module->getShaderLayoutBinding();
+            }
         });
 
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.pNext = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+
+    // TODO(snowapril) :
+    if (vertexShaderBinding)
+    {
+        for (const auto& inputLayout : vertexShaderBinding->_stageInputs)
+        {
+            
+        }
+    }
+    else
+    {
+        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+        vertexInputInfo.vertexBindingDescriptionCount = 0;
+        vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    }
 
     VkPipelineInputAssemblyStateCreateInfo
         inputAssemblyInfo = {};

@@ -353,19 +353,65 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
                                                                binding });
     }
 
-    // TODO(snowapril) : debug its member variables and fill implementation
-    // for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
-    // {
-    //     // auto location =
-    //     //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
-    //     // shaderLayout
-    // }
-    //for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
-    //{
-    //    // auto location =
-    //    //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
-    //    // shaderLayout
-    //}
+    for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
+    {
+        auto location =
+            compiler.get_decoration(attribute.id, spv::DecorationLocation);
+        
+        const uint32_t binding =
+            compiler.get_decoration(attribute.id, spv::DecorationBinding);
+
+        const spirv_cross::SPIRType& resourceType =
+            compiler.get_type(attribute.type_id);
+
+        const uint32_t size =
+            static_cast<uint32_t>(resourceType.width * resourceType.vecsize);
+        VOX_ASSERT(resourceType.columns == 1,
+                   "Matrix should not be used in stage input/output");
+
+        // TODO(snowapril):
+        VkFormat format = VK_FORMAT_UNDEFINED;
+
+        shaderLayoutBinding->_stageInputs.emplace_back(location, binding, size,
+                                                       format);
+    }
+    std::sort(shaderLayoutBinding->_stageInputs.begin(),
+              shaderLayoutBinding->_stageInputs.end(),
+              [](const auto& lhs, const auto& rhs) {
+                  if (lhs._location == rhs._location)
+                      return lhs._binding <= rhs._binding;
+                  return lhs._location <= rhs._location;
+              });
+
+    for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
+    {
+        auto location =
+            compiler.get_decoration(attribute.id, spv::DecorationLocation);
+
+        const uint32_t binding =
+            compiler.get_decoration(attribute.id, spv::DecorationBinding);
+
+        const spirv_cross::SPIRType& resourceType =
+            compiler.get_type(attribute.type_id);
+
+        const uint32_t size =
+            static_cast<uint32_t>(resourceType.width * resourceType.vecsize);
+        VOX_ASSERT(resourceType.columns == 1,
+                   "Matrix should not be used in stage input/output");
+
+        // TODO(snowapril):
+        VkFormat format = VK_FORMAT_UNDEFINED;
+
+        shaderLayoutBinding->_stageOutputs.emplace_back(location, binding, size,
+                                                        format);
+    }
+    std::sort(shaderLayoutBinding->_stageOutputs.begin(),
+              shaderLayoutBinding->_stageOutputs.end(),
+              [](const auto& lhs, const auto& rhs) {
+                  if (lhs._location == rhs._location)
+                      return lhs._binding <= rhs._binding;
+                  return lhs._location <= rhs._location;
+              });
 
     if (!shaderResources.push_constant_buffers.empty())
     {
