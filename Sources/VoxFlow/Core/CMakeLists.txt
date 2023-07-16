@@ -110,6 +110,7 @@ set(SRCS
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
+    ${SRC_DIR}/Core/Utils/Thread.cpp
     ${SRC_DIR}/Core/Utils/VertexFormat.cpp
 )
 

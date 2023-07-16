@@ -5,13 +5,8 @@
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
-#include <VoxFlow/Core/Graphics/Commands/CommandPool.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
@@ -44,6 +39,8 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
         std::make_unique<SceneRenderer>(_logicalDevices[0].get(), &_frameGraph);
 
     RenderResourceGarbageCollector::Get().threadConstruct();
+
+    Thread::SetThreadName("MainThread");
 }
 
 RenderDevice::~RenderDevice()

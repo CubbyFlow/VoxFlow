@@ -17,6 +17,8 @@ class Thread
     virtual void threadProcess() = 0;
     virtual void threadTerminate() = 0;
 
+    static void SetThreadName(const char* threadName);
+
  protected:
     std::thread _threadHandle;
     std::condition_variable _conditionVariable;

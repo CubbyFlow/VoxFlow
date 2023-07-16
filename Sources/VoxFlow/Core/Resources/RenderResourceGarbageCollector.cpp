@@ -81,6 +81,14 @@ void RenderResourceGarbageCollector::threadConstruct()
 void RenderResourceGarbageCollector::threadProcess()
 {
     using namespace std::chrono_literals;
+
+    static bool sIsThreadNameInitialized = false; // TODO(snowapril)
+    if (sIsThreadNameInitialized == false)
+    {
+        Thread::SetThreadName("RenderResourceGarbageCollector");
+        sIsThreadNameInitialized = true;
+    }
+
     while (true)
     {
         processRenderResourceGarbage();
