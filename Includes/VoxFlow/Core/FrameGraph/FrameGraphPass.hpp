@@ -14,7 +14,7 @@
 
 namespace VoxFlow
 {
-class CommandExecutorBase;
+class CommandJobSystem;
 
 namespace FrameGraph
 {
@@ -30,7 +30,7 @@ class FrameGraphPassBase : private NonCopyable
     ~FrameGraphPassBase();
 
     virtual void execute(FrameGraph* frameGraph,
-                         CommandExecutorBase* commandExecutor) = 0;
+                         CommandJobSystem* commandJobSystem) = 0;
 };
 
 template <typename PassDataType, typename ExecutePhase>
@@ -50,10 +50,10 @@ class FrameGraphPass : public FrameGraphPassBase
     }
 
     void execute(FrameGraph* frameGraph,
-                 CommandExecutorBase* commandExecutor) final
+                 CommandJobSystem* commandJobSystem) final
     {
         std::invoke(_executionPhaseLambda, frameGraph, _resourceData,
-                    commandExecutor);
+                    commandJobSystem);
     }
 
  private:
@@ -71,7 +71,7 @@ class PassNode : public DependencyGraph::Node
     PassNode& operator=(PassNode&& passNode);
 
     virtual void execute(FrameGraph* frameGraph,
-                         CommandExecutorBase* commandExecutor) = 0;
+                         CommandJobSystem* commandJobSystem) = 0;
 
     void setSideEffectPass()
     {
@@ -100,9 +100,9 @@ class RenderPassNode final : public PassNode
     RenderPassNode(RenderPassNode&& passNode);
     RenderPassNode& operator=(RenderPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandExecutorBase* commandExecutor) override
+    void execute(FrameGraph* frameGraph, CommandJobSystem* commandJobSystem) override
     {
-        _passImpl->execute(frameGraph, commandExecutor);
+        _passImpl->execute(frameGraph, commandJobSystem);
     }
 
  protected:
@@ -119,10 +119,10 @@ class PresentPassNode final : public PassNode
     PresentPassNode(PresentPassNode&& passNode);
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandExecutorBase* commandExecutor) override
+    void execute(FrameGraph* frameGraph, CommandJobSystem* commandJobSystem) override
     {
         (void)frameGraph;
-        (void)commandExecutor;
+        (void)commandJobSystem;
     }
 };
 }  // namespace FrameGraph

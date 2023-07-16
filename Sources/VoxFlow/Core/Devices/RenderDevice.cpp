@@ -34,11 +34,9 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
     _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
-
-    _sceneRenderer =
-        std::make_unique<SceneRenderer>(_logicalDevices[0].get(), &_frameGraph);
-
-    RenderResourceGarbageCollector::Get().threadConstruct();
+    _commandJobSystem = std::make_unique<CommandJobSystem>(_logicalDevices[0].get());
+    _sceneRenderer = std::make_unique<SceneRenderer>(
+        _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
 
     Thread::SetThreadName("MainThread");
 }

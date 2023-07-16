@@ -2,7 +2,7 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
-#include <VoxFlow/Core/Graphics/Commands/CommandExecutor.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
@@ -11,8 +11,11 @@
 namespace VoxFlow
 {
 SceneRenderer::SceneRenderer(LogicalDevice* logicalDevice,
-                             FrameGraph::FrameGraph* frameGraph)
-    : _logicalDevice(logicalDevice), _frameGraph(frameGraph)
+                             FrameGraph::FrameGraph* frameGraph,
+                             CommandJobSystem* commandJobSystem)
+    : _logicalDevice(logicalDevice),
+      _frameGraph(frameGraph),
+      _commandJobSystem(commandJobSystem)
 {
 }
 
@@ -31,7 +34,7 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 
     _currentFrameContext = frameContext;
 
-    _frameGraph->reset(nullptr, nullptr);
+    _frameGraph->reset(_commandJobSystem, nullptr);
 
     SwapChain* swapChain =
         _logicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)

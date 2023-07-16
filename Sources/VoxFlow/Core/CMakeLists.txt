@@ -28,6 +28,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp
@@ -83,6 +84,7 @@ set(SRCS
     ${SRC_DIR}/Core/FrameGraph/FrameGraphTexture.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
+    ${SRC_DIR}/Core/Graphics/Commands/CommandJobSystem.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocator.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.cpp

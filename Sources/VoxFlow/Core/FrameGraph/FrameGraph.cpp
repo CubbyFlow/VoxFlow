@@ -29,12 +29,12 @@ FrameGraph::~FrameGraph()
 {
 }
 
-void FrameGraph::reset(CommandExecutorBase* commandExecutor,
+void FrameGraph::reset(CommandJobSystem* commandJobSystem,
                        RenderResourceAllocator* renderResourceAllocator)
 {
     clear();
 
-    _commandExecutor = commandExecutor;
+    _commandJobSystem = commandJobSystem;
     _renderResourceAllocator = renderResourceAllocator;
 }
 
@@ -319,7 +319,7 @@ void FrameGraph::execute()
     for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
          iter != _passNodeLast; ++iter)
     {
-        (*iter)->execute(this, _commandExecutor);
+        (*iter)->execute(this, _commandJobSystem);
     }
 }
 

@@ -17,7 +17,7 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class RenderResourceMemoryPool;
-class CommandExecutorBase;
+class CommandJobSystem;
 class RenderResourceAllocator;
 class DependencyGraph;
 
@@ -108,7 +108,7 @@ class FrameGraph : private NonCopyable
     void clear();
 
     //
-    void reset(CommandExecutorBase* commandExecutor,
+    void reset(CommandJobSystem* commandJobSystem,
                RenderResourceAllocator* renderResourceAllocator);
 
     /**
@@ -173,7 +173,7 @@ private:
 
  private:
     DependencyGraph _dependencyGraph;
-    CommandExecutorBase* _commandExecutor = nullptr;
+    CommandJobSystem* _commandJobSystem = nullptr;
     RenderResourceAllocator* _renderResourceAllocator = nullptr;
 };
 }

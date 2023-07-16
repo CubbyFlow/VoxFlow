@@ -13,13 +13,15 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class SceneRenderPass;
+class CommandJobSystem;
 
-class SceneRenderer : NonCopyable
+class SceneRenderer final : NonCopyable
 {
  public:
     SceneRenderer(LogicalDevice* logicalDevice,
-                  FrameGraph::FrameGraph* frameGraph);
-    ~SceneRenderer();
+                  FrameGraph::FrameGraph* frameGraph,
+                  CommandJobSystem* commandJobSystem);
+    ~SceneRenderer() override;
 
  public:
     bool initialize();
@@ -48,6 +50,7 @@ class SceneRenderer : NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     FrameGraph::FrameGraph* _frameGraph = nullptr;
     FrameContext _currentFrameContext;
+    CommandJobSystem* _commandJobSystem = nullptr;
 
     std::unordered_map<std::string, std::unique_ptr<SceneRenderPass>>
         _sceneRenderPasses;

@@ -15,12 +15,13 @@ class Instance;
 class PhysicalDevice;
 class SceneRenderer;
 class LogicalDevice;
+class CommandJobSystem;
 
-class RenderDevice : private NonCopyable
+class RenderDevice final : private NonCopyable
 {
  public:
     explicit RenderDevice(Context deviceSetupCtx);
-    ~RenderDevice();
+    ~RenderDevice() override;
 
  public:
     [[nodiscard]] inline Instance* getInstance() const
@@ -63,6 +64,7 @@ class RenderDevice : private NonCopyable
     Context* _deviceSetupCtx = nullptr;
     FrameGraph::FrameGraph _frameGraph;
     FrameContext _frameContext;
+    std::unique_ptr<CommandJobSystem> _commandJobSystem;
 };
 }  // namespace VoxFlow
 

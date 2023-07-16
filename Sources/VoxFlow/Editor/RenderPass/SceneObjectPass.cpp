@@ -34,7 +34,7 @@ void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
         [&](FrameGraph::FrameGraphBuilder& builder, TempPassData&) {
             builder.write(backBufferHandle);
         },
-        [&](FrameGraph::FrameGraph*, TempPassData&, CommandExecutorBase*) {
+        [&](FrameGraph::FrameGraph*, TempPassData&, CommandJobSystem*) {
             spdlog::info("SceneObjectPass");
         });
 }

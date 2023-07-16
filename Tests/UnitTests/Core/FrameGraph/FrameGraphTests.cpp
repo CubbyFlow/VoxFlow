@@ -2,7 +2,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
-#include <VoxFlow/Core/Graphics/Commands/CommandExecutor.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <sstream>
 #include <string>
 #include <fstream>
@@ -78,7 +78,7 @@ TEST_CASE("FrameGraph")
                 passData._output1 = builder.write(passData._output1);
             },
             [&](FrameGraph::FrameGraph*, SamplePassData1& passData,
-                CommandExecutorBase*) { passData._isExecuted = true; });
+                CommandJobSystem*) { passData._isExecuted = true; });
 
     struct SamplePassData2
     {
@@ -116,7 +116,7 @@ TEST_CASE("FrameGraph")
                 passData._output1 = builder.write(passData._output1);
             },
             [&](FrameGraph::FrameGraph*, SamplePassData2& passData,
-                CommandExecutorBase*) { passData._isExecuted = true; });
+                CommandJobSystem*) { passData._isExecuted = true; });
 
     struct SamplePassData3
     {
@@ -134,7 +134,7 @@ TEST_CASE("FrameGraph")
                 builder.write(blackBoard.getHandle("BackBuffer"));
             },
             [&](FrameGraph::FrameGraph*, SamplePassData3& passData,
-                CommandExecutorBase*) { passData._isExecuted = true; });
+                CommandJobSystem*) { passData._isExecuted = true; });
 
     const bool compileResult = frameGraph.compile();
     CHECK_EQ(compileResult, true);
