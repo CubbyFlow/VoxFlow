@@ -353,16 +353,23 @@ class AlphabetPermutator
     std::string getNextAlphabetPermutation()
     {
         std::string alphabetPermutation;
+        bool needToIncrementAlphabet = true;
         for (uint8_t& permutationIndex : _permutationIndices)
         {
             alphabetPermutation += 'a' + permutationIndex;
-            if (permutationIndex == ('z' - 'a' + 1))
+
+            if (needToIncrementAlphabet)
             {
-                permutationIndex = 0;
-            }
-            else
-            {
-                permutationIndex++;
+                if (permutationIndex == ('z' - 'a' + 1))
+                {
+                    permutationIndex = 0;
+                    needToIncrementAlphabet = true;
+                }
+                else
+                {
+                    permutationIndex++;
+                    needToIncrementAlphabet = false;
+                }    
             }
         }
         return alphabetPermutation;
