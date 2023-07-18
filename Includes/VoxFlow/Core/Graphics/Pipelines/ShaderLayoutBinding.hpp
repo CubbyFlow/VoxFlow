@@ -6,6 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
+#include <VoxFlow/Core/Utils/VertexFormat.hpp>
 #include <array>
 #include <vector>
 
@@ -16,9 +17,10 @@ struct ShaderLayoutBinding
     struct VertexInputLayout
     {
         uint32_t _location = 0;
-        uint32_t _binding = 0;
-        uint32_t _stride = 0;
-        VkFormat _format = VK_FORMAT_UNDEFINED;
+        uint32_t _stride = 0; //! # bytes
+        VertexFormatBaseType _baseType = VertexFormatBaseType::Unknown;
+
+        VkFormat getVkFormat() const;
     };
     std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _sets{};
     std::vector<VertexInputLayout> _stageInputs;

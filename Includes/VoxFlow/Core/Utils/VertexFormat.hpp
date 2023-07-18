@@ -4,12 +4,28 @@
 #define VOXEL_FLOW_VERTEX_FORMAT_HPP
 
 #include <vector>
+#include <cstdint>
 
 namespace VoxFlow
 {
 
+enum class VertexFormatBaseType : uint8_t
+{
+    Float16 = 0,
+    Float32 = 1,
+    Float64 = 2,
+    Int16 = 3,
+    Int32 = 4,
+    Int64 = 5,
+    Uint16 = 6,
+    Uint32 = 7,
+    Uint64 = 8,
+    Unknown = 9,
+    Count = Unknown
+};
+
 //! Vertex format enums.
-enum class VertexFormat
+enum class VertexFormat : uint32_t
 {
     //! None
     None = 0,

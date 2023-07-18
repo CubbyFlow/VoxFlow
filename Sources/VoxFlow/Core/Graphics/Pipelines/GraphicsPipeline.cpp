@@ -76,12 +76,18 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.pNext = nullptr;
 
-    // TODO(snowapril) :
+    // TODO(snowapril) : support instancing with given input layout
     if (vertexShaderBinding)
     {
+        uint32_t offset = 0;
         for (const auto& inputLayout : vertexShaderBinding->_stageInputs)
         {
-            
+            bindingDescriptions.emplace_back(0, inputLayout._stride,
+                                             VK_VERTEX_INPUT_RATE_VERTEX);
+
+            attributeDescriptions.emplace_back(inputLayout._location, 0,
+                                               inputLayout.getVkFormat(), offset);
+            offset += inputLayout._stride;
         }
     }
     else

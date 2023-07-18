@@ -3,6 +3,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Utils/VertexFormat.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <spirv-cross/spirv_common.hpp>
 #include <spirv-cross/spirv_cross.hpp>
@@ -205,6 +206,37 @@ static VkFormat convertSpirvImageFormat(spv::ImageFormat imageFormat)
     }
 }
 
+VertexFormatBaseType convertToBaseType(
+    const spirv_cross::SPIRType::BaseType& spirBaseType)
+{
+    using namespace spirv_cross;
+    VertexFormatBaseType baseType = VertexFormatBaseType::Unknown;
+    switch (spirBaseType)
+    {
+        case SPIRType::BaseType::Float:
+            baseType = VertexFormatBaseType::Float32;
+            break;
+        case SPIRType::BaseType::Double:
+            baseType = VertexFormatBaseType::Float64;
+            break;
+        case SPIRType::BaseType::Int:
+            baseType = VertexFormatBaseType::Int32;
+            break;
+        case SPIRType::BaseType::Int64:
+            baseType = VertexFormatBaseType::Int64;
+            break;
+        case SPIRType::BaseType::UInt:
+            baseType = VertexFormatBaseType::Uint32;
+            break;
+        case SPIRType::BaseType::UInt64:
+            baseType = VertexFormatBaseType::Uint64;
+            break;
+        default:
+            break;
+    }
+    return baseType;
+}
+
 bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayoutBinding,
     std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits shaderStageBits)
 {
@@ -369,17 +401,15 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         VOX_ASSERT(resourceType.columns == 1,
                    "Matrix should not be used in stage input/output");
 
-        // TODO(snowapril):
-        VkFormat format = VK_FORMAT_UNDEFINED;
+        VertexFormatBaseType baseType =
+            convertToBaseType(resourceType.basetype);
 
-        shaderLayoutBinding->_stageInputs.emplace_back(location, binding, size,
-                                                       format);
+        shaderLayoutBinding->_stageInputs.emplace_back(binding, (size >> 3),
+                                                       baseType);
     }
     std::sort(shaderLayoutBinding->_stageInputs.begin(),
               shaderLayoutBinding->_stageInputs.end(),
               [](const auto& lhs, const auto& rhs) {
-                  if (lhs._location == rhs._location)
-                      return lhs._binding <= rhs._binding;
                   return lhs._location <= rhs._location;
               });
 
@@ -399,17 +429,15 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         VOX_ASSERT(resourceType.columns == 1,
                    "Matrix should not be used in stage input/output");
 
-        // TODO(snowapril):
-        VkFormat format = VK_FORMAT_UNDEFINED;
+        VertexFormatBaseType baseType =
+            convertToBaseType(resourceType.basetype);
 
-        shaderLayoutBinding->_stageOutputs.emplace_back(location, binding, size,
-                                                        format);
+        shaderLayoutBinding->_stageInputs.emplace_back(binding, (size >> 3),
+                                                       baseType);
     }
     std::sort(shaderLayoutBinding->_stageOutputs.begin(),
               shaderLayoutBinding->_stageOutputs.end(),
               [](const auto& lhs, const auto& rhs) {
-                  if (lhs._location == rhs._location)
-                      return lhs._binding <= rhs._binding;
                   return lhs._location <= rhs._location;
               });
 

@@ -16,13 +16,17 @@ TEST_CASE("Vulkan Queue Initialization")
     VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
                                          &instance);
 
-    VoxFlow::DeviceQueryContext queryContext(&logicalDevice);
+    VoxFlow::DeviceQueryContext* queryContext =
+        new VoxFlow::DeviceQueryContext(&logicalDevice);
     CHECK_EQ(
-        queryContext.initialize(VoxFlow::DeviceQueryMode::PerformanceCounter),
+        queryContext->initialize(VoxFlow::DeviceQueryMode::PerformanceCounter),
         true);
 
     VoxFlow::Queue* mainQueue = logicalDevice.getQueuePtr("GCT");
     VoxFlow::CommandPool commandPool(&logicalDevice, mainQueue);
-    std::shared_ptr<VoxFlow::CommandBuffer> commandBuffer = commandPool.getOrCreateCommandBuffer();
+    std::shared_ptr<VoxFlow::CommandBuffer> commandBuffer =
+        commandPool.getOrCreateCommandBuffer();
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
+
+    delete queryContext;
 }

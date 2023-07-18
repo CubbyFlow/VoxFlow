@@ -4,6 +4,67 @@
 
 namespace VoxFlow
 {
+
+VkFormat ShaderLayoutBinding::VertexInputLayout::getVkFormat() const
+{
+    constexpr VkFormat FORMAT_TABLE[] = {
+        VK_FORMAT_R16_SFLOAT,       VK_FORMAT_R16G16_SFLOAT,
+        VK_FORMAT_R16G16B16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT,
+        VK_FORMAT_R32_SFLOAT,       VK_FORMAT_R32G32_SFLOAT,
+        VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT,
+        VK_FORMAT_R64_SFLOAT,       VK_FORMAT_R64G64_SFLOAT,
+        VK_FORMAT_R64G64B64_SFLOAT, VK_FORMAT_R64G64B64A64_SFLOAT,
+        VK_FORMAT_R16_SINT,         VK_FORMAT_R16G16_SINT,
+        VK_FORMAT_R16G16B16_SINT,   VK_FORMAT_R16G16B16A16_SINT,
+        VK_FORMAT_R32_SINT,         VK_FORMAT_R32G32_SINT,
+        VK_FORMAT_R32G32B32_SINT,   VK_FORMAT_R32G32B32A32_SINT,
+        VK_FORMAT_R64_SINT,         VK_FORMAT_R64G64_SINT,
+        VK_FORMAT_R64G64B64_SINT,   VK_FORMAT_R64G64B64A64_SINT,
+        VK_FORMAT_R16_UINT,         VK_FORMAT_R16G16_UINT,
+        VK_FORMAT_R16G16B16_UINT,   VK_FORMAT_R16G16B16A16_UINT,
+        VK_FORMAT_R32_UINT,         VK_FORMAT_R32G32_UINT,
+        VK_FORMAT_R32G32B32_UINT,   VK_FORMAT_R32G32B32A32_UINT,
+        VK_FORMAT_R64_UINT,         VK_FORMAT_R64G64_UINT,
+        VK_FORMAT_R64G64B64_UINT,   VK_FORMAT_R64G64B64A64_UINT,
+    };
+    static_assert((sizeof(FORMAT_TABLE) / sizeof(VkFormat)) == 36);
+
+    VkFormat resultFormat = VK_FORMAT_UNDEFINED;
+    switch (_baseType)
+    {
+        case VertexFormatBaseType::Float16:
+            resultFormat = FORMAT_TABLE[(_stride / 2)];
+            break;
+        case VertexFormatBaseType::Float32:
+            resultFormat = FORMAT_TABLE[(_stride / 4) + 4];
+            break;
+        case VertexFormatBaseType::Float64:
+            resultFormat = FORMAT_TABLE[(_stride / 8) + 8];
+            break;
+        case VertexFormatBaseType::Int16:
+            resultFormat = FORMAT_TABLE[(_stride / 2) + 12];
+            break;
+        case VertexFormatBaseType::Int32:
+            resultFormat = FORMAT_TABLE[(_stride / 4) + 16];
+            break;
+        case VertexFormatBaseType::Int64:
+            resultFormat = FORMAT_TABLE[(_stride / 8) + 20];
+            break;
+        case VertexFormatBaseType::Uint16:
+            resultFormat = FORMAT_TABLE[(_stride / 2) + 24];
+            break;
+        case VertexFormatBaseType::Uint32:
+            resultFormat = FORMAT_TABLE[(_stride / 4) + 28];
+            break;
+        case VertexFormatBaseType::Uint64:
+            resultFormat = FORMAT_TABLE[(_stride / 8) + 32];
+            break;
+        case VertexFormatBaseType::Unknown:
+            break;
+    }
+    return resultFormat;
+}
+
 }  // namespace VoxFlow
 
 std::size_t std::hash<VoxFlow::ShaderLayoutBinding>::operator()(
@@ -20,19 +81,18 @@ std::size_t std::hash<VoxFlow::ShaderLayoutBinding>::operator()(
          shaderLayout._stageInputs)
     {
         VoxFlow::hash_combine(seed, inputLayout._location);
-        VoxFlow::hash_combine(seed, inputLayout._binding);
         VoxFlow::hash_combine(seed, inputLayout._stride);
-        VoxFlow::hash_combine(seed, static_cast<uint32_t>(inputLayout._format));
+        VoxFlow::hash_combine(seed,
+                              static_cast<uint32_t>(inputLayout._baseType));
     }
 
     for (const VoxFlow::ShaderLayoutBinding::VertexInputLayout& outputLayout :
          shaderLayout._stageOutputs)
     {
         VoxFlow::hash_combine(seed, outputLayout._location);
-        VoxFlow::hash_combine(seed, outputLayout._binding);
         VoxFlow::hash_combine(seed, outputLayout._stride);
         VoxFlow::hash_combine(seed,
-                              static_cast<uint32_t>(outputLayout._format));
+                              static_cast<uint32_t>(outputLayout._baseType));
     }
 
     VoxFlow::hash_combine(seed, shaderLayout._pushConstantSize);
