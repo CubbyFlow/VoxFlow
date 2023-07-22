@@ -233,40 +233,42 @@ void CommandBuffer::commitPendingResourceBindings()
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
-            DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-                setLayoutDesc._bindingMap.find(
-                    std::string(resourceBindingName));
-
-            VOX_ASSERT(it != setLayoutDesc._bindingMap.end(),
-                       "Unknown binding name ({})", resourceBindingName);
+            // TODO(snowapril) : figure out other way to find descriptor type
+            // for given binding name
+            // DescriptorSetLayoutDesc::ContainerType::const_iterator it =
+            //    setLayoutDesc._bindingMap.find(
+            //        std::string(resourceBindingName));
+            //
+            //VOX_ASSERT(it != setLayoutDesc._bindingMap.end(),
+            //           "Unknown binding name ({})", resourceBindingName);
 
             uint32_t binding = 0;
             uint32_t arraySize = 0;
 
             VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
 
-            std::visit(
-                overloaded{
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::CombinedImage setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    },
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::UniformBuffer setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                    },
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::StorageBuffer setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                    },
-                },
-                it->second);
+            //std::visit(
+            //    overloaded{
+            //        [&binding, &arraySize, &vkDescriptorType](
+            //            DescriptorSetLayoutDesc::CombinedImage setBinding) {
+            //            binding = setBinding._binding;
+            //            arraySize = setBinding._arraySize;
+            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            //        },
+            //        [&binding, &arraySize, &vkDescriptorType](
+            //            DescriptorSetLayoutDesc::UniformBuffer setBinding) {
+            //            binding = setBinding._binding;
+            //            arraySize = setBinding._arraySize;
+            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            //        },
+            //        [&binding, &arraySize, &vkDescriptorType](
+            //            DescriptorSetLayoutDesc::StorageBuffer setBinding) {
+            //            binding = setBinding._binding;
+            //            arraySize = setBinding._arraySize;
+            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            //        },
+            //    },
+            //    it->second);
 
             VOX_ASSERT(vkDescriptorType != VK_DESCRIPTOR_TYPE_MAX_ENUM,
                        "Unknown descriptor type {}", vkDescriptorType);
@@ -332,12 +334,11 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                      vertexOffset, firstInstance);
 }
 
-void CommandBuffer::makeResourceLayout(
-    BindableResourceView* resourceView,
-    const DescriptorSetLayoutDesc::DescriptorType& descriptorDesc)
+void CommandBuffer::makeResourceLayout(BindableResourceView* resourceView,
+                                       const DescriptorInfo& descInfo)
 {
     (void)resourceView;
-    (void)descriptorDesc;
+    (void)descInfo;
 }
 
 }  // namespace VoxFlow

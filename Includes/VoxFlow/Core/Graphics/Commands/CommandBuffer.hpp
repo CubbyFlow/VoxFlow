@@ -75,9 +75,8 @@ class CommandBuffer : private NonCopyable
 
 private:
     // Set pipeline barrier or transition for given resource to desired layout
-    void makeResourceLayout(
-        BindableResourceView* resourceView,
-        const DescriptorSetLayoutDesc::DescriptorType& descriptorDesc);
+   void makeResourceLayout(BindableResourceView* resourceView,
+                           const DescriptorInfo& descInfo);
 
  private:
     LogicalDevice* _logicalDevice = nullptr;

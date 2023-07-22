@@ -17,17 +17,24 @@ DescriptorSetAllocatorPool::DescriptorSetAllocatorPool(
     _bindlessSetAllocator =
         std::make_shared<BindlessDescriptorSetAllocator>(_logicalDevice);
 
-    // TODO(snowapril) : initialize bindless descriptor set allocator
-    // DescriptorSetLayoutDesc bindlessSetLayoutDesc = {
-    //     ._bindingMap = { DescriptorSetLayoutDesc::CombinedImage{
-    //         ._format = VK_FORMAT_UNDEFINED,
-    //         ._binding = 0,
-    //         ._arraySize = NUM_BINDLESS_DESCRIPTORS[static_cast<uint32_t>(
-    //             BindlessDescriptorBinding::CombinedImage)] },
-    //
-    // },
-    //
-    // };
+    const bool result = _bindlessSetAllocator->initialize(
+            DescriptorSetLayoutDesc {
+        ._descriptorInfos = {
+            DescriptorInfo{ ._category = DescriptorCategory::CombinedImage,
+                            ._arraySize = NUM_BINDLESS_DESCRIPTORS[0],
+                            ._binding = 0 },
+            DescriptorInfo{ ._category = DescriptorCategory::UniformBuffer,
+                            ._arraySize = NUM_BINDLESS_DESCRIPTORS[1],
+                            ._binding = 1 },
+            DescriptorInfo{ ._category = DescriptorCategory::StorageBuffer,
+                            ._arraySize = NUM_BINDLESS_DESCRIPTORS[2],
+                            ._binding = 2 },
+        },
+        ._stageFlags = VK_SHADER_STAGE_ALL
+    }, FRAME_BUFFER_COUNT);
+
+    VOX_ASSERT(result,
+               "Failed to initialize bindless descriptor set allocator");
 }
 
 DescriptorSetAllocatorPool::~DescriptorSetAllocatorPool()

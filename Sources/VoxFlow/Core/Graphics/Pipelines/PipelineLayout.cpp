@@ -42,26 +42,27 @@ static void organizeCombinedDescSetLayouts(
     std::vector<ShaderLayoutBinding>&& setLayoutBindings,
     DescriptorSetLayoutDesc* pSetLayouts)
 {
+    // TODO(snowapril) : As each descriptor set layout desc might have same
+    // bindings, collision handling must be needed.
+
+    std::unordered_map<uint32_t, DescriptorInfo> collisionCheckTable;
     for (const ShaderLayoutBinding& shaderBinding : setLayoutBindings)
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
             std::for_each(
-                shaderBinding._sets[set]._bindingMap.begin(),
-                shaderBinding._sets[set]._bindingMap.end(),
-                [&pSetLayouts,
-                 set](const DescriptorSetLayoutDesc::ContainerType::value_type&
-                          bindingPair) {
-                    DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-                        pSetLayouts[set]._bindingMap.find(bindingPair.first);
-                    if (it != pSetLayouts[set]._bindingMap.end())
+                shaderBinding._sets[set]._descriptorInfos.begin(),
+                shaderBinding._sets[set]._descriptorInfos.end(),
+                [&pSetLayouts, set,
+                 &collisionCheckTable](const DescriptorInfo& info) {
+                    const uint32_t key =
+                        (static_cast<uint32_t>(info._category) << 24) |
+                        info._binding;
+                    if (collisionCheckTable.find(key) ==
+                        collisionCheckTable.end())
                     {
-                        // TODO(snowapril) : Check given resource is collided
-                        // with already collected one.
-                    }
-                    else
-                    {
-                        pSetLayouts[set]._bindingMap.emplace(bindingPair);
+                        collisionCheckTable.emplace(key, info);
+                        pSetLayouts[set]._descriptorInfos.emplace_back(info);
                     }
                 });
 

@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_DESCRIPTOR_SET_CONFIG_HPP
 
 #include <array>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 
 namespace VoxFlow
 {
@@ -20,17 +21,9 @@ enum class SetSlotCategory : uint8_t
 constexpr uint32_t MAX_NUM_SET_SLOTS =
     static_cast<uint32_t>(SetSlotCategory::Count);
 
-enum class BindlessDescriptorBinding
-{
-    CombinedImage = 0,
-    UniformBuffer = 1,
-    StorageBuffer = 2,
-    Unknown = 3,
-    Count = Unknown,
-};
 
 constexpr std::array<uint32_t,
-                     static_cast<uint32_t>(BindlessDescriptorBinding::Count)>
+                     static_cast<uint32_t>(DescriptorCategory::Count)>
     NUM_BINDLESS_DESCRIPTORS = {
         100000,
         100000,

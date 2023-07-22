@@ -287,9 +287,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         {
             VkFormat imageFormat =
                 convertSpirvImageFormat(resourceType.image.format);
-            shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-                resource.name, DescriptorSetLayoutDesc::CombinedImage{
-                                   imageFormat, count, binding });
+            (void)imageFormat;
+            shaderLayoutBinding->_sets[set]._descriptorInfos.emplace_back(
+                DescriptorCategory::CombinedImage, count, binding);
         }
     }
 
@@ -334,9 +334,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-            blockName, DescriptorSetLayoutDesc::UniformBuffer{ totalSize, count,
-                                                               binding });
+        (void)totalSize;
+        shaderLayoutBinding->_sets[set]._descriptorInfos.emplace_back(
+            DescriptorCategory::UniformBuffer, count, binding);
     }
 
     for (const spirv_cross::Resource& resource :
@@ -380,9 +380,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-            blockName, DescriptorSetLayoutDesc::StorageBuffer{ totalSize, count,
-                                                               binding });
+        (void)totalSize;
+        shaderLayoutBinding->_sets[set]._descriptorInfos.emplace_back(
+            DescriptorCategory::StorageBuffer, count, binding);
     }
 
     for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)

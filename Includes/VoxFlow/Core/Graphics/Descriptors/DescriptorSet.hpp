@@ -5,68 +5,60 @@
 
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
-#include <unordered_map>
 #include <vector>
-#include <variant>
 
 namespace VoxFlow
 {
 
+enum class DescriptorCategory : uint8_t
+{
+    CombinedImage = 0,
+    UniformBuffer = 1,
+    StorageBuffer = 2,
+    Undefined = 3,
+    Count = Undefined
+};
+
+struct DescriptorInfo
+{
+    DescriptorCategory _category = DescriptorCategory::Undefined;
+    uint32_t _arraySize = 0;
+    uint32_t _binding = 0;
+
+    inline bool isValid() const
+    {
+        return (_category != DescriptorCategory::Undefined);
+    }
+
+    inline bool operator==(const DescriptorInfo& rhs) const
+    {
+        return (_category == rhs._category) && (_arraySize == rhs._arraySize) &&
+               (_binding == rhs._binding);
+    }
+};
+
 struct DescriptorSetLayoutDesc
 {
-    struct CombinedImage
-    {
-        VkFormat _format = VK_FORMAT_UNDEFINED;
-        uint32_t _arraySize = 0;
-        uint32_t _binding = 0;
-
-        inline bool operator==(const CombinedImage& rhs) const
-        {
-            return (_format == rhs._format) && (_arraySize == rhs._arraySize) &&
-                   (_binding == rhs._binding);   
-        }
-    };
-    struct UniformBuffer
-    {
-        uint32_t _size = 0;
-        uint32_t _arraySize = 0;
-        uint32_t _binding = 0;
-
-        inline bool operator==(const UniformBuffer& rhs) const
-        {
-            return (_size == rhs._size) && (_arraySize == rhs._arraySize) &&
-                   (_binding == rhs._binding);
-        }
-    };
-    struct StorageBuffer
-    {
-        uint32_t _size = 0;
-        uint32_t _arraySize = 0;
-        uint32_t _binding = 0;
-
-        inline bool operator==(const StorageBuffer& rhs) const
-        {
-            return (_size == rhs._size) && (_arraySize == rhs._arraySize) &&
-                   (_binding == rhs._binding);
-        }
-    };
-
-    using DescriptorType =
-        std::variant<CombinedImage, UniformBuffer, StorageBuffer>;
-    using ContainerType = std::unordered_map<std::string, DescriptorType>;
-
-    ContainerType _bindingMap;
+    std::vector<DescriptorInfo> _descriptorInfos;
     VkShaderStageFlags _stageFlags = 0;
 
     inline bool operator==(const DescriptorSetLayoutDesc& rhs) const
     {
-        return std::equal(_bindingMap.begin(), _bindingMap.end(),
-                          rhs._bindingMap.begin(), rhs._bindingMap.end()) &&
+        return std::equal(_descriptorInfos.begin(), _descriptorInfos.end(),
+                          rhs._descriptorInfos.begin(),
+                          rhs._descriptorInfos.end()) &&
                (_stageFlags == rhs._stageFlags);
     }
 };
 
 }  // namespace VoxFlow
+
+template <>
+struct std::hash<VoxFlow::DescriptorInfo>
+{
+    std::size_t operator()(
+        VoxFlow::DescriptorInfo const& info) const noexcept;
+};
 
 template <>
 struct std::hash<VoxFlow::DescriptorSetLayoutDesc>
