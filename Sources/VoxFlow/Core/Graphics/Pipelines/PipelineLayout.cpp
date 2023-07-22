@@ -85,6 +85,8 @@ bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBind
     // Set index 0 is always bindless descriptor set.
     _setAllocators[0] =
         descriptorSetAllocatorPool->getBindlessDescriptorSetAllocator();
+    vkSetLayouts.push_back(_setAllocators[0]->getVkDescriptorSetLayout());
+
     for (uint32_t set = 1; set < MAX_NUM_SET_SLOTS; ++set)
     {
         if (_combinedSetLayouts[set]._stageFlags != 0)
