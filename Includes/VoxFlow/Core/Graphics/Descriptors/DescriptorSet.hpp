@@ -9,6 +9,16 @@
 
 namespace VoxFlow
 {
+    
+enum class SetSlotCategory : uint8_t
+{
+    Bindless = 0,
+    PerFrame = 1,
+    PerRenderPass = 2,
+    PerDraw = 3,
+    Undefined = 4,
+    Count = Undefined,
+};
 
 enum class DescriptorCategory : uint8_t
 {
@@ -21,19 +31,22 @@ enum class DescriptorCategory : uint8_t
 
 struct DescriptorInfo
 {
-    DescriptorCategory _category = DescriptorCategory::Undefined;
+    SetSlotCategory _setCategory = SetSlotCategory::Undefined;
+    DescriptorCategory _descriptorCategory = DescriptorCategory::Undefined;
     uint32_t _arraySize = 0;
     uint32_t _binding = 0;
 
     inline bool isValid() const
     {
-        return (_category != DescriptorCategory::Undefined);
+        return (_setCategory != SetSlotCategory::Undefined) &&
+               (_descriptorCategory != DescriptorCategory::Undefined);
     }
 
     inline bool operator==(const DescriptorInfo& rhs) const
     {
-        return (_category == rhs._category) && (_arraySize == rhs._arraySize) &&
-               (_binding == rhs._binding);
+        return (_setCategory == rhs._setCategory) &&
+               (_descriptorCategory == rhs._descriptorCategory) &&
+               (_arraySize == rhs._arraySize) && (_binding == rhs._binding);
     }
 };
 

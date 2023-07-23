@@ -177,22 +177,21 @@ void CommandBuffer::makeSwapChainFinalLayout(
 
 void CommandBuffer::bindResourceGroup(
     SetSlotCategory setSlotCategory,
-    std::vector<std::pair<std::string_view, BindableResourceView*>>&& bindGroup)
+    std::vector<ShaderVariable>&& shaderVariables)
 {
-    std::vector<std::pair<std::string_view, BindableResourceView*>>&
-        dstBindingResources =
-            _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
+    std::vector<ShaderVariable>& dstBindingResources =
+        _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
 
     if (dstBindingResources.empty())
     {
-        dstBindingResources = std::move(bindGroup);
+        dstBindingResources = std::move(shaderVariables);
     }
     else
     {
         dstBindingResources.reserve(dstBindingResources.size() +
-                                    bindGroup.size());
-        std::move(std::make_move_iterator(bindGroup.begin()),
-                  std::make_move_iterator(bindGroup.end()),
+                                    shaderVariables.size());
+        std::move(std::make_move_iterator(shaderVariables.begin()),
+                  std::make_move_iterator(shaderVariables.end()),
                   std::back_inserter(dstBindingResources));
     }
 }
@@ -206,7 +205,7 @@ void CommandBuffer::commitPendingResourceBindings()
         const SetSlotCategory setSlotCategory =
             static_cast<SetSlotCategory>(setIndex);
 
-        std::vector<std::pair<std::string_view, BindableResourceView*>>&
+        std::vector<ShaderVariable>&
             bindGroup = _pendingResourceBindings[setIndex];
 
         DescriptorSetAllocator* setAllocator =
@@ -224,11 +223,10 @@ void CommandBuffer::commitPendingResourceBindings()
         static VkDescriptorImageInfo sTmpImageInfo = {};
         static VkDescriptorBufferInfo sTmpBufferInfo = {};
 
-        for (const std::pair<std::string_view, BindableResourceView*>&
-                 resourceBinding : bindGroup)
+        for (const ShaderVariable& resourceBinding : bindGroup)
         {
-            const std::string_view& resourceBindingName = resourceBinding.first;
-            BindableResourceView* bindingResourceView = resourceBinding.second;
+            const std::string_view& resourceBindingName = resourceBinding._variableName;
+            BindableResourceView* bindingResourceView = resourceBinding._view;
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;

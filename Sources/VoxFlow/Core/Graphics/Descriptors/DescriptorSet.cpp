@@ -13,8 +13,8 @@ std::size_t std::hash<VoxFlow::DescriptorInfo>::operator()(
 {
     uint32_t seed = 0;
 
-    
-    VoxFlow::hash_combine(seed, static_cast<uint32_t>(info._category));
+    VoxFlow::hash_combine(seed, static_cast<uint32_t>(info._setCategory));
+    VoxFlow::hash_combine(seed, static_cast<uint32_t>(info._descriptorCategory));
     VoxFlow::hash_combine(seed, info._arraySize);
     VoxFlow::hash_combine(seed, info._binding);
 

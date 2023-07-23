@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <string>
 #include <array>
@@ -58,7 +59,7 @@ class CommandBuffer : private NonCopyable
     // Bind given resource group to command buffer according to descriptor set layout informations
     void bindResourceGroup(
         SetSlotCategory setSlotCategory,
-        std::vector<std::pair<std::string_view, BindableResourceView*>>&&
+        std::vector<ShaderVariable>&&
             bindGroup);
 
     // Commit pending resource bindings to command buffer
@@ -85,8 +86,7 @@ private:
     RenderTargetsInfo _boundRenderTargetsInfo;
     FenceObject _fenceToSignal = FenceObject::Default();
     VkCommandBuffer _vkCommandBuffer = VK_NULL_HANDLE;
-    std::array<std::vector<std::pair<std::string_view, BindableResourceView*>>,
-               MAX_NUM_SET_SLOTS>
+    std::array<std::vector<ShaderVariable>, MAX_NUM_SET_SLOTS>
         _pendingResourceBindings;
     FrameContext _frameContext;
     std::string _debugName;

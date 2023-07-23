@@ -5,7 +5,7 @@
 namespace VoxFlow
 {
 
-VkFormat PipelineLayoutDescriptor::VertexInputLayout::getVkFormat() const
+VkFormat VertexInputLayout::getVkFormat() const
 {
     constexpr VkFormat FORMAT_TABLE[] = {
         VK_FORMAT_R16_SFLOAT,       VK_FORMAT_R16G16_SFLOAT,
@@ -67,6 +67,29 @@ VkFormat PipelineLayoutDescriptor::VertexInputLayout::getVkFormat() const
 
 }  // namespace VoxFlow
 
+std::size_t std::hash<VoxFlow::VertexInputLayout>::operator()(
+    VoxFlow::VertexInputLayout const& inputLayout) const noexcept
+{
+    uint32_t seed = 0;
+
+    VoxFlow::hash_combine(seed, inputLayout._location);
+    VoxFlow::hash_combine(seed, inputLayout._stride);
+    VoxFlow::hash_combine(seed, static_cast<uint32_t>(inputLayout._baseType));
+
+    return seed;
+}
+
+std::size_t std::hash<VoxFlow::FragmentOutputLayout>::operator()(
+    VoxFlow::FragmentOutputLayout const& outputLayout) const noexcept
+{
+    uint32_t seed = 0;
+
+    VoxFlow::hash_combine(seed, outputLayout._location);
+    VoxFlow::hash_combine(seed, static_cast<uint32_t>(outputLayout._format));
+
+    return seed;
+}
+
 std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(
     VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept
 {
@@ -77,22 +100,16 @@ std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(
         VoxFlow::hash_combine(seed, desc);
     }
 
-    for (const VoxFlow::PipelineLayoutDescriptor::VertexInputLayout& inputLayout :
+    for (const VoxFlow::VertexInputLayout& inputLayout :
          shaderLayout._stageInputs)
     {
-        VoxFlow::hash_combine(seed, inputLayout._location);
-        VoxFlow::hash_combine(seed, inputLayout._stride);
-        VoxFlow::hash_combine(seed,
-                              static_cast<uint32_t>(inputLayout._baseType));
+        VoxFlow::hash_combine(seed, inputLayout);
     }
 
-    for (const VoxFlow::PipelineLayoutDescriptor::VertexInputLayout& outputLayout :
+    for (const VoxFlow::FragmentOutputLayout& outputLayout :
          shaderLayout._stageOutputs)
     {
-        VoxFlow::hash_combine(seed, outputLayout._location);
-        VoxFlow::hash_combine(seed, outputLayout._stride);
-        VoxFlow::hash_combine(seed,
-                              static_cast<uint32_t>(outputLayout._baseType));
+        VoxFlow::hash_combine(seed, outputLayout);
     }
 
     VoxFlow::hash_combine(seed, shaderLayout._pushConstantSize);

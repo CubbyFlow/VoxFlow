@@ -9,11 +9,20 @@
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <array>
+#include <unordered_map>
 #include <memory>
 
 namespace VoxFlow
 {
 class LogicalDevice;
+
+struct ShaderReflectionDataGroup
+{
+    std::unordered_map<std::string, DescriptorInfo> _descriptors;
+    std::vector<VertexInputLayout> _vertexInputLayouts;
+    std::vector<FragmentOutputLayout> _fragmentOutputLayouts;
+    VkShaderStageFlagBits _stageFlagBit;
+};
 
 class ShaderModule : private NonCopyable
 {
@@ -40,10 +49,10 @@ class ShaderModule : private NonCopyable
     /**
      * @return reflected shader layout binding of thie module
      */
-    [[nodiscard]] inline const PipelineLayoutDescriptor& getShaderLayoutBinding()
-        const
+    [[nodiscard]] inline const ShaderReflectionDataGroup&
+    getShaderReflectionDataGroup() const
     {
-        return _shaderLayoutBinding;
+        return _reflectionDataGroup;
     }
 
     /**
@@ -65,7 +74,7 @@ class ShaderModule : private NonCopyable
  protected:
     LogicalDevice* _logicalDevice;
     VkShaderModule _shaderModule = VK_NULL_HANDLE;
-    PipelineLayoutDescriptor _shaderLayoutBinding;
+    ShaderReflectionDataGroup _reflectionDataGroup;
     const char* _shaderFilePath = nullptr;
     VkShaderStageFlagBits _stageFlagBits;
 };

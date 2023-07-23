@@ -432,8 +432,12 @@ bool ShaderModule::reflectShaderLayoutBindings(PipelineLayoutDescriptor* shaderL
         VertexFormatBaseType baseType =
             convertToBaseType(resourceType.basetype);
 
-        shaderLayoutBinding->_stageInputs.emplace_back(binding, (size >> 3),
-                                                       baseType);
+        // TODO(snowapril) : add fragment shader output layout
+        (void)binding;
+        (void)size;
+        (void)baseType;
+        //shaderLayoutBinding->_stageOutputs.emplace_back(binding, (size >> 3),
+        //                                               baseType);
     }
     std::sort(shaderLayoutBinding->_stageOutputs.begin(),
               shaderLayoutBinding->_stageOutputs.end(),
