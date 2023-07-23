@@ -20,7 +20,7 @@ TEST_CASE("Vulkan Pipeline Layout Initialization")
         RESOURCES_DIR "/Shaders/test_shader.vert",
         RESOURCES_DIR "/Shaders/test_shader.frag"
     };
-    std::vector<VoxFlow::ShaderLayoutBinding> combinedLayoutBindings;
+    std::vector<VoxFlow::PipelineLayoutDescriptor> combinedLayoutBindings;
     for (const char* shaderPath : shaderFilePaths)
     {
         std::unique_ptr<VoxFlow::ShaderModule> shaderModule =

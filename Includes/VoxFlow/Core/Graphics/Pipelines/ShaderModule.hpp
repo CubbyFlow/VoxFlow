@@ -6,7 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <array>
 #include <memory>
@@ -40,7 +40,7 @@ class ShaderModule : private NonCopyable
     /**
      * @return reflected shader layout binding of thie module
      */
-    [[nodiscard]] inline const ShaderLayoutBinding& getShaderLayoutBinding()
+    [[nodiscard]] inline const PipelineLayoutDescriptor& getShaderLayoutBinding()
         const
     {
         return _shaderLayoutBinding;
@@ -59,13 +59,13 @@ class ShaderModule : private NonCopyable
      * @return whether reflection is successful or not
      */
     static bool reflectShaderLayoutBindings(
-        ShaderLayoutBinding* shaderLayoutBinding,
+        PipelineLayoutDescriptor* shaderLayoutBinding,
         std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);
 
  protected:
     LogicalDevice* _logicalDevice;
     VkShaderModule _shaderModule = VK_NULL_HANDLE;
-    ShaderLayoutBinding _shaderLayoutBinding;
+    PipelineLayoutDescriptor _shaderLayoutBinding;
     const char* _shaderFilePath = nullptr;
     VkShaderStageFlagBits _stageFlagBits;
 };

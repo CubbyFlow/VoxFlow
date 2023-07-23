@@ -1,11 +1,11 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 
 namespace VoxFlow
 {
 
-VkFormat ShaderLayoutBinding::VertexInputLayout::getVkFormat() const
+VkFormat PipelineLayoutDescriptor::VertexInputLayout::getVkFormat() const
 {
     constexpr VkFormat FORMAT_TABLE[] = {
         VK_FORMAT_R16_SFLOAT,       VK_FORMAT_R16G16_SFLOAT,
@@ -67,8 +67,8 @@ VkFormat ShaderLayoutBinding::VertexInputLayout::getVkFormat() const
 
 }  // namespace VoxFlow
 
-std::size_t std::hash<VoxFlow::ShaderLayoutBinding>::operator()(
-    VoxFlow::ShaderLayoutBinding const& shaderLayout) const noexcept
+std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(
+    VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept
 {
     uint32_t seed = 0;
 
@@ -77,7 +77,7 @@ std::size_t std::hash<VoxFlow::ShaderLayoutBinding>::operator()(
         VoxFlow::hash_combine(seed, desc);
     }
 
-    for (const VoxFlow::ShaderLayoutBinding::VertexInputLayout& inputLayout :
+    for (const VoxFlow::PipelineLayoutDescriptor::VertexInputLayout& inputLayout :
          shaderLayout._stageInputs)
     {
         VoxFlow::hash_combine(seed, inputLayout._location);
@@ -86,7 +86,7 @@ std::size_t std::hash<VoxFlow::ShaderLayoutBinding>::operator()(
                               static_cast<uint32_t>(inputLayout._baseType));
     }
 
-    for (const VoxFlow::ShaderLayoutBinding::VertexInputLayout& outputLayout :
+    for (const VoxFlow::PipelineLayoutDescriptor::VertexInputLayout& outputLayout :
          shaderLayout._stageOutputs)
     {
         VoxFlow::hash_combine(seed, outputLayout._location);

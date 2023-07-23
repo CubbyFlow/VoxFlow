@@ -39,14 +39,14 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
 }
 
 static void organizeCombinedDescSetLayouts(
-    std::vector<ShaderLayoutBinding>&& setLayoutBindings,
+    std::vector<PipelineLayoutDescriptor>&& setLayoutBindings,
     DescriptorSetLayoutDesc* pSetLayouts)
 {
     // TODO(snowapril) : As each descriptor set layout desc might have same
     // bindings, collision handling must be needed.
 
     std::unordered_map<uint32_t, DescriptorInfo> collisionCheckTable;
-    for (const ShaderLayoutBinding& shaderBinding : setLayoutBindings)
+    for (const PipelineLayoutDescriptor& shaderBinding : setLayoutBindings)
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
@@ -72,7 +72,7 @@ static void organizeCombinedDescSetLayouts(
     }
 }
 
-bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings)
+bool PipelineLayout::initialize(std::vector<PipelineLayoutDescriptor>&& setLayoutBindings)
 {
     organizeCombinedDescSetLayouts(std::move(setLayoutBindings),
                                    _combinedSetLayouts.data());

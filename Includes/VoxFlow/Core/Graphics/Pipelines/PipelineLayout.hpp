@@ -5,7 +5,7 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <memory>
 #include <vector>
@@ -52,7 +52,7 @@ class PipelineLayout : NonCopyable
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings);
+    bool initialize(std::vector<PipelineLayoutDescriptor>&& setLayoutBindings);
 
  protected:
     /**

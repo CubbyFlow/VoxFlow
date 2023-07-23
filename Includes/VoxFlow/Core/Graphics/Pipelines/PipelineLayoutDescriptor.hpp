@@ -12,7 +12,7 @@
 
 namespace VoxFlow
 {
-struct ShaderLayoutBinding
+struct PipelineLayoutDescriptor
 {
     struct VertexInputLayout
     {
@@ -30,10 +30,10 @@ struct ShaderLayoutBinding
 }  // namespace VoxFlow
 
 template <>
-struct std::hash<VoxFlow::ShaderLayoutBinding>
+struct std::hash<VoxFlow::PipelineLayoutDescriptor>
 {
     std::size_t operator()(
-        VoxFlow::ShaderLayoutBinding const& shaderLayout) const noexcept;
+        VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept;
 };
 
 #endif

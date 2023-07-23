@@ -237,7 +237,7 @@ VertexFormatBaseType convertToBaseType(
     return baseType;
 }
 
-bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayoutBinding,
+bool ShaderModule::reflectShaderLayoutBindings(PipelineLayoutDescriptor* shaderLayoutBinding,
     std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits shaderStageBits)
 {
     // Note(snowapril) : sample codes from Khronos/SPIRV-Cross Wiki.

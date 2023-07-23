@@ -49,7 +49,7 @@ bool BasePipeline::initializePipelineLayout()
 {
     _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
 
-    std::vector<ShaderLayoutBinding> combinedLayoutBindings;
+    std::vector<PipelineLayoutDescriptor> combinedLayoutBindings;
 
     const size_t numShaderModules = _shaderModules.size();
     combinedLayoutBindings.reserve(numShaderModules);

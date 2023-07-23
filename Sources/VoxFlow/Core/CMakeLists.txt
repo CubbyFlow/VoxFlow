@@ -34,11 +34,11 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
@@ -89,11 +89,11 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocator.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayout.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayoutDescriptor.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GlslangUtil.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
-    ${SRC_DIR}/Core/Graphics/Pipelines/ShaderLayoutBinding.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ShaderModule.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/FrameBuffer.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp

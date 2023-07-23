@@ -48,7 +48,7 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
     shaderStageInfos.reserve(_shaderModules.size());
 
-    const ShaderLayoutBinding* vertexShaderBinding = nullptr;
+    const PipelineLayoutDescriptor* vertexShaderBinding = nullptr;
     std::for_each(
         _shaderModules.begin(), _shaderModules.end(),
         [&shaderStageInfos,
