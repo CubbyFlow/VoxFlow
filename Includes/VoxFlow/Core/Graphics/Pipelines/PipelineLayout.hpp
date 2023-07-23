@@ -42,6 +42,14 @@ class PipelineLayout : NonCopyable
     {
         return _setAllocators[static_cast<uint32_t>(category)].get();
     }
+  
+    /**
+     * @return pipeline layout descriptor combined with all shader modules inserted
+     */
+    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor() const
+    {
+        return _combinedPipelineLayoutDesc;
+    }
 
  public:
     /**
@@ -64,7 +72,7 @@ class PipelineLayout : NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     VkPipelineLayout _vkPipelineLayout{ VK_NULL_HANDLE };
     std::array<std::shared_ptr<DescriptorSetAllocator>, MAX_NUM_SET_SLOTS> _setAllocators;
-    std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _combinedSetLayouts;
+    PipelineLayoutDescriptor _combinedPipelineLayoutDesc;
 };
 }  // namespace VoxFlow
 

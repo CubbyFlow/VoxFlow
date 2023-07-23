@@ -48,11 +48,9 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
     shaderStageInfos.reserve(_shaderModules.size());
 
-    const PipelineLayoutDescriptor* vertexShaderBinding = nullptr;
     std::for_each(
         _shaderModules.begin(), _shaderModules.end(),
-        [&shaderStageInfos,
-         &vertexShaderBinding](const std::unique_ptr<ShaderModule>& module) {
+        [&shaderStageInfos](const std::unique_ptr<ShaderModule>& module) {
             const VkPipelineShaderStageCreateInfo stageCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -63,11 +61,6 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
                 .pSpecializationInfo = nullptr
             };
             shaderStageInfos.push_back(stageCreateInfo);
-
-            if (module->getStageFlagBits() == VK_SHADER_STAGE_VERTEX_BIT)
-            {
-                vertexShaderBinding = &module->getShaderLayoutBinding();
-            }
         });
 
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
@@ -77,10 +70,13 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
     vertexInputInfo.pNext = nullptr;
 
     // TODO(snowapril) : support instancing with given input layout
-    if (vertexShaderBinding)
+    const PipelineLayoutDescriptor& pipelineLayoutDesc =
+        _pipelineLayout->getPipelineLayoutDescriptor();
+    const bool hasStageInputs = pipelineLayoutDesc._stageInputs.size() > 0;
+    if (hasStageInputs)
     {
         uint32_t offset = 0;
-        for (const auto& inputLayout : vertexShaderBinding->_stageInputs)
+        for (const auto& inputLayout : pipelineLayoutDesc._stageInputs)
         {
             bindingDescriptions.emplace_back(0, inputLayout._stride,
                                              VK_VERTEX_INPUT_RATE_VERTEX);

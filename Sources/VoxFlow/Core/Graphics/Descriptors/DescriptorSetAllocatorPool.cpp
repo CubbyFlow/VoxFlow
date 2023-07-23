@@ -61,6 +61,8 @@ std::shared_ptr<DescriptorSetAllocator>
 DescriptorSetAllocatorPool::getOrCreateDescriptorSetAllocator(
     const DescriptorSetLayoutDesc& descSetLayout)
 {
+    std::lock_guard<std::mutex> scopedLock(_mutex);
+
     ContainerType::iterator iter = _descriptorSetAllocators.find(descSetLayout);
     if (iter == _descriptorSetAllocators.end())
     {

@@ -33,14 +33,15 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
         _logicalDevice = std::move(other._logicalDevice);
         _vkPipelineLayout = other._vkPipelineLayout;
         _setAllocators.swap(other._setAllocators);
-        _combinedSetLayouts.swap(other._combinedSetLayouts);
+        _combinedPipelineLayoutDesc =
+            std::move(other._combinedPipelineLayoutDesc);
     }
     return *this;
 }
 
 static void organizeCombinedDescSetLayouts(
     std::vector<PipelineLayoutDescriptor>&& setLayoutBindings,
-    DescriptorSetLayoutDesc* pSetLayouts)
+    PipelineLayoutDescriptor* combinedPipelineLayoutDesc)
 {
     // TODO(snowapril) : As each descriptor set layout desc might have same
     // bindings, collision handling must be needed.
@@ -50,24 +51,43 @@ static void organizeCombinedDescSetLayouts(
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
-            std::for_each(
-                shaderBinding._sets[set]._descriptorInfos.begin(),
-                shaderBinding._sets[set]._descriptorInfos.end(),
-                [&pSetLayouts, set,
-                 &collisionCheckTable](const DescriptorInfo& info) {
-                    const uint32_t key =
-                        (static_cast<uint32_t>(info._category) << 24) |
-                        info._binding;
-                    if (collisionCheckTable.find(key) ==
-                        collisionCheckTable.end())
-                    {
-                        collisionCheckTable.emplace(key, info);
-                        pSetLayouts[set]._descriptorInfos.emplace_back(info);
-                    }
-                });
+            std::for_each(shaderBinding._sets[set]._descriptorInfos.begin(),
+                          shaderBinding._sets[set]._descriptorInfos.end(),
+                          [&combinedPipelineLayoutDesc, set,
+                           &collisionCheckTable](const DescriptorInfo& info) {
+                              const uint32_t key =
+                                  (static_cast<uint32_t>(info._category)
+                                   << 24) |
+                                  info._binding;
+                              if (collisionCheckTable.find(key) ==
+                                  collisionCheckTable.end())
+                              {
+                                  collisionCheckTable.emplace(key, info);
+                                  combinedPipelineLayoutDesc->_sets[set]
+                                      ._descriptorInfos.emplace_back(info);
+                              }
+                          });
 
-            pSetLayouts[set]._stageFlags |=
+            combinedPipelineLayoutDesc->_sets[set]._stageFlags |=
                 shaderBinding._sets[set]._stageFlags;
+
+            if (combinedPipelineLayoutDesc->_stageInputs.empty() &&
+                (shaderBinding._stageInputs.empty() == false))
+            {
+                std::move(shaderBinding._stageInputs.begin(),
+                          shaderBinding._stageInputs.end(),
+                          std::back_inserter(
+                              combinedPipelineLayoutDesc->_stageInputs));
+            }
+
+            if (combinedPipelineLayoutDesc->_stageOutputs.empty() &&
+                (shaderBinding._stageOutputs.empty() == false))
+            {
+                std::move(shaderBinding._stageOutputs.begin(),
+                          shaderBinding._stageOutputs.end(),
+                          std::back_inserter(
+                              combinedPipelineLayoutDesc->_stageOutputs));
+            }
         }
     }
 }
@@ -75,7 +95,7 @@ static void organizeCombinedDescSetLayouts(
 bool PipelineLayout::initialize(std::vector<PipelineLayoutDescriptor>&& setLayoutBindings)
 {
     organizeCombinedDescSetLayouts(std::move(setLayoutBindings),
-                                   _combinedSetLayouts.data());
+                                   &_combinedPipelineLayoutDesc);
 
     DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
         _logicalDevice->getDescriptorSetAllocatorPool();
@@ -89,11 +109,11 @@ bool PipelineLayout::initialize(std::vector<PipelineLayoutDescriptor>&& setLayou
 
     for (uint32_t set = 1; set < MAX_NUM_SET_SLOTS; ++set)
     {
-        if (_combinedSetLayouts[set]._stageFlags != 0)
+        if (_combinedPipelineLayoutDesc._sets[set]._stageFlags != 0)
         {
             _setAllocators[set] =
                 descriptorSetAllocatorPool->getOrCreateDescriptorSetAllocator(
-                    _combinedSetLayouts[set]);
+                    _combinedPipelineLayoutDesc._sets[set]);
             vkSetLayouts.push_back(
                 _setAllocators[set]->getVkDescriptorSetLayout());
         }
