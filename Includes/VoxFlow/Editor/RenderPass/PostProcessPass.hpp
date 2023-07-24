@@ -5,10 +5,16 @@
 
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/FrameGraph/Resource.hpp>
+#include <memory>
 
 namespace VoxFlow
 {
 class RenderDevice;
+class BasePipeline;
+class Buffer;
+class LogicalDevice;
+
 namespace FrameGraph
 {
 class FrameGraph;
@@ -17,7 +23,7 @@ class FrameGraph;
 class PostProcessPass : public SceneRenderPass
 {
  public:
-    PostProcessPass();
+    PostProcessPass(LogicalDevice* logicalDevice);
     ~PostProcessPass() override;
 
  public:
@@ -25,7 +31,14 @@ class PostProcessPass : public SceneRenderPass
     void renderScene(FrameGraph::FrameGraph* frameGraph) override;
 
  protected:
- private:
+    struct ToneMappingPassData
+    {
+        FrameGraph::ResourceHandle _afterToneMap;
+    } _toneMapPassData;
+
+    std::shared_ptr<BasePipeline> _toneMapPipeline;
+    std::unique_ptr<Buffer> _quadBuffer;
+    LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow
 

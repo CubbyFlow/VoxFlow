@@ -67,6 +67,8 @@ enum class ResourceLayout : uint32_t
     StencilReadOnly     = 0x00000200,
     ShaderReadOnly      = 0x00000400,
     General             = 0x00000800,
+    StorageBuffer       = 0x00001000,
+    UniformBuffer       = 0x00002000,
 };
 IMPL_BITWISE_OPERATORS(ResourceLayout, uint32_t);
 

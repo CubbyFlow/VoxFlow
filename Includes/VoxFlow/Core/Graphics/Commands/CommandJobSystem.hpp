@@ -23,6 +23,12 @@ class CommandJobSystem final : private NonCopyable
     explicit CommandJobSystem(LogicalDevice* logicalDevice);
     ~CommandJobSystem() override;
 
+    // TODO(snowapril) : will be replaced to command job streaming
+    inline CommandBuffer* getCommandBuffer()
+    {
+        return nullptr;
+    }
+
  protected:
     LogicalDevice* _logicalDevice = nullptr;
 };

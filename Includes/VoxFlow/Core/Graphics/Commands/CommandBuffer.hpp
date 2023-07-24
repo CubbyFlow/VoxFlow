@@ -50,6 +50,9 @@ class CommandBuffer : private NonCopyable
     // Bind pipeline to the command buffer
     void bindPipeline(const std::shared_ptr<BasePipeline>& pipeline);
 
+    // Unbind current bound pipeline
+    void unbindPipeline();
+
     // Set viewport
     void setViewport(const glm::uvec2& viewportSize);
 

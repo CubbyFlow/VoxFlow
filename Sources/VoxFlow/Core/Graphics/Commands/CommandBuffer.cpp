@@ -132,6 +132,11 @@ void CommandBuffer::bindPipeline(const std::shared_ptr<BasePipeline>& pipeline)
                       _boundPipeline->get());
 }
 
+void CommandBuffer::unbindPipeline()
+{
+    _boundPipeline.reset();
+}
+
 void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
 {
     VkViewport viewport = { .x = 0,
