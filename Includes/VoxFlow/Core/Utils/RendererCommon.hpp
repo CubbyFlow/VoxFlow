@@ -67,6 +67,7 @@ enum class BufferUsage : uint32_t
     CopyDst             = 0x00000020,
     CopySrc             = 0x00000040,
     Readback            = 0x00000080,
+    Upload              = 0x00000100,
     Unknown             = 0,
 };
 IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);

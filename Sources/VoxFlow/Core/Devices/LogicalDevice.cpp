@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferManager.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
@@ -179,6 +180,9 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
     _garbageCollector = new RenderResourceGarbageCollector(this);
     _garbageCollector->threadConstruct();
+
+    _stagingBufferManager =
+        new StagingBufferManager(this, _deviceDefaultResourceMemoryPool);
 }
 
 LogicalDevice::~LogicalDevice()
