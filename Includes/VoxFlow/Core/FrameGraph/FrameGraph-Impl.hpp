@@ -80,6 +80,17 @@ ResourceHandle FrameGraph::create(
 
     return resourceHandle;
 }
+
+template <ResourceConcept ResourceDataType>
+const typename ResourceDataType::Descriptor FrameGraph::getResourceDescriptor(
+    ResourceHandle id) const
+{
+    const ResourceSlot& resourceSlot = getResourceSlot(id);
+    auto resource = static_cast<Resource<ResourceDataType>*>(
+        _resources[resourceSlot._resourceIndex]);
+    return resource->getDescriptor();
+}
+
 }  // namespace FrameGraph
 
 }  // namespace VoxFlow

@@ -36,7 +36,10 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
     FrameGraph::ResourceHandle backBufferHandle =
         frameGraph->getBlackBoard().getHandle("BackBuffer");
 
-    // TODO(snowapril) : replace to exact texture extent matched to back buffer
+    const auto& backBufferDesc =
+        frameGraph->getResourceDescriptor<FrameGraph::FrameGraphTexture>(
+            backBufferHandle);
+
     frameGraph->addCallbackPass<ToneMappingPassData>(
         "PostProcessPass",
         [&](FrameGraph::FrameGraphBuilder& builder,
@@ -46,15 +49,15 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                 builder.allocate<FrameGraph::FrameGraphTexture>(
                     "AfterToneMap",
                     FrameGraph::FrameGraphTexture::Descriptor{
-                        ._width = 1280,
-                        ._height = 720,
-                        ._depth = 1,
-                        ._level = 1,
-                        ._sampleCounts = 1,
-                        ._format = VK_FORMAT_R16G16B16A16_SFLOAT });
+                        ._width = backBufferDesc._width,
+                        ._height = backBufferDesc._height,
+                        ._depth = backBufferDesc._depth,
+                        ._level = backBufferDesc._level,
+                        ._sampleCounts = backBufferDesc._sampleCounts,
+                        ._format = backBufferDesc._format });
             builder.write(passData._afterToneMap);
         },
-        [&](FrameGraph::FrameGraph*, ToneMappingPassData& passData,
+        [&](FrameGraph::FrameGraph*, ToneMappingPassData&,
             CommandJobSystem* cmdJobSystem) {
             CommandBuffer* commandBuffer = cmdJobSystem->getCommandBuffer();
             commandBuffer->bindPipeline(_toneMapPipeline);
@@ -62,7 +65,7 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                 SetSlotCategory::PerRenderPass,
                 { ShaderVariable{ ._variableName = "ToneMapWeight",
                                   ._view = nullptr,
-                                  ._usage = ResourceLayout::UniformBuffer} });
+                                  ._usage = ResourceLayout::UniformBuffer } });
             commandBuffer->drawIndexed(4, 1, 0, 0, 0);
             commandBuffer->unbindPipeline();
         });

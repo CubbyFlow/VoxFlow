@@ -133,6 +133,10 @@ class FrameGraph : private NonCopyable
         return _blackBoard;
     }
 
+    template <ResourceConcept ResourceDataType>
+    const typename ResourceDataType::Descriptor getResourceDescriptor(
+        ResourceHandle id) const;
+
 private:
     const ResourceSlot& getResourceSlot(ResourceHandle id) const
     {

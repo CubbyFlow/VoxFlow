@@ -48,6 +48,11 @@ class Resource : public VirtualResource
         return _producerPassNode;
     }
 
+    inline typename ResourceDataType::Descriptor getDescriptor() const
+    {
+        return _descriptor;
+    }
+
  protected:
     typename ResourceDataType::Descriptor _descriptor;
     PassNode* _producerPassNode = nullptr;
