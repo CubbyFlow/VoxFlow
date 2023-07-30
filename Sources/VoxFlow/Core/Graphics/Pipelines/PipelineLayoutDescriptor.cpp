@@ -65,6 +65,44 @@ VkFormat VertexInputLayout::getVkFormat() const
     return resultFormat;
 }
 
+ShaderReflectionDataGroup::ShaderReflectionDataGroup(
+    const ShaderReflectionDataGroup& rhs)
+{
+    operator=(rhs);
+}
+
+ShaderReflectionDataGroup::ShaderReflectionDataGroup(
+    ShaderReflectionDataGroup&& rhs)
+{
+    operator=(std::move(rhs));
+}
+
+ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
+    const ShaderReflectionDataGroup& rhs)
+{
+    if (this != &rhs)
+    {
+        _descriptors = rhs._descriptors;
+        _vertexInputLayouts = rhs._vertexInputLayouts;
+        _fragmentOutputLayouts = rhs._fragmentOutputLayouts;
+        _stageFlagBit = rhs._stageFlagBit;
+    }
+    return *this;
+}
+
+ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
+    ShaderReflectionDataGroup&& rhs)
+{
+    if (this != &rhs)
+    {
+        _descriptors.swap(rhs._descriptors);
+        _vertexInputLayouts.swap(rhs._vertexInputLayouts);
+        _fragmentOutputLayouts.swap(rhs._fragmentOutputLayouts);
+        _stageFlagBit = rhs._stageFlagBit;
+    }
+    return *this;
+}
+
 }  // namespace VoxFlow
 
 std::size_t std::hash<VoxFlow::VertexInputLayout>::operator()(

@@ -15,6 +15,7 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class DescriptorSetAllocator;
+struct ShaderReflectionDataGroup;
 
 class PipelineLayout : NonCopyable
 {
@@ -60,7 +61,8 @@ class PipelineLayout : NonCopyable
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(std::vector<PipelineLayoutDescriptor>&& setLayoutBindings);
+    bool initialize(std::vector<const ShaderReflectionDataGroup*>&&
+                        combinedReflectionDataGroups);
 
  protected:
     /**

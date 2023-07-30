@@ -16,14 +16,6 @@ namespace VoxFlow
 {
 class LogicalDevice;
 
-struct ShaderReflectionDataGroup
-{
-    std::unordered_map<std::string, DescriptorInfo> _descriptors;
-    std::vector<VertexInputLayout> _vertexInputLayouts;
-    std::vector<FragmentOutputLayout> _fragmentOutputLayouts;
-    VkShaderStageFlagBits _stageFlagBit;
-};
-
 class ShaderModule : private NonCopyable
 {
  public:
@@ -49,10 +41,10 @@ class ShaderModule : private NonCopyable
     /**
      * @return reflected shader layout binding of thie module
      */
-    [[nodiscard]] inline const ShaderReflectionDataGroup&
+    [[nodiscard]] inline const ShaderReflectionDataGroup*
     getShaderReflectionDataGroup() const
     {
-        return _reflectionDataGroup;
+        return &_reflectionDataGroup;
     }
 
     /**
@@ -68,7 +60,7 @@ class ShaderModule : private NonCopyable
      * @return whether reflection is successful or not
      */
     static bool reflectShaderLayoutBindings(
-        PipelineLayoutDescriptor* shaderLayoutBinding,
+        ShaderReflectionDataGroup* reflectionDataGroup,
         std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);
 
  protected:

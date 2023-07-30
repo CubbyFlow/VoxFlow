@@ -20,13 +20,13 @@ DescriptorSetAllocatorPool::DescriptorSetAllocatorPool(
     const bool result = _bindlessSetAllocator->initialize(
             DescriptorSetLayoutDesc {
         ._descriptorInfos = {
-            DescriptorInfo{ ._category = DescriptorCategory::CombinedImage,
+            DescriptorInfo{ ._descriptorCategory = DescriptorCategory::CombinedImage,
                             ._arraySize = NUM_BINDLESS_DESCRIPTORS[0],
                             ._binding = 0 },
-            DescriptorInfo{ ._category = DescriptorCategory::UniformBuffer,
+            DescriptorInfo{ ._descriptorCategory = DescriptorCategory::UniformBuffer,
                             ._arraySize = NUM_BINDLESS_DESCRIPTORS[1],
                             ._binding = 1 },
-            DescriptorInfo{ ._category = DescriptorCategory::StorageBuffer,
+            DescriptorInfo{ ._descriptorCategory = DescriptorCategory::StorageBuffer,
                             ._arraySize = NUM_BINDLESS_DESCRIPTORS[2],
                             ._binding = 2 },
         },

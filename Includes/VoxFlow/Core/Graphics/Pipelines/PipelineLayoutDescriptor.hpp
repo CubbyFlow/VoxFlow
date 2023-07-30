@@ -12,6 +12,7 @@
 
 namespace VoxFlow
 {
+
 struct VertexInputLayout
 {
     uint32_t _location = 0;
@@ -33,6 +34,22 @@ struct PipelineLayoutDescriptor
     std::vector<VertexInputLayout> _stageInputs;
     std::vector<FragmentOutputLayout> _stageOutputs;
     uint32_t _pushConstantSize = 0;
+};
+
+struct ShaderReflectionDataGroup
+{
+    std::unordered_map<std::string, DescriptorInfo> _descriptors;
+    std::vector<VertexInputLayout> _vertexInputLayouts;
+    std::vector<FragmentOutputLayout> _fragmentOutputLayouts;
+    uint32_t _pushConstantSize = 0;
+    VkShaderStageFlagBits _stageFlagBit;
+
+    ShaderReflectionDataGroup() = default;
+    ~ShaderReflectionDataGroup() = default;
+    ShaderReflectionDataGroup(const ShaderReflectionDataGroup& rhs);
+    ShaderReflectionDataGroup(ShaderReflectionDataGroup&& rhs);
+    ShaderReflectionDataGroup& operator=(const ShaderReflectionDataGroup& rhs);
+    ShaderReflectionDataGroup& operator=(ShaderReflectionDataGroup&& rhs);
 };
 }  // namespace VoxFlow
 

@@ -56,7 +56,7 @@ bool DescriptorSetAllocator::initialize(
          it != _setLayoutDesc._descriptorInfos.end(); ++it)
     {
         VkDescriptorType descriptorType;
-        switch (it->_category)
+        switch (it->_descriptorCategory)
         {
             case DescriptorCategory::CombinedImage:
                 descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
