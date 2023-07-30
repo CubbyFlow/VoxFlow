@@ -23,10 +23,28 @@ PostProcessPass::~PostProcessPass()
 
 bool PostProcessPass::initialize()
 {
-    // TODO(snowapril) : initialize tonemap pipeline and quad buffer
-    _quadBuffer = std::make_unique<Buffer>(
-        "QuadBuffer", _logicalDevice,
+    const glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
+                                       glm::vec2(1.0f, 1.0f),
+                                       glm::vec2(-1.0f, -1.0f),
+                                       glm::vec2(1.0f, -1.0f) };
+
+    const uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
+
+    _quadVertexBuffer = std::make_unique<Buffer>(
+        "QuadVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _quadVertexBuffer->makeAllocationResident(BufferInfo{
+        ._size = sizeof(quadVertices),
+        ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
+    _quadVertexBuffer->upload(&quadVertices[0].x, 0, sizeof(quadVertices));
+
+    _quadIndexBuffer = std::make_unique<Buffer>(
+        "QuadIndexBuffer", _logicalDevice,
+        _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _quadIndexBuffer->makeAllocationResident(BufferInfo{
+        ._size = sizeof(quadIndices),
+        ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+    _quadIndexBuffer->upload(&quadIndices[0], 0, sizeof(quadIndices));
     
     return true;
 }

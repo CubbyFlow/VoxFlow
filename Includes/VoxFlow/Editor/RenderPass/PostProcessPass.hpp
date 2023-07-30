@@ -37,7 +37,8 @@ class PostProcessPass : public SceneRenderPass
     } _toneMapPassData;
 
     std::shared_ptr<BasePipeline> _toneMapPipeline;
-    std::unique_ptr<Buffer> _quadBuffer;
+    std::unique_ptr<Buffer> _quadVertexBuffer;
+    std::unique_ptr<Buffer> _quadIndexBuffer;
     LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow
