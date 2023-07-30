@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferManager.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
@@ -133,10 +134,24 @@ void Buffer::release()
     }
 }
 
+bool Buffer::upload(const void* data, const uint32_t offset, const uint32_t size)
+{
+    Buffer* stagingBuffer =
+        _logicalDevice->getStagingBufferManager()->getOrCreateStagingBuffer(
+            size);
+
+    void* stagingBufferAddress = stagingBuffer->map();
+    memcpy(stagingBufferAddress, data, size);
+    stagingBuffer->unmap();
+
+    // TODO(snowapril) : upload buffer region via command buffer
+}
+
 void* Buffer::map()
 {
     VOX_ASSERT(
-        static_cast<uint32_t>(_bufferInfo._usage & BufferUsage::Readback) > 0,
+        static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
+                                                    BufferUsage::Upload)) > 0,
         "Buffer without Readback flag must not be mapped");
 
     if (_permanentMappedAddress == nullptr)

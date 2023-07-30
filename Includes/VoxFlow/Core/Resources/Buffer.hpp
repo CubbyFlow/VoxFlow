@@ -55,6 +55,14 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
     void release();
 
     /**
+     * @param data buffer data address to be uploaded
+     * @param offset 
+     * @param size
+     * @return whether upload is success or not
+     */
+    bool upload(const void* data, const uint32_t offset, const uint32_t size);
+
+    /**
      * @return buffer memory mapped address
      */
     [[nodiscard]] void* map();
