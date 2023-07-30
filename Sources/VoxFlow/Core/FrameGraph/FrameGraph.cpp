@@ -21,6 +21,15 @@ ResourceHandle FrameGraphBuilder::write(ResourceHandle id)
     return _frameGraph->writeInternal(id, _currentPassNode);
 }
 
+ResourceHandle FrameGraphBuilder::declareRenderPass(
+    std::string_view&& passName,
+    typename FrameGraphRenderPass::Descriptor&& initArgs)
+{
+    return static_cast<RenderPassNode*>(_currentPassNode)
+        ->declareRenderTarget(_frameGraph, this, std::move(passName),
+                              std::move(initArgs));
+}
+
 FrameGraph::FrameGraph()
 {
 }

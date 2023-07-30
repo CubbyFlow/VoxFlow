@@ -3,6 +3,7 @@
 #ifndef VOXEL_FLOW_FRAME_GRAPH_PASS_HPP
 #define VOXEL_FLOW_FRAME_GRAPH_PASS_HPP
 
+#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
@@ -20,6 +21,7 @@ namespace FrameGraph
 {
 
 class FrameGraph;
+class FrameGraphBuilder;
 class PassNode;
 class VirtualResource;
 
@@ -93,6 +95,12 @@ class PassNode : public DependencyGraph::Node
 class RenderPassNode final : public PassNode
 {
  public:
+    struct RenderPassData
+    {
+        FrameGraphRenderPass::Descriptor _descriptor;
+    };
+
+ public:
     explicit RenderPassNode(FrameGraph* ownerFrameGraph,
                             std::string_view&& passName,
                       std::unique_ptr<FrameGraphPassBase>&& pass);
@@ -105,9 +113,20 @@ class RenderPassNode final : public PassNode
         _passImpl->execute(frameGraph, commandJobSystem);
     }
 
+    const RenderPassData* getRenderPassData(const uint32_t id) const
+    {
+        return &_renderPassData[id];
+    }
+
+    ResourceHandle declareRenderTarget(
+        FrameGraph* frameGraph, FrameGraphBuilder* builder,
+        std::string_view&& name,
+        typename FrameGraphRenderPass::Descriptor&& descriptor);
+
  protected:
  private:
     std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;
+    std::vector<RenderPassData> _renderPassData;
 };
 
 class PresentPassNode final : public PassNode

@@ -73,6 +73,20 @@ RenderPassNode& RenderPassNode::operator=(RenderPassNode&& passNode)
     return *this;
 }
 
+ResourceHandle RenderPassNode::declareRenderTarget(
+    FrameGraph* frameGraph, FrameGraphBuilder* builder,
+    std::string_view&& name,
+    typename FrameGraphRenderPass::Descriptor&& descriptor)
+{
+    // TODO(snowapril) : implement
+    (void)frameGraph;
+    (void)builder;
+    (void)name;
+    (void)descriptor;
+
+    return 0;
+}
+
 PresentPassNode::PresentPassNode(FrameGraph* ownerFrameGraph,
                                std::string_view&& passName)
     : PassNode(ownerFrameGraph, std::move(passName))

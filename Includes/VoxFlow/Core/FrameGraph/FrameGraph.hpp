@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
 #include <string>
@@ -52,10 +53,9 @@ class FrameGraphBuilder
     ResourceHandle read(ResourceHandle id);
     ResourceHandle write(ResourceHandle id);
 
-    template <RenderPassConcept RenderPassType>
     [[nodiscard]] ResourceHandle declareRenderPass(
         std::string_view&& passName,
-        typename RenderPassType::Descriptor&& initArgs);
+        typename FrameGraphRenderPass::Descriptor&& initArgs);
 
  protected:
  private:

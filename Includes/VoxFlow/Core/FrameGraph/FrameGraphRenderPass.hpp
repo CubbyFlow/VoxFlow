@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/Utils/Handle.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <array>
 #include <string>
 
 namespace VoxFlow
@@ -28,8 +29,16 @@ struct FrameGraphRenderPass
     struct Descriptor
     {
         std::vector<Attachment> _attachments;
-        // TODO(snowapril) : fill below needed for render pass creation
+        glm::uvec2 _viewportSize;
+        std::array<glm::vec4, MAX_RENDER_TARGET_COUNTS> _clearColors;
+        float _clearDepth = 0.0f;
+        uint8_t _clearStencil = 0;
+        AttachmentMaskFlags _clearFlags = AttachmentMaskFlags::None;
+        AttachmentMaskFlags _writableAttachment = AttachmentMaskFlags::All;
+        uint8_t _numSamples = 0;
     };
+
+    uint32_t _id = 0;
 };
 }  // namespace FrameGraph
 

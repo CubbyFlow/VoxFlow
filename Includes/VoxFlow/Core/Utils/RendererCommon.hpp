@@ -23,13 +23,31 @@ constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 3;
 constexpr uint32_t MAX_RENDER_TARGET_COUNTS = 8;
 
+enum class AttachmentMaskFlags : uint32_t
+{
+    None            = 0x00000000,
+    Color0          = 0x00000001,
+    Color1          = 0x00000002,
+    Color2          = 0x00000004,
+    Color3          = 0x00000008,
+    Color4          = 0x00000010,
+    Color5          = 0x00000020,
+    Color6          = 0x00000040,
+    Color7          = 0x00000080,
+    Depth           = 0x00000100,
+    Stencil         = 0x00000200,
+    DepthStencil    = Depth | Stencil,
+    All             = DepthStencil | 0x000000ff,
+};
+IMPL_BITWISE_OPERATORS(AttachmentMaskFlags, uint32_t);
+
 enum class CommandBufferUsage : uint8_t 
 {
-    Graphics = 0,
-    Compute = 1,
-    Transfer = 2,
-    Count = 4,
-    Undefined = 5,
+    Graphics    = 0,
+    Compute     = 1,
+    Transfer    = 2,
+    Count       = 4,
+    Undefined   = 5,
 };
 
 struct FrameContext
