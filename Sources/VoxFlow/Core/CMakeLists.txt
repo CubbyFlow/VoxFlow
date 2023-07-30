@@ -61,6 +61,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DeviceInputSubscriber.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Thread.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/MemoryAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/FenceObject-Impl.hpp
@@ -114,6 +115,7 @@ set(SRCS
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
     ${SRC_DIR}/Core/Utils/RendererCommon.cpp
     ${SRC_DIR}/Core/Utils/Thread.cpp
+    ${SRC_DIR}/Core/Utils/MemoryAllocator.cpp
     ${SRC_DIR}/Core/Utils/VertexFormat.cpp
 )
 
