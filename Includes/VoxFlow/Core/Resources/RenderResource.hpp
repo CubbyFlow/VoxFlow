@@ -14,7 +14,8 @@ enum class RenderResourceType : uint8_t
 {
     Buffer = 0,
     Texture = 1,
-    Undefined = 2,
+    StagingBuffer = 2,
+    Undefined = 3,
     Count = Undefined
 };
 

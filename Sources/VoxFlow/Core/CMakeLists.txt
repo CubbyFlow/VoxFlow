@@ -47,6 +47,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResource.hpp
@@ -54,7 +55,6 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBufferContext.hpp
-
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/BitwiseOperators.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
@@ -112,6 +112,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResourceGarbageCollector.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Resources/StagingBufferContext.cpp
+    ${SRC_DIR}/Core/Resources/StagingBuffer.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DeviceInputSubscriber.cpp
