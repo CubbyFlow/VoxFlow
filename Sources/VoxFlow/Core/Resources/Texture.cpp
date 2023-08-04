@@ -30,9 +30,8 @@ static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
 
 Texture::Texture(std::string&& debugName, LogicalDevice* logicalDevice,
                  RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _debugName(std::move(debugName)),
-      _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+    : RenderResource(std::move(debugName), logicalDevice,
+                     renderResourceMemoryPool)
 {
 }
 Texture::~Texture()
@@ -80,7 +79,7 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
     };
 
     VK_ASSERT(vmaCreateImage(_renderResourceMemoryPool->get(), &imageCreateInfo,
-                             &vmaInfo, &_vkImage, &_textureAllocation,
+                             &vmaInfo, &_vkImage, &_allocation,
                              nullptr));
 
     if (_vkImage == VK_NULL_HANDLE)
@@ -138,7 +137,7 @@ void Texture::release()
     {
         VmaAllocator vmaAllocator = _renderResourceMemoryPool->get();
         VkImage vkImage = _vkImage;
-        VmaAllocation vmaAllocation = _textureAllocation;
+        VmaAllocation vmaAllocation = _allocation;
         _logicalDevice->getRenderResourceGarbageCollector()
             ->pushRenderResourceGarbage(RenderResourceGarbage(
                 std::move(_accessedFences),
@@ -147,7 +146,7 @@ void Texture::release()
                 }));
 
         _vkImage = VK_NULL_HANDLE;
-        _textureAllocation = VK_NULL_HANDLE;
+        _allocation = VK_NULL_HANDLE;
     }
 }
 

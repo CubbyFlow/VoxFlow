@@ -33,9 +33,7 @@ static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
 
 Buffer::Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
                RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _debugName(std::move(debugName)),
-      _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+    : RenderResource(std::move(debugName), logicalDevice, renderResourceMemoryPool)
 {
 }
 
@@ -75,7 +73,7 @@ bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 
     VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(),
                               &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer,
-                              &_bufferAllocation, nullptr));
+                              &_allocation, nullptr));
 
     if (_vkBuffer == VK_NULL_HANDLE)
     {
@@ -111,7 +109,7 @@ void Buffer::release()
 
     if (_permanentMappedAddress != nullptr)
     {
-        vmaUnmapMemory(_renderResourceMemoryPool->get(), _bufferAllocation);
+        vmaUnmapMemory(_renderResourceMemoryPool->get(), _allocation);
         _permanentMappedAddress = nullptr;
     }
 
@@ -120,7 +118,7 @@ void Buffer::release()
         VmaAllocator vmaAllocator =
             _renderResourceMemoryPool->get();
         VkBuffer vkBuffer = _vkBuffer;
-        VmaAllocation vmaAllocation = _bufferAllocation;
+        VmaAllocation vmaAllocation = _allocation;
         
         _logicalDevice->getRenderResourceGarbageCollector()
             ->pushRenderResourceGarbage(RenderResourceGarbage(
@@ -130,21 +128,8 @@ void Buffer::release()
                 }));
 
         _vkBuffer = VK_NULL_HANDLE;
-        _bufferAllocation = VK_NULL_HANDLE;
+        _allocation = VK_NULL_HANDLE;
     }
-}
-
-bool Buffer::upload(const void* data, const uint32_t offset, const uint32_t size)
-{
-    Buffer* stagingBuffer =
-        _logicalDevice->getStagingBufferManager()->getOrCreateStagingBuffer(
-            size);
-
-    void* stagingBufferAddress = stagingBuffer->map();
-    memcpy(stagingBufferAddress, data, size);
-    stagingBuffer->unmap();
-
-    // TODO(snowapril) : upload buffer region via command buffer
 }
 
 void* Buffer::map()
@@ -158,7 +143,7 @@ void* Buffer::map()
     {
         void* memoryAddress = nullptr;
         VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(),
-                               _bufferAllocation, &memoryAddress));
+                               _allocation, &memoryAddress));
         _permanentMappedAddress = memoryAddress;
     }
 

@@ -5,6 +5,7 @@
 
 #include <vma/include/vk_mem_alloc.h>
 #include <volk/volk.h>
+#include <VoxFlow/Core/Resources/RenderResource.hpp>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
@@ -18,8 +19,7 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class TextureView;
 
-class Texture : private NonCopyable,
-                public std::enable_shared_from_this<Texture>
+class Texture final : public RenderResource, std::enable_shared_from_this<Texture>
 {
  public:
     explicit Texture(std::string&& debugName, LogicalDevice* logicalDevice,
@@ -46,6 +46,11 @@ class Texture : private NonCopyable,
         return _textureInfo;
     }
 
+    [[nodiscard]] inline RenderResourceType getResourceType() const override
+    {
+        return RenderResourceType::Texture;
+    }
+
     // Make the image allocation resident if evicted
     bool makeAllocationResident(const TextureInfo& textureInfo);
 
@@ -62,16 +67,10 @@ class Texture : private NonCopyable,
 
  protected:
  private:
-    std::string _debugName;
-    LogicalDevice* _logicalDevice = nullptr;
-    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VkImage _vkImage = VK_NULL_HANDLE;
-    VmaAllocation _textureAllocation = nullptr;
     TextureInfo _textureInfo;
     bool _isSwapChainBackBuffer = false;
-
     std::vector<std::shared_ptr<TextureView>> _ownedTextureViews;
-    std::vector<FenceObject> _accessedFences;
 };
 
 class TextureView : public BindableResourceView

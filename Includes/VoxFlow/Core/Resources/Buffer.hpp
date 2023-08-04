@@ -5,6 +5,7 @@
 
 #include <volk/volk.h>
 #include <vma/include/vk_mem_alloc.h>
+#include <VoxFlow/Core/Resources/RenderResource.hpp>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -18,12 +19,12 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class BufferView;
 
-class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
+class Buffer final : public RenderResource, std::enable_shared_from_this<Buffer>
 {
  public:
     explicit Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
                     RenderResourceMemoryPool* renderResourceMemoryPool);
-    ~Buffer();
+    ~Buffer() override ;
 
  public:
     [[nodiscard]] inline VkBuffer get() const
@@ -40,7 +41,12 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
         return _ownedBufferViews[viewIndex];
     }
 
-    inline BufferInfo getBufferInfo() const
+    [[nodiscard]] inline RenderResourceType getResourceType() const override
+    {
+        return RenderResourceType::Buffer;
+    }
+
+    [[nodiscard]] inline BufferInfo getBufferInfo() const
     {
         return _bufferInfo;
     }
@@ -55,14 +61,6 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
     void release();
 
     /**
-     * @param data buffer data address to be uploaded
-     * @param offset 
-     * @param size
-     * @return whether upload is success or not
-     */
-    bool upload(const void* data, const uint32_t offset, const uint32_t size);
-
-    /**
      * @return buffer memory mapped address
      */
     [[nodiscard]] void* map();
@@ -74,17 +72,9 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
 
  protected:
  private:
-    std::string _debugName;
-    LogicalDevice* _logicalDevice = nullptr;
-    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VkBuffer _vkBuffer = VK_NULL_HANDLE;
-    VmaAllocation _bufferAllocation = nullptr;
     BufferInfo _bufferInfo;
-
     std::vector<std::shared_ptr<BufferView>> _ownedBufferViews;
-    std::vector<FenceObject> _accessedFences;
-
-    void* _permanentMappedAddress = nullptr;
 };
 
 class BufferView : public BindableResourceView
