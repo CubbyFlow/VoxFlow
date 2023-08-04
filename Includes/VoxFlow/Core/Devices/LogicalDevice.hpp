@@ -25,7 +25,7 @@ class RenderPassCollector;
 class FrameBufferCollector;
 class DescriptorSetAllocatorPool;
 class RenderResourceGarbageCollector;
-class StagingBufferManager;
+class StagingBufferContext;
 
 class LogicalDevice : NonCopyable
 {
@@ -86,14 +86,6 @@ class LogicalDevice : NonCopyable
         return _garbageCollector;
     }
 
-    /**
-     * 
-     */
-    [[nodiscard]] StaginBufferManager* getStagingBufferManager()
-    {
-        return _stagingBufferManager;
-    }
-
  public:
     /**
      * @param title swapchain window title name
@@ -144,7 +136,6 @@ class LogicalDevice : NonCopyable
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
     RenderResourceGarbageCollector* _garbageCollector = nullptr;
-    StagingBufferManager* _stagingBufferManager = nullptr;
 };
 }  // namespace VoxFlow
 

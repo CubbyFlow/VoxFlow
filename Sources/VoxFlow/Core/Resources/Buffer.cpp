@@ -2,7 +2,7 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
-#include <VoxFlow/Core/Resources/StagingBufferManager.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>

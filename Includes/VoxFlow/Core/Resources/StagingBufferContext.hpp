@@ -10,17 +10,18 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class RenderResourceMemoryPool;
+class StagingBuffer;
 
-class StagingBufferManager : private NonCopyable
+class StagingBufferContext : private NonCopyable
 {
  public:
-    explicit StagingBufferManager(
+    explicit StagingBufferContext(
         LogicalDevice* logicalDevice,
         RenderResourceMemoryPool* renderResourceMemoryPool);
-    ~StagingBufferManager();
+    ~StagingBufferContext();
 
  public:
-    Buffer* getOrCreateStagingBuffer(const uint32_t size);
+    StagingBuffer* getOrCreateStagingBuffer(const uint32_t size);
 
     void release();
 
@@ -28,7 +29,7 @@ class StagingBufferManager : private NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     RenderResourceMemoryPool* _renderResourceMemoryPool;
     LinearBlockAllocator _blockAllocator;
-    Buffer* _stagingBuffer = nullptr;
+    StagingBuffer* _stagingBuffer = nullptr;
 };
 }  // namespace VoxFlow
 

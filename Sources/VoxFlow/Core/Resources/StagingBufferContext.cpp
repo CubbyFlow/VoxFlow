@@ -2,11 +2,12 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
-#include <VoxFlow/Core/Resources/StagingBufferManager.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
+#include <VoxFlow/Core/Resources/StagingBuffer.hpp>
 
 namespace VoxFlow
 {
-StagingBufferManager::StagingBufferManager(
+StagingBufferContext::StagingBufferContext(
     LogicalDevice* logicalDevice,
     RenderResourceMemoryPool* renderResourceMemoryPool)
     : _logicalDevice(logicalDevice),
@@ -14,17 +15,17 @@ StagingBufferManager::StagingBufferManager(
 {
 }
 
-StagingBufferManager ::~StagingBufferManager()
+StagingBufferContext ::~StagingBufferContext()
 {
     release();
 }
 
-Buffer* StagingBufferManager::getOrCreateStagingBuffer(const uint32_t size)
+StagingBuffer* StagingBufferContext::getOrCreateStagingBuffer(const uint32_t size)
 {
     return nullptr;
 }
 
-void StagingBufferManager::release()
+void StagingBufferContext::release()
 {
 }
 }  // namespace VoxFlow
