@@ -327,6 +327,28 @@ void CommandBuffer::commitPendingResourceBindings()
     }
 }
 
+void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
+    const uint32_t dstOffset, const uint32_t srcOffset,
+    const uint32_t size)
+{
+    (void)dstBuffer;
+    (void)srcBuffer;
+    (void)dstOffset;
+    (void)srcOffset;
+    (void)size;
+}
+
+void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
+    const uint32_t dstOffset, const uint32_t srcOffset,
+    const uint32_t size)
+{
+    (void)dstTexture;
+    (void)srcBuffer;
+    (void)dstOffset;
+    (void)srcOffset;
+    (void)size;
+}
+
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                                 uint32_t firstIndex, int32_t vertexOffset,
                                 uint32_t firstInstance)

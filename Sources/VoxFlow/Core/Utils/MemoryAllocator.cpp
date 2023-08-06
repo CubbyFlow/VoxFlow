@@ -1,5 +1,6 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/MemoryAllocator.hpp>
 
 namespace VoxFlow
@@ -16,12 +17,15 @@ LinearBlockAllocator::~LinearBlockAllocator()
 
 uint32_t LinearBlockAllocator::allocate(const uint32_t size)
 {
+    (void)size;
     return 0;
 }
 
 void LinearBlockAllocator::deallocate(const uint32_t offset,
                                       const uint32_t size)
 {
+    (void)offset;
+    (void)size;
 }
 
 void LinearBlockAllocator::defragment()
@@ -44,7 +48,7 @@ LinearMemoryAllocator::~LinearMemoryAllocator()
     }
 }
 
-void* LinearMemoryAllocator::allocate(const uint32_t size)
+uint8_t* LinearMemoryAllocator::allocate(const uint32_t size)
 {
     const uint32_t offset = _linearBlockAllocator.allocate(size);
     if (offset == LinearBlockAllocator::INVALID_BLOCK_OFFSET)
@@ -52,20 +56,23 @@ void* LinearMemoryAllocator::allocate(const uint32_t size)
         return nullptr;
     }
 
-    return _dataAddress + offset;
+    return static_cast<uint8_t*>(_dataAddress) + offset;
 }
 
 void LinearMemoryAllocator::deallocate(void* data, const uint32_t size)
 {
     const bool isInThisAllocator =
-        (_dataAddress <= data) && (data < (_dataAddress + size));
+        (static_cast<uint8_t*>(_dataAddress) <= static_cast<uint8_t*>(data)) &&
+        (static_cast<uint8_t*>(_dataAddress) <
+         (static_cast<uint8_t*>(_dataAddress) + size));
     if (isInThisAllocator)
     {
         VOX_ASSERT(false, "Unknown memory block was given");
     }
     else
     {
-        const uint32_t offset = (data - _dataAddress);
+        const uint32_t offset = static_cast<uint32_t>(
+            static_cast<uint8_t*>(data) - static_cast<uint8_t*>(_dataAddress));
         _linearBlockAllocator.deallocate(offset, size);
     }
 }

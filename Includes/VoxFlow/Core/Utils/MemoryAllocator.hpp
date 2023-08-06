@@ -46,7 +46,7 @@ class LinearMemoryAllocator : private NonCopyable
     LinearMemoryAllocator(const uint32_t totalSize, const bool isThreadSafe);
     ~LinearMemoryAllocator();
 
-    void* allocate(const uint32_t size);
+    uint8_t* allocate(const uint32_t size);
     void deallocate(void* data, const uint32_t size);
     void defragment();
 

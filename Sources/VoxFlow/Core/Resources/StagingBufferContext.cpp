@@ -11,7 +11,8 @@ StagingBufferContext::StagingBufferContext(
     LogicalDevice* logicalDevice,
     RenderResourceMemoryPool* renderResourceMemoryPool)
     : _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+      _renderResourceMemoryPool(renderResourceMemoryPool),
+      _blockAllocator(1024ULL * 1024ULL, true)
 {
 }
 
@@ -22,6 +23,7 @@ StagingBufferContext ::~StagingBufferContext()
 
 StagingBuffer* StagingBufferContext::getOrCreateStagingBuffer(const uint32_t size)
 {
+    (void)size;
     return nullptr;
 }
 

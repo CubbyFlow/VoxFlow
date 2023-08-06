@@ -14,6 +14,7 @@ namespace VoxFlow
 class LogicalDevice;
 class SceneRenderPass;
 class CommandJobSystem;
+class ResourceUploadContext;
 
 class SceneRenderer final : NonCopyable
 {
@@ -24,7 +25,7 @@ class SceneRenderer final : NonCopyable
     ~SceneRenderer() override;
 
  public:
-    bool initializePasses();
+    bool initializePasses(ResourceUploadContext* uploadContext);
 
     void beginFrameGraph(const FrameContext& frameContext);
     tf::Future<void> resolveSceneRenderPasses();

@@ -14,6 +14,8 @@ namespace FrameGraph
 class FrameGraph;
 }
 
+class ResourceUploadContext;
+
 class SceneRenderPass : NonCopyable
 {
  public:
@@ -37,7 +39,7 @@ class SceneRenderPass : NonCopyable
     }
 
  public:
-    virtual bool initialize() = 0;
+    virtual bool initialize(ResourceUploadContext* uploadContext) = 0;
     virtual void renderScene(FrameGraph::FrameGraph* frameGraph) = 0;
 
  protected:

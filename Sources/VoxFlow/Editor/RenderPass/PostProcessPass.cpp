@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
 
@@ -21,14 +22,14 @@ PostProcessPass::~PostProcessPass()
 {
 }
 
-bool PostProcessPass::initialize()
+bool PostProcessPass::initialize(ResourceUploadContext* uploadContext)
 {
-    const glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
+    constexpr glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
                                        glm::vec2(1.0f, 1.0f),
                                        glm::vec2(-1.0f, -1.0f),
                                        glm::vec2(1.0f, -1.0f) };
 
-    const uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
+    constexpr uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
 
     _quadVertexBuffer = std::make_unique<Buffer>(
         "QuadVertexBuffer", _logicalDevice,
@@ -36,7 +37,12 @@ bool PostProcessPass::initialize()
     _quadVertexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(quadVertices),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
-    _quadVertexBuffer->upload(&quadVertices[0].x, 0, sizeof(quadVertices));
+
+    uploadContext->addPendingUpload(UploadPhase::Immediate,
+                                    _quadVertexBuffer.get(),
+                                    UploadData{ ._data = &quadVertices[0].x,
+                                                ._size = sizeof(quadVertices),
+                                                ._dstOffset = 0 });
 
     _quadIndexBuffer = std::make_unique<Buffer>(
         "QuadIndexBuffer", _logicalDevice,
@@ -44,7 +50,12 @@ bool PostProcessPass::initialize()
     _quadIndexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(quadIndices),
         ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
-    _quadIndexBuffer->upload(&quadIndices[0], 0, sizeof(quadIndices));
+
+    uploadContext->addPendingUpload(UploadPhase::Immediate,
+                                    _quadIndexBuffer.get(),
+                                    UploadData{ ._data = &quadIndices[0],
+                                                ._size = sizeof(quadIndices),
+                                                ._dstOffset = 0 });
     
     return true;
 }

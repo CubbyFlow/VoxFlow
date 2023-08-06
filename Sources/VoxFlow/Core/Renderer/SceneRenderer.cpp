@@ -23,11 +23,11 @@ SceneRenderer::~SceneRenderer()
 {
 }
 
-bool SceneRenderer::initializePasses()
+bool SceneRenderer::initializePasses(ResourceUploadContext* uploadContext)
 {
     for (auto& [passName, pass] : _sceneRenderPasses)
     {
-        if (pass->initialize() == false)
+        if (pass->initialize(uploadContext) == false)
         {
             VOX_ASSERT(false, "Failed to initialize scene render pass {}",
                        passName);

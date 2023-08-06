@@ -16,6 +16,9 @@
 namespace VoxFlow
 {
 class Queue;
+class Buffer;
+class Texture;
+class StagingBuffer;
 class CommandPool;
 class RenderPass;
 class SwapChain;
@@ -72,6 +75,14 @@ class CommandBuffer : private NonCopyable
     {
         return _fenceToSignal;
     }
+
+    void uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
+                      const uint32_t dstOffset, const uint32_t srcOffset,
+                      const uint32_t size);
+
+    void uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
+                       const uint32_t dstOffset, const uint32_t srcOffset,
+                       const uint32_t size);
 
     void drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                      uint32_t firstIndex, int32_t vertexOffset,
