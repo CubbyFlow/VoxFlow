@@ -15,6 +15,8 @@
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBuffer.hpp>
+#include <VoxFlow/Core/Resources/ResourceTracker.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
@@ -331,11 +333,14 @@ void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
     const uint32_t dstOffset, const uint32_t srcOffset,
     const uint32_t size)
 {
-    (void)dstBuffer;
-    (void)srcBuffer;
-    (void)dstOffset;
-    (void)srcOffset;
-    (void)size;
+    const VkBufferCopy bufferCopy = { .srcOffset = srcOffset,
+                                      .dstOffset = dstOffset,
+                                      .size = size };
+
+    VkBuffer srcVkBuffer = srcBuffer->get();
+    VkBuffer dstVkBuffer = dstBuffer->get();
+
+    vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
 }
 
 void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
