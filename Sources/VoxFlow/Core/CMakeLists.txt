@@ -46,6 +46,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/ResourceTracker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/BindableResourceView.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
