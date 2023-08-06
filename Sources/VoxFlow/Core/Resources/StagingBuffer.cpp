@@ -34,7 +34,7 @@ bool StagingBuffer::makeAllocationResident(const BufferInfo& bufferInfo)
         .flags = 0,
         .size = bufferInfo._size,
         .usage =
-            VK_BUFFER_USAGE_TRANSFER_SRC | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr
@@ -65,6 +65,7 @@ bool StagingBuffer::makeAllocationResident(const BufferInfo& bufferInfo)
 #if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
+
     return true;
 }
 
@@ -94,7 +95,7 @@ void StagingBuffer::release()
     }
 }
 
-void* StagingBuffer::map()
+uint8_t* StagingBuffer::map()
 {
     VOX_ASSERT(
         static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
@@ -109,7 +110,7 @@ void* StagingBuffer::map()
         _permanentMappedAddress = memoryAddress;
     }
 
-    return _permanentMappedAddress;
+    return static_cast<uint8_t*>(_permanentMappedAddress);
 }
 
 void StagingBuffer::unmap()

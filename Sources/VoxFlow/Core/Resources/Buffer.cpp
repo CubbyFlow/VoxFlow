@@ -132,7 +132,7 @@ void Buffer::release()
     }
 }
 
-void* Buffer::map()
+uint8_t* Buffer::map()
 {
     VOX_ASSERT(
         static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
@@ -147,7 +147,7 @@ void* Buffer::map()
         _permanentMappedAddress = memoryAddress;
     }
 
-    return _permanentMappedAddress;
+    return static_cast<uint8_t*>(_permanentMappedAddress);
 }
 
 void Buffer::unmap()

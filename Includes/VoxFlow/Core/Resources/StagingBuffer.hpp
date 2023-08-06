@@ -50,7 +50,7 @@ class StagingBuffer : public RenderResource
     /**
      * @return buffer memory mapped address
      */
-    [[nodiscard]] void* map();
+    [[nodiscard]] uint8_t* map();
 
     /**
      * unmap permanently mapped address. At now, it just ignore for performance

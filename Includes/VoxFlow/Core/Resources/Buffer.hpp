@@ -63,7 +63,7 @@ class Buffer final : public RenderResource, std::enable_shared_from_this<Buffer>
     /**
      * @return buffer memory mapped address
      */
-    [[nodiscard]] void* map();
+    [[nodiscard]] uint8_t* map();
 
     /**
      * unmap permanently mapped address. At now, it just ignore for performance consideration.

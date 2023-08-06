@@ -3,12 +3,16 @@
 #ifndef VOXEL_FLOW_RENDER_RESOURCE_HPP
 #define VOXEL_FLOW_RENDER_RESOURCE_HPP
 
+#include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
+#include <vector>
 
 namespace VoxFlow
 {
 class LogicalDevice;
+class RenderResourceMemoryPool;
 
 enum class RenderResourceType : uint8_t
 {
@@ -29,7 +33,7 @@ class RenderResource : private NonCopyable
     RenderResource& operator=(RenderResource&&) = default;
 
  public:
-    virtual RenderResourceType getResourceType() const;
+    virtual RenderResourceType getResourceType() const = 0;
 
  protected:
     std::string _debugName;
