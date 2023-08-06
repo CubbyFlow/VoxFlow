@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace VoxFlow
@@ -26,7 +27,7 @@ enum class RenderResourceType : uint8_t
 class RenderResource : private NonCopyable
 {
  public:
-    RenderResource(std::string&& debugName, LogicalDevice* logicalDevice,
+    RenderResource(std::string_view&& debugName, LogicalDevice* logicalDevice,
                    RenderResourceMemoryPool* renderResourceMemoryPool);
     virtual ~RenderResource(){};
     RenderResource(RenderResource&&) = default;

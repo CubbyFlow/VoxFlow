@@ -10,7 +10,7 @@
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <string>
+#include <string_view>
 
 namespace VoxFlow
 {
@@ -20,10 +20,10 @@ class RenderResourceMemoryPool;
 class StagingBuffer : public RenderResource
 {
  public:
-    explicit StagingBuffer(std::string&& debugName,
+    explicit StagingBuffer(std::string_view&& debugName,
                            LogicalDevice* logicalDevice,
                            RenderResourceMemoryPool* renderResourceMemoryPool);
-    ~StagingBuffer();
+    ~StagingBuffer() override;
 
  public:
     [[nodiscard]] inline VkBuffer get() const

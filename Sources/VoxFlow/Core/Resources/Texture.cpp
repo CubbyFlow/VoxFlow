@@ -28,7 +28,7 @@ static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
     return resultUsage;
 }
 
-Texture::Texture(std::string&& debugName, LogicalDevice* logicalDevice,
+Texture::Texture(std::string_view&& debugName, LogicalDevice* logicalDevice,
                  RenderResourceMemoryPool* renderResourceMemoryPool)
     : RenderResource(std::move(debugName), logicalDevice,
                      renderResourceMemoryPool)

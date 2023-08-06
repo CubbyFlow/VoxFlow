@@ -12,6 +12,7 @@
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace VoxFlow
 {
@@ -22,7 +23,7 @@ class TextureView;
 class Texture final : public RenderResource, std::enable_shared_from_this<Texture>
 {
  public:
-    explicit Texture(std::string&& debugName, LogicalDevice* logicalDevice,
+    explicit Texture(std::string_view&& debugName, LogicalDevice* logicalDevice,
                      RenderResourceMemoryPool* renderResourceMemoryPool);
     ~Texture();
 

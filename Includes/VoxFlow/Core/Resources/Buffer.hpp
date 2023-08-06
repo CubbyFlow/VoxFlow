@@ -12,6 +12,7 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <string>
+#include <string_view>
 
 namespace VoxFlow
 {
@@ -22,9 +23,9 @@ class BufferView;
 class Buffer final : public RenderResource, std::enable_shared_from_this<Buffer>
 {
  public:
-    explicit Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
+    explicit Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
                     RenderResourceMemoryPool* renderResourceMemoryPool);
-    ~Buffer() override ;
+    ~Buffer() override;
 
  public:
     [[nodiscard]] inline VkBuffer get() const

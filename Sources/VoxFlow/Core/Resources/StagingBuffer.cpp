@@ -9,7 +9,7 @@
 
 namespace VoxFlow
 {
-StagingBuffer::StagingBuffer(std::string&& debugName,
+StagingBuffer::StagingBuffer(std::string_view&& debugName,
                              LogicalDevice* logicalDevice,
                              RenderResourceMemoryPool* renderResourceMemoryPool)
     : RenderResource(std::move(debugName), logicalDevice,

@@ -31,7 +31,7 @@ static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
     return resultUsage;
 }
 
-Buffer::Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
+Buffer::Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
                RenderResourceMemoryPool* renderResourceMemoryPool)
     : RenderResource(std::move(debugName), logicalDevice, renderResourceMemoryPool)
 {
