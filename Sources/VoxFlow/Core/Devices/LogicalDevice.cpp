@@ -9,6 +9,7 @@
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -179,6 +180,8 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
     _garbageCollector = new RenderResourceGarbageCollector(this);
     _garbageCollector->threadConstruct();
+
+    _uploadContext = new ResourceUploadContext(this);
 }
 
 LogicalDevice::~LogicalDevice()

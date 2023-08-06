@@ -10,6 +10,7 @@
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 
 namespace VoxFlow
@@ -34,7 +35,7 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
     _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
-    _commandJobSystem = std::make_unique<CommandJobSystem>(_logicalDevices[0].get());
+    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
     _sceneRenderer = std::make_unique<SceneRenderer>(
         _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
 
@@ -52,13 +53,30 @@ RenderDevice::~RenderDevice()
 
 void RenderDevice::updateRender(const double deltaTime)
 {
-    SCOPED_CHROME_TRACING("RenderDevice::updateRender");
     (void)deltaTime;
+
+    SCOPED_CHROME_TRACING("RenderDevice::updateRender");
+    for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
+    {
+        ResourceUploadContext* uploadContext =
+            logicalDevice->getResourceUploadContext();
+
+        uploadContext->processPendingUploads(UploadPhase::PreUpdate,
+                                             _commandJobSystem.get());
+    }
 }
 
 void RenderDevice::renderScene()
 {
     SCOPED_CHROME_TRACING("RenderDevice::renderScene");
+    for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
+    {
+        ResourceUploadContext* uploadContext =
+            logicalDevice->getResourceUploadContext();
+
+        uploadContext->processPendingUploads(UploadPhase::PreRender,
+                                             _commandJobSystem.get());
+    }
 
     // TODO(snowapril) : 
     FrameContext tempFrameContext = {

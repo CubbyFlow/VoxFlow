@@ -26,6 +26,7 @@ class FrameBufferCollector;
 class DescriptorSetAllocatorPool;
 class RenderResourceGarbageCollector;
 class StagingBufferContext;
+class ResourceUploadContext;
 
 class LogicalDevice : NonCopyable
 {
@@ -86,6 +87,14 @@ class LogicalDevice : NonCopyable
         return _garbageCollector;
     }
 
+    /**
+     * @return render resource upload context which is dedicated to logical device
+     */
+    [[nodiscard]] ResourceUploadContext* getResourceUploadContext() const
+    {
+        return _uploadContext;
+    }
+
  public:
     /**
      * @param title swapchain window title name
@@ -132,10 +141,13 @@ class LogicalDevice : NonCopyable
     std::unordered_map<std::string, Queue*> _queueMap{};
     Queue* _mainQueue = nullptr;
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
+
+    // TODO(snowapril) : manage per-logical-device managing instances
     RenderResourceMemoryPool* _deviceDefaultResourceMemoryPool = nullptr;
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
     RenderResourceGarbageCollector* _garbageCollector = nullptr;
+    ResourceUploadContext* _uploadContext = nullptr;
 };
 }  // namespace VoxFlow
 
