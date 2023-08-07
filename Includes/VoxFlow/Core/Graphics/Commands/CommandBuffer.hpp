@@ -24,6 +24,7 @@ class RenderPass;
 class SwapChain;
 class BasePipeline;
 class BindableResourceView;
+class LogicalDevice;
 
 class CommandBuffer : private NonCopyable
 {

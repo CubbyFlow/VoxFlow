@@ -29,6 +29,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandJobSystem-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp

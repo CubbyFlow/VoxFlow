@@ -1,38 +1,103 @@
 // Author : snowapril
 
-#ifndef VOXEL_FLOW_COMMAND_EXECUTOR_HPP
-#define VOXEL_FLOW_COMMAND_EXECUTOR_HPP
+#ifndef VOXEL_FLOW_COMMAND_JOB_SYSTEM_HPP
+#define VOXEL_FLOW_COMMAND_JOB_SYSTEM_HPP
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <string>
 #include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <unordered_map>
 
 namespace VoxFlow
 {
 class CommandPool;
-class LogicalDevice;
+class RenderDevice;
 class CommandBuffer;
 class SwapChain;
+class CommandPool;
+class Queue;
+
+enum class CommandJobType
+{
+    BindPipeline,
+    SetViewport,
+    BindResourceGroup,
+    UploadBuffer,
+    UploadTexture,
+    DrawIndexed,
+};
+
+struct CommandStreamKey
+{
+    std::string _cmdStreamName;
+};
+
+class CommandStream final : private NonCopyable
+{
+ public:
+    using CommandPoolStorage =
+        std::unordered_map<std::thread::id, std::unique_ptr<CommandPool>>;
+    using CommandBufferStorage =
+        std::unordered_map<std::thread::id, std::shared_ptr<CommandBuffer>>;
+
+ public:
+    explicit CommandStream(LogicalDevice* logicalDevice, Queue* queue);
+    ~CommandStream();
+
+    FenceObject flush(const std::shared_ptr<SwapChain>& swapChain,
+                      const uint32_t frameIndex, const bool waitAllCompletion);
+    
+    template <typename... CommandJobArgs>
+    void addJob(CommandJobType jobType, CommandJobArgs... args);
+
+private:
+    CommandBuffer* getOrAllocateCommandBuffer();
+    CommandPool* getOrAllocateCommandPool();
+
+ private:
+    std::mutex _streamMutex;
+    CommandPoolStorage _cmdPoolStorage;
+    CommandBufferStorage _cmdBufferStorage;
+    LogicalDevice* _logicalDevice = nullptr;
+    Queue* _queue = nullptr;
+};
 
 class CommandJobSystem final : private NonCopyable
 {
  public:
-    explicit CommandJobSystem(LogicalDevice* logicalDevice);
+    using CommandStreamPtr = std::unique_ptr<CommandStream>;
+    using CommandStreamMap = std::unordered_map<CommandStreamKey, CommandStreamPtr>;
+
+ public:
+    explicit CommandJobSystem(RenderDevice* renderDevice);
     ~CommandJobSystem() override;
 
-    // TODO(snowapril) : will be replaced to command job streaming
-    inline CommandBuffer* getCommandBuffer()
-    {
-        return nullptr;
-    }
+    void addCommandStream(const CommandStreamKey& streamKey, LogicalDevice* logicalDevice,
+                          Queue* queue);
+    CommandStream* getCommandStream(const CommandStreamKey& streamKey);
+
+ private:
+    void processJob();
 
  protected:
-    LogicalDevice* _logicalDevice = nullptr;
+    RenderDevice* _renderDevice = nullptr;
+    CommandStreamMap _cmdStreams;
 };
 
 }  // namespace VoxFlow
+
+template <>
+struct std::hash<VoxFlow::CommandStreamKey>
+{
+    std::size_t operator()(
+        VoxFlow::CommandStreamKey const& streamKey) const noexcept;
+};
+
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem-Impl.hpp>
 
 #endif
