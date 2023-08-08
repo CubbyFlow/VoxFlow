@@ -17,10 +17,13 @@ namespace VoxFlow
 {
 RenderDevice::RenderDevice(Context deviceSetupCtx)
 {
-    deviceSetupCtx.addRequiredQueue(
-        "GCT",
-        VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 1,
-        1.0F, true);
+    deviceSetupCtx.addRequiredQueue("MainGraphics", VK_QUEUE_GRAPHICS_BIT, 1,
+                                    1.0F, true);
+    deviceSetupCtx.addRequiredQueue("AsyncUpload", VK_QUEUE_TRANSFER_BIT, 1,
+                                    1.0F, false);
+    deviceSetupCtx.addRequiredQueue("AsyncCompute", VK_QUEUE_COMPUTE_BIT, 1,
+                                    1.0F, false);
+
     deviceSetupCtx.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
                                         false);
     deviceSetupCtx.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
@@ -35,11 +38,12 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
     _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
-    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
     _sceneRenderer = std::make_unique<SceneRenderer>(
         _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
 
     Thread::SetThreadName("MainThread");
+
+    initCommandStreams();
 }
 
 RenderDevice::~RenderDevice()
@@ -51,9 +55,38 @@ RenderDevice::~RenderDevice()
     delete _deviceSetupCtx;
 }
 
+void RenderDevice::initCommandStreams()
+{
+    LogicalDevice* logicalDevice = _logicalDevices[0].get();
+
+    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Graphics },
+        logicalDevice, logicalDevice->getQueuePtr("MainGraphics"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Compute },
+        logicalDevice, logicalDevice->getQueuePtr("AsyncCompute"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
+        logicalDevice, logicalDevice->getQueuePtr("AsyncUpload"));
+}
+
 void RenderDevice::updateRender(const double deltaTime)
 {
     (void)deltaTime;
+
+    const CommandStreamKey cmdStreamKey = { ._cmdStreamName =
+                                                ASYNC_UPLOAD_STREAM_NAME,
+                                            ._cmdStreamUsage =
+                                                CommandStreamUsage::Transfer };
+
+    CommandStream* asyncUploadStream =
+        _commandJobSystem->getCommandStream(cmdStreamKey);
 
     SCOPED_CHROME_TRACING("RenderDevice::updateRender");
     for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
@@ -62,20 +95,29 @@ void RenderDevice::updateRender(const double deltaTime)
             logicalDevice->getResourceUploadContext();
 
         uploadContext->processPendingUploads(UploadPhase::PreUpdate,
-                                             _commandJobSystem.get());
+                                             asyncUploadStream);
     }
 }
 
 void RenderDevice::renderScene()
 {
     SCOPED_CHROME_TRACING("RenderDevice::renderScene");
+
+    const CommandStreamKey cmdStreamKey = { ._cmdStreamName =
+                                                ASYNC_UPLOAD_STREAM_NAME,
+                                            ._cmdStreamUsage =
+                                                CommandStreamUsage::Transfer };
+
+    CommandStream* asyncUploadStream =
+        _commandJobSystem->getCommandStream(cmdStreamKey);
+
     for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
     {
         ResourceUploadContext* uploadContext =
             logicalDevice->getResourceUploadContext();
 
         uploadContext->processPendingUploads(UploadPhase::PreRender,
-                                             _commandJobSystem.get());
+                                             asyncUploadStream);
     }
 
     // TODO(snowapril) : 

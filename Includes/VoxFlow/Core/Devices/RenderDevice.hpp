@@ -53,6 +53,7 @@ class RenderDevice final : private NonCopyable
     void renderScene();
 
  private:
+    void initCommandStreams();
     void waitForRenderReady(const uint32_t frameIndex);
 
  protected:

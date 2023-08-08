@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandConfig.hpp>
 #include <string>
 #include <taskflow/taskflow.hpp>
 #include <unordered_map>
@@ -13,8 +14,8 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class SceneRenderPass;
-class CommandJobSystem;
 class ResourceUploadContext;
+class CommandJobSystem;
 
 class SceneRenderer final : NonCopyable
 {
@@ -52,6 +53,7 @@ class SceneRenderer final : NonCopyable
     FrameGraph::FrameGraph* _frameGraph = nullptr;
     FrameContext _currentFrameContext;
     CommandJobSystem* _commandJobSystem = nullptr;
+    CommandStreamKey _renderCmdStreamKey;
 
     std::unordered_map<std::string, std::unique_ptr<SceneRenderPass>>
         _sceneRenderPasses;

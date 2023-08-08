@@ -27,6 +27,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandConfig.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandJobSystem-Impl.hpp
@@ -91,6 +92,7 @@ set(SRCS
     ${SRC_DIR}/Core/FrameGraph/Resource.cpp
     ${SRC_DIR}/Core/FrameGraph/FrameGraphTexture.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
+    ${SRC_DIR}/Core/Graphics/Commands/CommandConfig.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandPool.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandJobSystem.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp

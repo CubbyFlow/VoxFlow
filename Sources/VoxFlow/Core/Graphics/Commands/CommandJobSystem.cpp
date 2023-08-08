@@ -108,9 +108,9 @@ CommandJobSystem::~CommandJobSystem()
 {
 }
 
-void CommandJobSystem::addCommandStream(const CommandStreamKey& streamKey,
-                                        LogicalDevice* logicalDevice,
-                                        Queue* queue)
+void CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey,
+                                           LogicalDevice* logicalDevice,
+                                           Queue* queue)
 {
     _cmdStreams.emplace(streamKey,
                         std::make_unique<CommandStream>(logicalDevice, queue));

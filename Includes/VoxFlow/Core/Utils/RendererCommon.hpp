@@ -41,15 +41,6 @@ enum class AttachmentMaskFlags : uint32_t
 };
 IMPL_BITWISE_OPERATORS(AttachmentMaskFlags, uint32_t);
 
-enum class CommandBufferUsage : uint8_t 
-{
-    Graphics    = 0,
-    Compute     = 1,
-    Transfer    = 2,
-    Count       = 4,
-    Undefined   = 5,
-};
-
 struct FrameContext
 {
     uint32_t _swapChainIndex = UINT32_MAX;

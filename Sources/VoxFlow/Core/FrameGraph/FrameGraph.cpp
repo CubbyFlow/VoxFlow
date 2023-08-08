@@ -328,7 +328,7 @@ void FrameGraph::execute()
     for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
          iter != _passNodeLast; ++iter)
     {
-        (*iter)->execute(this, _commandJobSystem);
+        (*iter)->execute(this, _cmdStream);
     }
 }
 

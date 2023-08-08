@@ -17,6 +17,9 @@ SceneRenderer::SceneRenderer(LogicalDevice* logicalDevice,
       _frameGraph(frameGraph),
       _commandJobSystem(commandJobSystem)
 {
+    _renderCmdStreamKey =
+        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Graphics };
 }
 
 SceneRenderer::~SceneRenderer()
@@ -43,7 +46,8 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 
     _currentFrameContext = frameContext;
 
-    _frameGraph->reset(_commandJobSystem, nullptr);
+    _frameGraph->reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey),
+                       nullptr);
 
     SwapChain* swapChain =
         _logicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)

@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_COMMAND_JOB_SYSTEM_HPP
 
 #include <volk/volk.h>
+#include <VoxFlow/Core/Graphics/Commands/CommandConfig.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -30,11 +31,6 @@ enum class CommandJobType
     UploadBuffer,
     UploadTexture,
     DrawIndexed,
-};
-
-struct CommandStreamKey
-{
-    std::string _cmdStreamName;
 };
 
 class CommandStream final : private NonCopyable
@@ -77,7 +73,7 @@ class CommandJobSystem final : private NonCopyable
     explicit CommandJobSystem(RenderDevice* renderDevice);
     ~CommandJobSystem() override;
 
-    void addCommandStream(const CommandStreamKey& streamKey, LogicalDevice* logicalDevice,
+    void createCommandStream(const CommandStreamKey& streamKey, LogicalDevice* logicalDevice,
                           Queue* queue);
     CommandStream* getCommandStream(const CommandStreamKey& streamKey);
 
@@ -90,13 +86,6 @@ class CommandJobSystem final : private NonCopyable
 };
 
 }  // namespace VoxFlow
-
-template <>
-struct std::hash<VoxFlow::CommandStreamKey>
-{
-    std::size_t operator()(
-        VoxFlow::CommandStreamKey const& streamKey) const noexcept;
-};
 
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem-Impl.hpp>
 
