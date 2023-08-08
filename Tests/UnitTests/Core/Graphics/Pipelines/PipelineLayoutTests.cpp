@@ -20,21 +20,22 @@ TEST_CASE("Vulkan Pipeline Layout Initialization")
         RESOURCES_DIR "/Shaders/test_shader.vert",
         RESOURCES_DIR "/Shaders/test_shader.frag"
     };
-    std::vector<VoxFlow::PipelineLayoutDescriptor> combinedLayoutBindings;
+
+    std::vector<std::unique_ptr<VoxFlow::ShaderModule>> shaderModules;
+    std::vector<const VoxFlow::ShaderReflectionDataGroup*> reflectionDataGroups;
     for (const char* shaderPath : shaderFilePaths)
     {
-        std::unique_ptr<VoxFlow::ShaderModule> shaderModule =
-            std::make_unique<VoxFlow::ShaderModule>(logicalDevice.get(),
-                                                    shaderPath);
-        combinedLayoutBindings.push_back(
-            shaderModule->getShaderLayoutBinding());
+        shaderModules.push_back(std::make_unique<VoxFlow::ShaderModule>(
+            logicalDevice.get(), shaderPath));
+
+        reflectionDataGroups.push_back(
+            shaderModules.back()->getShaderReflectionDataGroup());
     }
 
-    const auto pipelineLayout = std::make_shared<VoxFlow::PipelineLayout>(
-        logicalDevice.get());
+    const auto pipelineLayout =
+        std::make_shared<VoxFlow::PipelineLayout>(logicalDevice.get());
 
-    CHECK_EQ(pipelineLayout->initialize(std::move(combinedLayoutBindings)),
-             true);
+    CHECK_EQ(pipelineLayout->initialize(std::move(reflectionDataGroups)), true);
     CHECK_NE(pipelineLayout->get(), VK_NULL_HANDLE);
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
 }
