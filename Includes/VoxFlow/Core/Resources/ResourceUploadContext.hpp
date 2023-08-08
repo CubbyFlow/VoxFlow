@@ -11,7 +11,7 @@
 namespace VoxFlow
 {
 class RenderResource;
-class CommandJobSystem;
+class CommandStream;
 class StagingBuffer;
 class LogicalDevice;
 class StagingBufferContext;
@@ -44,7 +44,7 @@ class ResourceUploadContext : private NonCopyable
                           UploadData&& uploadData);
 
     void processPendingUploads(UploadPhase uploadPhase,
-                               CommandJobSystem* commandJobSystem);
+                               CommandStream* cmdStream);
 
  private:
     struct PendingUploadInfo

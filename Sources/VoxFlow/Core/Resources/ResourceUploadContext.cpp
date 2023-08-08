@@ -33,9 +33,9 @@ void ResourceUploadContext::addPendingUpload(UploadPhase uploadPhase,
 {
     StagingBuffer* stagingBuffer =
         _stagingBufferContext->getOrCreateStagingBuffer(uploadData._size);
-    
+
     // TODO(snowapril) : staging buffer offset
-    const uint32_t stagingBufferOffset = 0;  
+    const uint32_t stagingBufferOffset = 0;
 
     uint8_t* mappedData = stagingBuffer->map();
     memcpy(mappedData + stagingBufferOffset, uploadData._data,
@@ -55,10 +55,8 @@ void ResourceUploadContext::addPendingUpload(UploadPhase uploadPhase,
 }
 
 void ResourceUploadContext::processPendingUploads(
-    UploadPhase uploadPhase, CommandJobSystem* commandJobSystem)
+    UploadPhase uploadPhase, CommandStream* cmdStream)
 {
-    CommandBuffer* commandBuffer = commandJobSystem->getCommandBuffer();
-
     std::vector<PendingUploadInfo>& pendingUploadInfos =
         _pendingUploadDatas[static_cast<uint32_t>(uploadPhase)];
     for (PendingUploadInfo& uploadInfo : pendingUploadInfos)
@@ -68,14 +66,16 @@ void ResourceUploadContext::processPendingUploads(
         switch (resourceType)
         {
             case RenderResourceType::Buffer:
-                commandBuffer->uploadBuffer(
-                    static_cast<Buffer*>(uploadInfo._dstResource),
-                    uploadInfo._srcBuffer, uploadInfo._uploadData._dstOffset,
-                    uploadInfo._stagingBufferOffset,
-                    uploadInfo._uploadData._size);
+                cmdStream->addJob(CommandJobType::UploadBuffer,
+                                  static_cast<Buffer*>(uploadInfo._dstResource),
+                                  uploadInfo._srcBuffer,
+                                  uploadInfo._uploadData._dstOffset,
+                                  uploadInfo._stagingBufferOffset,
+                                  uploadInfo._uploadData._size);
                 break;
             case RenderResourceType::Texture:
-                commandBuffer->uploadTexture(
+                cmdStream->addJob(
+                    CommandJobType::UploadTexture,
                     static_cast<Texture*>(uploadInfo._dstResource),
                     uploadInfo._srcBuffer, uploadInfo._uploadData._dstOffset,
                     uploadInfo._stagingBufferOffset,

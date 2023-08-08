@@ -38,12 +38,12 @@ FrameGraph::~FrameGraph()
 {
 }
 
-void FrameGraph::reset(CommandJobSystem* commandJobSystem,
+void FrameGraph::reset(CommandStream* cmdStream,
                        RenderResourceAllocator* renderResourceAllocator)
 {
     clear();
 
-    _commandJobSystem = commandJobSystem;
+    _cmdStream = cmdStream;
     _renderResourceAllocator = renderResourceAllocator;
 }
 

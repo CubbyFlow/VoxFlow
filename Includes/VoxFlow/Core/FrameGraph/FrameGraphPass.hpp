@@ -15,7 +15,7 @@
 
 namespace VoxFlow
 {
-class CommandJobSystem;
+class CommandStream;
 
 namespace FrameGraph
 {
@@ -32,7 +32,7 @@ class FrameGraphPassBase : private NonCopyable
     ~FrameGraphPassBase();
 
     virtual void execute(FrameGraph* frameGraph,
-                         CommandJobSystem* commandJobSystem) = 0;
+                         CommandStream* cmdStream) = 0;
 };
 
 template <typename PassDataType, typename ExecutePhase>
@@ -51,11 +51,10 @@ class FrameGraphPass : public FrameGraphPassBase
         return _resourceData;
     }
 
-    void execute(FrameGraph* frameGraph,
-                 CommandJobSystem* commandJobSystem) final
+    void execute(FrameGraph* frameGraph, CommandStream* cmdStream) final
     {
         std::invoke(_executionPhaseLambda, frameGraph, _resourceData,
-                    commandJobSystem);
+                    cmdStream);
     }
 
  private:
@@ -73,7 +72,7 @@ class PassNode : public DependencyGraph::Node
     PassNode& operator=(PassNode&& passNode);
 
     virtual void execute(FrameGraph* frameGraph,
-                         CommandJobSystem* commandJobSystem) = 0;
+                         CommandStream* cmdStream) = 0;
 
     void setSideEffectPass()
     {
@@ -108,9 +107,10 @@ class RenderPassNode final : public PassNode
     RenderPassNode(RenderPassNode&& passNode);
     RenderPassNode& operator=(RenderPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandJobSystem* commandJobSystem) override
+    void execute(FrameGraph* frameGraph,
+                 CommandStream* cmdStream) override
     {
-        _passImpl->execute(frameGraph, commandJobSystem);
+        _passImpl->execute(frameGraph, cmdStream);
     }
 
     const RenderPassData* getRenderPassData(const uint32_t id) const
@@ -138,10 +138,11 @@ class PresentPassNode final : public PassNode
     PresentPassNode(PresentPassNode&& passNode);
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandJobSystem* commandJobSystem) override
+    void execute(FrameGraph* frameGraph,
+                 CommandStream* cmdStream) override
     {
         (void)frameGraph;
-        (void)commandJobSystem;
+        (void)cmdStream;
     }
 };
 }  // namespace FrameGraph
