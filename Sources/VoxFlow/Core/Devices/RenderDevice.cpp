@@ -35,9 +35,10 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _physicalDevice = new PhysicalDevice(_instance);
 
     // TODO(snowapril) : support multiple logical devices
-    _logicalDevices.emplace_back(
-        std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
-    _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
+    _logicalDevices.emplace_back(std::make_unique<LogicalDevice>(
+        deviceSetupCtx, _physicalDevice, _instance));
+    _mainSwapChain = _logicalDevices[0]->addSwapChain("VoxFlow Editor",
+                                                      glm::ivec2(1280, 920));
 
     _commandJobSystem = std::make_unique<CommandJobSystem>(this);
     _sceneRenderer = std::make_unique<SceneRenderer>(
@@ -121,21 +122,34 @@ void RenderDevice::renderScene()
                                              asyncUploadStream);
     }
 
-    // TODO(snowapril) : 
-    FrameContext tempFrameContext = {
-        ._swapChainIndex = 0,
-        ._frameIndex = 0,
-        ._backBufferIndex = 0,
-    };
+    std::optional<uint32_t> backBufferIndex =
+        _mainSwapChain->acquireNextImageIndex();
 
-    waitForRenderReady(0);
+    if (backBufferIndex.has_value())
+    {
+        // TODO(snowapril) :
+        FrameContext tempFrameContext = {
+            ._swapChainIndex = 0,
+            ._frameIndex = 0,
+            ._backBufferIndex = backBufferIndex.value(),
+        };
 
-    _sceneRenderer->beginFrameGraph(tempFrameContext);
+        waitForRenderReady(0);
 
-    tf::Future<void> resolveFence = _sceneRenderer->resolveSceneRenderPasses();
-    resolveFence.wait();
+        _sceneRenderer->beginFrameGraph(tempFrameContext);
 
-    _sceneRenderer->submitFrameGraph();
+        tf::Future<void> resolveFence =
+            _sceneRenderer->resolveSceneRenderPasses(_mainSwapChain.get());
+        resolveFence.wait();
+
+        _sceneRenderer->submitFrameGraph();
+
+        _mainSwapChain->present();
+    }
+    else
+    {
+        // TODO(snowapril) : recreate swapchain
+    }
 }
 
 void RenderDevice::waitForRenderReady(const uint32_t frameIndex)

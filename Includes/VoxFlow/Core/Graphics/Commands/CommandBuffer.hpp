@@ -38,8 +38,7 @@ class CommandBuffer : private NonCopyable
     }
 
     // Begin command buffer to record new commands
-    void beginCommandBuffer(const FrameContext& frameContext,
-                            const FenceObject& fenceToSignal,
+    void beginCommandBuffer(const FenceObject& fenceToSignal,
                             const std::string& debugName);
     
     // End command buffer recording
@@ -60,8 +59,10 @@ class CommandBuffer : private NonCopyable
     // Set viewport
     void setViewport(const glm::uvec2& viewportSize);
 
-    // Make final preparation to present recorded result to swapChain back buffer.
-    void makeSwapChainFinalLayout(SwapChain* swapChain);
+    // Make final preparation to present recorded result to swapChain back
+    // buffer.
+    void makeSwapChainFinalLayout(SwapChain* swapChain,
+                                  const uint32_t backBufferIndex);
 
     // Bind given resource group to command buffer according to descriptor set layout informations
     void bindResourceGroup(
@@ -103,7 +104,6 @@ class CommandBuffer : private NonCopyable
     VkCommandBuffer _vkCommandBuffer = VK_NULL_HANDLE;
     std::array<std::vector<ShaderVariable>, MAX_NUM_SET_SLOTS>
         _pendingResourceBindings;
-    FrameContext _frameContext;
     std::string _debugName;
     bool _hasBegun = false;
 };

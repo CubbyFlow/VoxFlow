@@ -16,6 +16,7 @@ class LogicalDevice;
 class SceneRenderPass;
 class ResourceUploadContext;
 class CommandJobSystem;
+class SwapChain;
 
 class SceneRenderer final : NonCopyable
 {
@@ -29,7 +30,7 @@ class SceneRenderer final : NonCopyable
     bool initializePasses(ResourceUploadContext* uploadContext);
 
     void beginFrameGraph(const FrameContext& frameContext);
-    tf::Future<void> resolveSceneRenderPasses();
+    tf::Future<void> resolveSceneRenderPasses(SwapChain* swapChain);
     void submitFrameGraph();
 
     template <typename SceneRenderPassType, typename... Args,

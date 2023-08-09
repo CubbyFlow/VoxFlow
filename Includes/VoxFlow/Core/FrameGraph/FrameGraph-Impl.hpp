@@ -47,13 +47,16 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
 }
 
 template <typename SetupPhase>
-void FrameGraph::addPresentPass(std::string_view&& passName, SetupPhase&& setup)
+void FrameGraph::addPresentPass(std::string_view&& passName, SetupPhase&& setup,
+                                SwapChain* swapChain,
+                                const FrameContext& frameContext)
 {
-    _passNodes.emplace_back(new PresentPassNode(this, std::move(passName)));
+    _passNodes.emplace_back(new PresentPassNode(this, std::move(passName),
+                                                swapChain, frameContext));
 
     FrameGraphBuilder builder(this, _passNodes.back());
     std::invoke(setup, builder);
-    builder._currentPassNode->setSideEffectPass();
+    builder.setSideEffectPass();
 }
 
 template <ResourceConcept ResourceDataType>

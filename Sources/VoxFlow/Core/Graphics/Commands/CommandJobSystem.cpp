@@ -16,8 +16,8 @@ CommandStream::~CommandStream()
 {
 }
 
-FenceObject CommandStream::flush(const std::shared_ptr<SwapChain>& swapChain,
-                                 const uint32_t frameIndex,
+FenceObject CommandStream::flush(SwapChain* swapChain,
+                                 const FrameContext& frameContext,
                                  const bool waitAllCompletion)
 {
     std::vector<std::shared_ptr<CommandBuffer>> cmdBufs;
@@ -33,20 +33,13 @@ FenceObject CommandStream::flush(const std::shared_ptr<SwapChain>& swapChain,
 
     // TODO(snowapril) : sort command buffer according and set dependency
     FenceObject fenceToSignal = _queue->submitCommandBufferBatch(
-        std::move(cmdBufs), swapChain, frameIndex, waitAllCompletion);
+        std::move(cmdBufs), swapChain, frameContext, waitAllCompletion);
 
     return fenceToSignal;
 }
 
 CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
 {
-    // TODO(snowapril) : remove frame context from command buffer impl
-    static FrameContext sTempFrameContext{
-        ._swapChainIndex = 0,
-        ._frameIndex = 0,
-        ._backBufferIndex = 0,
-    };
-
     const auto threadId = std::this_thread::get_id();
 
     CommandBuffer* cmdBuffer = nullptr;
@@ -60,8 +53,7 @@ CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
             std::shared_ptr<CommandBuffer> cmdBufferPtr =
                 cmdPool->getOrCreateCommandBuffer();
             // TODO(snowapril) : add thread_id to command buffer begin name
-            cmdBufferPtr->beginCommandBuffer(sTempFrameContext,
-                                             _queue->allocateFenceToSignal(),
+            cmdBufferPtr->beginCommandBuffer(_queue->allocateFenceToSignal(),
                                              fmt::format("CommandStream"));
 
             cmdBuffer = cmdBufferPtr.get();

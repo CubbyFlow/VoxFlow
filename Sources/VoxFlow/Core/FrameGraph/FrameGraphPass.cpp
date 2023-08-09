@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 
 namespace VoxFlow
 {
@@ -88,8 +89,12 @@ ResourceHandle RenderPassNode::declareRenderTarget(
 }
 
 PresentPassNode::PresentPassNode(FrameGraph* ownerFrameGraph,
-                               std::string_view&& passName)
-    : PassNode(ownerFrameGraph, std::move(passName))
+                                 std::string_view&& passName,
+                                 SwapChain* swapChainToPresent,
+                                 const FrameContext& frameContext)
+    : PassNode(ownerFrameGraph, std::move(passName)),
+      _swapChainToPresent(swapChainToPresent),
+      _frameContext(frameContext)
 {
 }
 
@@ -107,6 +112,16 @@ PresentPassNode& PresentPassNode::operator=(PresentPassNode&& passNode)
 {
     PassNode::operator=(std::move(passNode));
     return *this;
+}
+
+void PresentPassNode::execute(FrameGraph* frameGraph, CommandStream* cmdStream)
+{
+    cmdStream->addJob(CommandJobType::MakeSwapChainFinalLayout,
+                      _swapChainToPresent, _frameContext._backBufferIndex);
+
+    FenceObject executedFence =
+        cmdStream->flush(_swapChainToPresent, _frameContext, false);
+    frameGraph->setLastSubmitFence(executedFence);
 }
 
 }  // namespace FrameGraph

@@ -16,6 +16,7 @@
 namespace VoxFlow
 {
 class CommandStream;
+class SwapChain;
 
 namespace FrameGraph
 {
@@ -133,17 +134,18 @@ class PresentPassNode final : public PassNode
 {
  public:
     explicit PresentPassNode(FrameGraph* ownerFrameGraph,
-                             std::string_view&& passName);
+                             std::string_view&& passName,
+                             SwapChain* swapChainToPresent,
+                             const FrameContext& frameContext);
     ~PresentPassNode() final;
     PresentPassNode(PresentPassNode&& passNode);
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph,
-                 CommandStream* cmdStream) override
-    {
-        (void)frameGraph;
-        (void)cmdStream;
-    }
+    void execute(FrameGraph* frameGraph, CommandStream* cmdStream) override;
+
+ private:
+    SwapChain* _swapChainToPresent = nullptr;
+    FrameContext _frameContext;
 };
 }  // namespace FrameGraph
 }  // namespace VoxFlow

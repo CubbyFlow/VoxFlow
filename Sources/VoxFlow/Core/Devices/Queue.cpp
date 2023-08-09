@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <glm/common.hpp>
 
 namespace VoxFlow
 {
@@ -78,11 +79,11 @@ Queue& Queue::operator=(Queue&& other) noexcept
 }
 
 FenceObject Queue::submitCommandBuffer(
-    const std::shared_ptr<CommandBuffer>& commandBuffer,
-    const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
-    const bool waitCompletion)
+    const std::shared_ptr<CommandBuffer>& commandBuffer, SwapChain* swapChain,
+    const FrameContext& frameContext, const bool waitCompletion)
 {
-    VOX_ASSERT((swapChain == nullptr) || (frameIndex < FRAME_BUFFER_COUNT),
+    VOX_ASSERT((swapChain == nullptr) ||
+                   (frameContext._frameIndex < FRAME_BUFFER_COUNT),
                "Must provide valid frame index when swapChain is not nullptr");
 
     VkCommandBuffer cmdBufferToSubmit = commandBuffer->get();
@@ -154,7 +155,8 @@ FenceObject Queue::submitCommandBuffer(
     }
     else if (swapChain != nullptr)
     {
-        swapChain->addWaitSemaphores(frameIndex, _submitTimelineSemaphore,
+        swapChain->addWaitSemaphores(frameContext._frameIndex,
+                                     _submitTimelineSemaphore,
                                      signalingValues[0]);
     }
 
@@ -163,9 +165,13 @@ FenceObject Queue::submitCommandBuffer(
 
 FenceObject Queue::submitCommandBufferBatch(
     std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
-    const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
+    SwapChain* swapChain, const FrameContext& frameContext,
     const bool waitAllCompletion)
 {
+    VOX_ASSERT((swapChain == nullptr) ||
+                   (frameContext._frameIndex < FRAME_BUFFER_COUNT),
+               "Must provide valid frame index when swapChain is not nullptr");
+
     std::vector<std::shared_ptr<CommandBuffer>>&& commandBuffersToSubmit =
         std::move(batchedCommandBuffers);
 
@@ -177,12 +183,91 @@ FenceObject Queue::submitCommandBufferBatch(
                   return lhs->getFenceToSignal().getFenceValue() <
                          rhs->getFenceToSignal().getFenceValue();
               });
-    
-    (void)commandBuffersToSubmit;
-    (void)swapChain;
-    (void)frameIndex;
-    (void)waitAllCompletion;
-    VOX_ASSERT(false, "Not Implemented Yet");
+
+    std::vector<VkCommandBuffer> cmdBuffersToSubmit;
+    cmdBuffersToSubmit.reserve(batchedCommandBuffers.size());
+
+    uint64_t maxFenceSignalValue = 0;
+    std::transform(batchedCommandBuffers.begin(), batchedCommandBuffers.end(),
+                   std::back_inserter(cmdBuffersToSubmit),
+                   [&maxFenceSignalValue](
+                       const std::shared_ptr<CommandBuffer>& cmdBuffer) {
+                       maxFenceSignalValue = glm::max(
+                           maxFenceSignalValue,
+                           cmdBuffer->getFenceToSignal().getFenceValue());
+                       return cmdBuffer->get();
+                   });
+
+    uint64_t signalingValues[2] = { maxFenceSignalValue, 0ULL };
+
+    uint64_t waitingValues[2] = { signalingValues[0] - 1, 0ULL };
+    VkTimelineSemaphoreSubmitInfo timelineInfo{
+        .sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+        .pNext = NULL,
+        .waitSemaphoreValueCount = swapChain == nullptr ? 1U : 2U,  // TODO
+        .pWaitSemaphoreValues = waitingValues,                      // TODO
+        .signalSemaphoreValueCount = swapChain == nullptr ? 1U : 2U,
+        .pSignalSemaphoreValues = signalingValues,
+    };
+
+    VkSemaphore waitingSemaphores[2] = {
+        _submitTimelineSemaphore,
+        swapChain == nullptr ? VK_NULL_HANDLE
+                             : swapChain->getCurrentBackBufferReadySemaphore()
+    };
+
+    VkSemaphore signalingSemaphores[2] = {
+        _submitTimelineSemaphore,
+        swapChain == nullptr ? VK_NULL_HANDLE
+                             : swapChain->getCurrentPresentReadySemaphore()
+    };
+
+    // TODO(snowapril) : modify stage masks
+    VkPipelineStageFlags waitDstStageMasks[2] = {
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+    };
+
+    // Add wait semaphore for waiting acquire back buffer image
+    VkSubmitInfo submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = &timelineInfo,
+        .waitSemaphoreCount = swapChain != nullptr ? 2U : 1U,
+        .pWaitSemaphores = &waitingSemaphores[0],
+        .pWaitDstStageMask = waitDstStageMasks,
+        .commandBufferCount = static_cast<uint32_t>(cmdBuffersToSubmit.size()),
+        .pCommandBuffers = cmdBuffersToSubmit.data(),
+        .signalSemaphoreCount = swapChain != nullptr ? 2U : 1U,
+        .pSignalSemaphores = &signalingSemaphores[0]
+    };
+
+    _lastExecutedFence = FenceObject(this, waitingValues[0]);
+
+    VK_ASSERT(vkQueueSubmit(_queue, 1, &submitInfo, VK_NULL_HANDLE));
+
+    _lastExecutedFence.advanceFenceValue();
+
+    if (waitAllCompletion)
+    {
+        VkSemaphoreWaitInfo waitInfo{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
+            .pNext = NULL,
+            .flags = 0,
+            .semaphoreCount = 1,
+            .pSemaphores = &_submitTimelineSemaphore,
+            .pValues = signalingValues,
+        };
+
+        vkWaitSemaphoresKHR(_logicalDevice->get(), &waitInfo, UINT64_MAX);
+        _lastCompletedFence = FenceObject(this, maxFenceSignalValue);
+    }
+    else if (swapChain != nullptr)
+    {
+        swapChain->addWaitSemaphores(frameContext._frameIndex,
+                                     _submitTimelineSemaphore,
+                                     maxFenceSignalValue);
+    }
+
     return _lastExecutedFence;
 }
 

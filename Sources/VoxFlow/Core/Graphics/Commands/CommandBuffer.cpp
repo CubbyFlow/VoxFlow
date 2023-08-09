@@ -32,11 +32,9 @@ CommandBuffer::~CommandBuffer()
     // Do nothing
 }
 
-void CommandBuffer::beginCommandBuffer(const FrameContext& frameContext,
-                                       const FenceObject& fenceToSignal,
+void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
                                        const std::string& debugName)
 {
-    _frameContext = frameContext;
     _debugName = debugName;
 
     // Every resources and synchronization with this command buffer
@@ -57,12 +55,8 @@ void CommandBuffer::beginCommandBuffer(const FrameContext& frameContext,
     _hasBegun = true;
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    const std::string cmdDebugName =
-        fmt::format("{}_SwapChainIndex({})_FrameIndex({})_BackBufferIndex({})",
-                    _debugName, _frameContext._swapChainIndex,
-                    _frameContext._frameIndex, _frameContext._backBufferIndex);
     DebugUtil::setObjectName(_logicalDevice, _vkCommandBuffer,
-                             cmdDebugName.c_str());
+                             _debugName.c_str());
 #endif
 }
 
@@ -155,7 +149,7 @@ void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
     vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
 }
 
-void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain)
+void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_t backBufferIndex)
 {
     VkImageMemoryBarrier imageMemoryBarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -166,8 +160,7 @@ void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain)
         .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image =
-            swapChain->getSwapChainImage(_frameContext._backBufferIndex)->get(),
+        .image = swapChain->getSwapChainImage(backBufferIndex)->get(),
         .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                               .baseMipLevel = 0,
                               .levelCount = 1,

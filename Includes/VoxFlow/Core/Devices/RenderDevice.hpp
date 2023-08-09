@@ -16,6 +16,7 @@ class PhysicalDevice;
 class SceneRenderer;
 class LogicalDevice;
 class CommandJobSystem;
+class SwapChain;
 
 class RenderDevice final : private NonCopyable
 {
@@ -65,6 +66,7 @@ class RenderDevice final : private NonCopyable
     Context* _deviceSetupCtx = nullptr;
     FrameGraph::FrameGraph _frameGraph;
     FrameContext _frameContext;
+    std::shared_ptr<SwapChain> _mainSwapChain;
     std::unique_ptr<CommandJobSystem> _commandJobSystem;
 };
 }  // namespace VoxFlow

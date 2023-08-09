@@ -75,7 +75,7 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
-tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
+tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
 {
     SCOPED_CHROME_TRACING("SceneRenderer::resolveSceneRenderPasses");
 
@@ -117,7 +117,8 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses()
                     "PresentPass",
                     std::move([&](FrameGraph::FrameGraphBuilder& builder) {
                         builder.read(backBufferHandle);
-                    }));
+                    }),
+                    swapChain, _currentFrameContext);
             })
             .name("PresentPass");
 

@@ -85,6 +85,10 @@ void CommandStream::addJob(CommandJobType jobType, CommandJobArgs&&... args)
                                    params.getParam<uint32_t>(3),
                                    params.getParam<uint32_t>(4));
             break;
+        case CommandJobType::MakeSwapChainFinalLayout:
+            cmdBuffer->makeSwapChainFinalLayout(params.getParam<SwapChain*>(0),
+                                                params.getParam<uint32_t>(1));
+            break;
     }
 }
 }  // namespace VoxFlow

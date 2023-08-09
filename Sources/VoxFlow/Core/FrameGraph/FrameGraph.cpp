@@ -107,8 +107,6 @@ bool FrameGraph::compile()
         _passNodes.begin(), _passNodes.end(),
         [](PassNode* node) { return node->isCulled() == false; });
 
-
-
 #else
 
 #endif

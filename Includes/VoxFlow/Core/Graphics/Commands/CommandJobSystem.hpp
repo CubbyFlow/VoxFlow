@@ -31,6 +31,7 @@ enum class CommandJobType
     UploadBuffer,
     UploadTexture,
     DrawIndexed,
+    MakeSwapChainFinalLayout
 };
 
 class CommandStream final : private NonCopyable
@@ -45,9 +46,9 @@ class CommandStream final : private NonCopyable
     explicit CommandStream(LogicalDevice* logicalDevice, Queue* queue);
     ~CommandStream();
 
-    FenceObject flush(const std::shared_ptr<SwapChain>& swapChain,
-                      const uint32_t frameIndex, const bool waitAllCompletion);
-    
+    FenceObject flush(SwapChain* swapChain, const FrameContext& frameContext,
+                      const bool waitAllCompletion);
+
     template <typename... CommandJobArgs>
     void addJob(CommandJobType jobType, CommandJobArgs&&... args);
 

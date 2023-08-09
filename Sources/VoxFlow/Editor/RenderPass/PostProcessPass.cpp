@@ -91,15 +91,16 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
         },
         [&](FrameGraph::FrameGraph*, ToneMappingPassData&,
             CommandStream* cmdStream) {
-            cmdStream->addJob(CommandJobType::BindPipeline,
-                              _toneMapPipeline.get());
+            //cmdStream->addJob(CommandJobType::BindPipeline,
+            //                  _toneMapPipeline.get());
+
             cmdStream->addJob(CommandJobType::BindResourceGroup,
                               SetSlotCategory::PerRenderPass,
                               std::vector<ShaderVariable>{ ShaderVariable{
                                   ._variableName = "ToneMapWeight",
                                   ._view = nullptr,
                                   ._usage = ResourceLayout::UniformBuffer } });
-            cmdStream->addJob(CommandJobType::DrawIndexed, 4, 1, 0, 0, 0);
+            // cmdStream->addJob(CommandJobType::DrawIndexed, 4, 1, 0, 0, 0);
         });
 }
 

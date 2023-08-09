@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -59,7 +60,7 @@ class FrameGraphBuilder
 
     inline void setSideEffectPass()
     {
-        _currentPassNode->_refCount = UINT32_MAX;
+        _currentPassNode->setSideEffectPass();
     }
 
  protected:
@@ -92,7 +93,8 @@ class FrameGraph : private NonCopyable
                                         ExecutePhase&& execute);
 
     template <typename SetupPhase>
-    void addPresentPass(std::string_view&& passName, SetupPhase&& setup);
+    void addPresentPass(std::string_view&& passName, SetupPhase&& setup,
+                        SwapChain* swapChain, const FrameContext& frameContext);
 
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
@@ -121,6 +123,15 @@ class FrameGraph : private NonCopyable
      * @param isstr output string stream where compiled graph dumped at
      */
     void dumpGraphViz(std::ostringstream& osstr);
+
+    inline void setLastSubmitFence(const FenceObject& fenceObject)
+    {
+        _lastSubmitFence = fenceObject;
+    }
+    inline FenceObject getLastSubmitFence() const
+    {
+        return _lastSubmitFence;
+    }
 
  public:
     inline DependencyGraph* getDependencyGraph()
@@ -166,7 +177,6 @@ private:
     ResourceHandle readInternal(ResourceHandle id, PassNode* passNode);
     ResourceHandle writeInternal(ResourceHandle id, PassNode* passNode);
 
-
  private:
     std::vector<ResourceSlot> _resourceSlots;
     std::vector<PassNode*> _passNodes;
@@ -184,6 +194,7 @@ private:
     DependencyGraph _dependencyGraph;
     CommandStream* _cmdStream = nullptr;
     RenderResourceAllocator* _renderResourceAllocator = nullptr;
+    FenceObject _lastSubmitFence = FenceObject::Default();
 };
 }
 }  // namespace VoxFlow
