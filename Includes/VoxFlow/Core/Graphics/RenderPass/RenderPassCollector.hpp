@@ -24,12 +24,11 @@ class RenderPassCollector : private NonCopyable
     RenderPassCollector& operator=(RenderPassCollector&& other) noexcept;
 
  public:
-    [[nodiscard]] std::shared_ptr<RenderPass> getOrCreateRenderPass(
+    [[nodiscard]] RenderPass* getOrCreateRenderPass(
         RenderTargetLayoutKey layoutKey);
 
-    [[nodiscard]] std::shared_ptr<FrameBuffer> getOrCreateFrameBuffer(
-        const std::shared_ptr<RenderPass>& renderPass,
-        RenderTargetsInfo rtInfo);
+    [[nodiscard]] FrameBuffer* getOrCreateFrameBuffer(RenderPass* renderPass,
+                                                      RenderTargetsInfo rtInfo);
 
     void release();
 

@@ -27,7 +27,6 @@ FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
     if (&other != this)
     {
         _logicalDevice = other._logicalDevice;
-        _renderPass.swap(other._renderPass);
         _renderTargetsInfo = other._renderTargetsInfo;
         _vkFrameBuffer = other._vkFrameBuffer;
         other._vkFrameBuffer = VK_NULL_HANDLE;
@@ -35,7 +34,7 @@ FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
     return *this;
 }
 
-bool FrameBuffer::initialize(const std::shared_ptr<RenderPass>& renderPass,
+bool FrameBuffer::initialize(RenderPass* renderPass,
                              const RenderTargetsInfo& rtInfo)
 {
     _renderTargetsInfo = rtInfo;

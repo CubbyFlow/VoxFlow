@@ -123,10 +123,10 @@ void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
 void CommandBuffer::endRenderPass()
 {
     vkCmdEndRenderPass(_vkCommandBuffer);
-    _boundRenderPass.reset();
+    _boundRenderPass = nullptr;
 }
 
-void CommandBuffer::bindPipeline(const std::shared_ptr<BasePipeline>& pipeline)
+void CommandBuffer::bindPipeline(BasePipeline* pipeline)
 {
     _boundPipeline = pipeline;
 
@@ -136,7 +136,7 @@ void CommandBuffer::bindPipeline(const std::shared_ptr<BasePipeline>& pipeline)
 
 void CommandBuffer::unbindPipeline()
 {
-    _boundPipeline.reset();
+    _boundPipeline = nullptr;
 }
 
 void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
@@ -155,8 +155,7 @@ void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
     vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
 }
 
-void CommandBuffer::makeSwapChainFinalLayout(
-    const std::shared_ptr<SwapChain>& swapChain)
+void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain)
 {
     VkImageMemoryBarrier imageMemoryBarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,

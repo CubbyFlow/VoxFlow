@@ -31,13 +31,11 @@ class FrameBuffer : private NonCopyable
     }
 
  public:
-    bool initialize(const std::shared_ptr<RenderPass>& renderPass,
-                    const RenderTargetsInfo& rtInfo);
+    bool initialize(RenderPass* renderPass, const RenderTargetsInfo& rtInfo);
     void release();
 
  private:
     LogicalDevice* _logicalDevice = nullptr;
-    std::shared_ptr<RenderPass> _renderPass = nullptr;
     RenderTargetsInfo _renderTargetsInfo;
     VkFramebuffer _vkFrameBuffer = VK_NULL_HANDLE;
 };

@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
@@ -85,18 +86,19 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                         ._sampleCounts = backBufferDesc._sampleCounts,
                         ._format = backBufferDesc._format });
             builder.write(passData._afterToneMap);
+
+            builder.setSideEffectPass(); // TODO(snowapril)
         },
         [&](FrameGraph::FrameGraph*, ToneMappingPassData&,
             CommandStream* cmdStream) {
             cmdStream->addJob(CommandJobType::BindPipeline,
-                                 _toneMapPipeline);
-            cmdStream->addJob(
-                CommandJobType::BindResourceGroup,
-                SetSlotCategory::PerRenderPass,
-                std::vector<ShaderVariable>{ ShaderVariable{
-                    ._variableName = "ToneMapWeight",
-                    ._view = nullptr,
-                    ._usage = ResourceLayout::UniformBuffer } });
+                              _toneMapPipeline.get());
+            cmdStream->addJob(CommandJobType::BindResourceGroup,
+                              SetSlotCategory::PerRenderPass,
+                              std::vector<ShaderVariable>{ ShaderVariable{
+                                  ._variableName = "ToneMapWeight",
+                                  ._view = nullptr,
+                                  ._usage = ResourceLayout::UniformBuffer } });
             cmdStream->addJob(CommandJobType::DrawIndexed, 4, 1, 0, 0, 0);
         });
 }

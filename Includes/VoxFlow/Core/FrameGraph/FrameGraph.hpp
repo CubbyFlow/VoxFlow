@@ -57,6 +57,11 @@ class FrameGraphBuilder
         std::string_view&& passName,
         typename FrameGraphRenderPass::Descriptor&& initArgs);
 
+    inline void setSideEffectPass()
+    {
+        _currentPassNode->_refCount = UINT32_MAX;
+    }
+
  protected:
  private:
     FrameGraph* _frameGraph = nullptr;

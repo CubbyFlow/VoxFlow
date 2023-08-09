@@ -85,9 +85,7 @@ void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
         [&](FrameGraph::FrameGraphBuilder& builder, TempPassData&) {
             builder.write(backBufferHandle);
         },
-        [&](FrameGraph::FrameGraph*, TempPassData&, CommandStream*) {
-            spdlog::info("SceneObjectPass");
-        });
+        [&](FrameGraph::FrameGraph*, TempPassData&, CommandStream*) {});
 }
 
 }  // namespace VoxFlow

@@ -38,6 +38,8 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _logicalDevices.emplace_back(
         std::make_unique<LogicalDevice>(deviceSetupCtx, _physicalDevice, _instance));
     _logicalDevices[0]->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
+
+    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
     _sceneRenderer = std::make_unique<SceneRenderer>(
         _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
 
@@ -59,7 +61,6 @@ void RenderDevice::initCommandStreams()
 {
     LogicalDevice* logicalDevice = _logicalDevices[0].get();
 
-    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
     _commandJobSystem->createCommandStream(
         CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
                           ._cmdStreamUsage = CommandStreamUsage::Graphics },

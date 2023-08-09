@@ -52,7 +52,7 @@ class CommandBuffer : private NonCopyable
     void endRenderPass();
 
     // Bind pipeline to the command buffer
-    void bindPipeline(const std::shared_ptr<BasePipeline>& pipeline);
+    void bindPipeline(BasePipeline* pipeline);
 
     // Unbind current bound pipeline
     void unbindPipeline();
@@ -61,7 +61,7 @@ class CommandBuffer : private NonCopyable
     void setViewport(const glm::uvec2& viewportSize);
 
     // Make final preparation to present recorded result to swapChain back buffer.
-    void makeSwapChainFinalLayout(const std::shared_ptr<SwapChain>& swapChain);
+    void makeSwapChainFinalLayout(SwapChain* swapChain);
 
     // Bind given resource group to command buffer according to descriptor set layout informations
     void bindResourceGroup(
@@ -89,15 +89,15 @@ class CommandBuffer : private NonCopyable
                      uint32_t firstIndex, int32_t vertexOffset,
                      uint32_t firstInstance);
 
-private:
+ private:
     // Set pipeline barrier or transition for given resource to desired layout
-   void makeResourceLayout(BindableResourceView* resourceView,
-                           const DescriptorInfo& descInfo);
+    void makeResourceLayout(BindableResourceView* resourceView,
+                            const DescriptorInfo& descInfo);
 
  private:
     LogicalDevice* _logicalDevice = nullptr;
-    std::shared_ptr<RenderPass> _boundRenderPass = nullptr;
-    std::shared_ptr<BasePipeline> _boundPipeline = nullptr;
+    RenderPass* _boundRenderPass = nullptr;
+    BasePipeline* _boundPipeline = nullptr;
     RenderTargetsInfo _boundRenderTargetsInfo;
     FenceObject _fenceToSignal = FenceObject::Default();
     VkCommandBuffer _vkCommandBuffer = VK_NULL_HANDLE;

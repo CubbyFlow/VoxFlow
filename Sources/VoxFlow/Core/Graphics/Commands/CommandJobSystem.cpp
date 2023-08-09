@@ -22,7 +22,7 @@ FenceObject CommandStream::flush(const std::shared_ptr<SwapChain>& swapChain,
 {
     std::vector<std::shared_ptr<CommandBuffer>> cmdBufs;
     {
-        std::lock_guard<std::mutex> scopedLock(_streamMutex);
+        std::lock_guard<std::recursive_mutex> scopedLock(_streamMutex);
         for (auto& [_, cmdBufPtr] : _cmdBufferStorage)
         {
             cmdBufPtr->endCommandBuffer();
@@ -51,7 +51,7 @@ CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
 
     CommandBuffer* cmdBuffer = nullptr;
     {
-        std::lock_guard<std::mutex> scopedLock(_streamMutex);
+        std::lock_guard<std::recursive_mutex> scopedLock(_streamMutex);
 
         auto cmdIter = _cmdBufferStorage.find(threadId);
         if (cmdIter == _cmdBufferStorage.end())
@@ -59,9 +59,10 @@ CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
             CommandPool* cmdPool = getOrAllocateCommandPool();
             std::shared_ptr<CommandBuffer> cmdBufferPtr =
                 cmdPool->getOrCreateCommandBuffer();
-            cmdBufferPtr->beginCommandBuffer(
-                sTempFrameContext, _queue->allocateFenceToSignal(),
-                fmt::format("CommandStream_{}", threadId));
+            // TODO(snowapril) : add thread_id to command buffer begin name
+            cmdBufferPtr->beginCommandBuffer(sTempFrameContext,
+                                             _queue->allocateFenceToSignal(),
+                                             fmt::format("CommandStream"));
 
             cmdBuffer = cmdBufferPtr.get();
             _cmdBufferStorage.emplace(threadId, std::move(cmdBufferPtr));
@@ -81,7 +82,7 @@ CommandPool* CommandStream::getOrAllocateCommandPool()
 
     CommandPool* cmdPool = nullptr;
     {
-        std::lock_guard<std::mutex> scopedLock(_streamMutex);
+        std::lock_guard<std::recursive_mutex> scopedLock(_streamMutex);
         auto cmdPoolIter = _cmdPoolStorage.find(threadId);
         if (cmdPoolIter == _cmdPoolStorage.end())
         {

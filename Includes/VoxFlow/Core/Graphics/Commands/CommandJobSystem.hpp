@@ -49,14 +49,14 @@ class CommandStream final : private NonCopyable
                       const uint32_t frameIndex, const bool waitAllCompletion);
     
     template <typename... CommandJobArgs>
-    void addJob(CommandJobType jobType, CommandJobArgs... args);
+    void addJob(CommandJobType jobType, CommandJobArgs&&... args);
 
 private:
     CommandBuffer* getOrAllocateCommandBuffer();
     CommandPool* getOrAllocateCommandPool();
 
  private:
-    std::mutex _streamMutex;
+    std::recursive_mutex _streamMutex;
     CommandPoolStorage _cmdPoolStorage;
     CommandBufferStorage _cmdBufferStorage;
     LogicalDevice* _logicalDevice = nullptr;
