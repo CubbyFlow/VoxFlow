@@ -26,11 +26,11 @@ SceneRenderer::~SceneRenderer()
 {
 }
 
-bool SceneRenderer::initializePasses(ResourceUploadContext* uploadContext)
+bool SceneRenderer::initializePasses()
 {
     for (auto& [passName, pass] : _sceneRenderPasses)
     {
-        if (pass->initialize(uploadContext) == false)
+        if (pass->initialize() == false)
         {
             VOX_ASSERT(false, "Failed to initialize scene render pass {}",
                        passName);
@@ -38,6 +38,14 @@ bool SceneRenderer::initializePasses(ResourceUploadContext* uploadContext)
         }
     }
     return true;
+}
+
+void SceneRenderer::updateRender(ResourceUploadContext* uploadContext)
+{
+    for (auto& [_, pass] : _sceneRenderPasses)
+    {
+        pass->updateRender(uploadContext);
+    }
 }
 
 void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)

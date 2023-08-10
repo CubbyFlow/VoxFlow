@@ -42,6 +42,13 @@ bool SceneObjectPass::initialize(ResourceUploadContext* uploadContext)
         4, 1, 0, 4, 5, 1,  //  0-----1     Z
     };
 
+bool SceneObjectPass::initialize()
+{
+    _sceneObjectPipeline = std::make_unique<GraphicsPipeline>(
+        _logicalDevice, std::initializer_list<const char*>{
+                            RESOURCES_DIR "/Shaders/test_shader.vert",
+                            RESOURCES_DIR "/Shaders/test_shader.vert" });
+
     _cubeVertexBuffer = std::make_unique<Buffer>(
         "QuadVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
@@ -61,6 +68,17 @@ bool SceneObjectPass::initialize(ResourceUploadContext* uploadContext)
     _cubeIndexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(cubeIndices),
         ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+
+    return true;
+}
+
+void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
+{
+    uploadContext->addPendingUpload(UploadPhase::Immediate,
+                                    _cubeVertexBuffer.get(),
+                                    UploadData{ ._data = &cubeVertices[0].x,
+                                                ._size = sizeof(cubeVertices),
+                                                ._dstOffset = 0 });
 
     uploadContext->addPendingUpload(UploadPhase::Immediate,
                                     _cubeIndexBuffer.get(),

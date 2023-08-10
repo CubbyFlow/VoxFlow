@@ -27,8 +27,8 @@ class SceneRenderer final : NonCopyable
     ~SceneRenderer() override;
 
  public:
-    bool initializePasses(ResourceUploadContext* uploadContext);
-
+    bool initializePasses();
+    void updateRender(ResourceUploadContext* uploadContext);
     void beginFrameGraph(const FrameContext& frameContext);
     tf::Future<void> resolveSceneRenderPasses(SwapChain* swapChain);
     void submitFrameGraph();

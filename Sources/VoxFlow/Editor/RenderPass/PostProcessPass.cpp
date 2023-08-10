@@ -32,6 +32,8 @@ bool PostProcessPass::initialize(ResourceUploadContext* uploadContext)
 
     constexpr uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
 
+bool PostProcessPass::initialize()
+{
     _quadVertexBuffer = std::make_unique<Buffer>(
         "QuadVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
@@ -51,6 +53,17 @@ bool PostProcessPass::initialize(ResourceUploadContext* uploadContext)
     _quadIndexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(quadIndices),
         ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+
+    return true;
+}
+
+void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
+{
+    uploadContext->addPendingUpload(UploadPhase::Immediate,
+                                    _quadVertexBuffer.get(),
+                                    UploadData{ ._data = &quadVertices[0].x,
+                                                ._size = sizeof(quadVertices),
+                                                ._dstOffset = 0 });
 
     uploadContext->addPendingUpload(UploadPhase::Immediate,
                                     _quadIndexBuffer.get(),

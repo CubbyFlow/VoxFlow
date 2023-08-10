@@ -41,8 +41,11 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
                                                       glm::ivec2(1280, 920));
 
     _commandJobSystem = std::make_unique<CommandJobSystem>(this);
+
     _sceneRenderer = std::make_unique<SceneRenderer>(
         _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
+
+    _sceneRenderer->initializePasses();
 
     Thread::SetThreadName("MainThread");
 
@@ -96,6 +99,8 @@ void RenderDevice::updateRender(const double deltaTime)
         ResourceUploadContext* uploadContext =
             logicalDevice->getResourceUploadContext();
 
+        _sceneRenderer->updateRender(uploadContext);
+
         uploadContext->processPendingUploads(UploadPhase::PreUpdate,
                                              asyncUploadStream);
     }
@@ -122,15 +127,16 @@ void RenderDevice::renderScene()
                                              asyncUploadStream);
     }
 
+    _mainSwapChain->prepareForNextFrame();
+
     std::optional<uint32_t> backBufferIndex =
         _mainSwapChain->acquireNextImageIndex();
 
     if (backBufferIndex.has_value())
     {
-        // TODO(snowapril) :
-        FrameContext tempFrameContext = {
-            ._swapChainIndex = 0,
-            ._frameIndex = 0,
+        const FrameContext tempFrameContext = {
+            ._swapChainIndex = _mainSwapChain->getSwapChainIndex(),
+            ._frameIndex = _mainSwapChain->getFrameIndex(),
             ._backBufferIndex = backBufferIndex.value(),
         };
 

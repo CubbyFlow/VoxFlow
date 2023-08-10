@@ -39,7 +39,8 @@ class SceneRenderPass : NonCopyable
     }
 
  public:
-    virtual bool initialize(ResourceUploadContext* uploadContext) = 0;
+    virtual bool initialize() = 0;
+    virtual void updateRender(ResourceUploadContext* uploadContext) = 0;
     virtual void renderScene(FrameGraph::FrameGraph* frameGraph) = 0;
 
  protected:
