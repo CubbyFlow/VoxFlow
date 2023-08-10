@@ -46,6 +46,17 @@ const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
     return passData;
 }
 
+template <typename SetupPhase, typename ExecutePhase>
+void FrameGraph::addCallbackPass(std::string_view&& passName,
+                                 SetupPhase&& setup, ExecutePhase&& execute)
+{
+    struct EmptyPassData {};
+
+    [[maybe_unused]] auto _ =
+        addCallbackPass<EmptyPassData, SetupPhase, ExecutePhase>(
+            std::move(passName), std::move(setup), std::move(execute));
+}
+
 template <typename SetupPhase>
 void FrameGraph::addPresentPass(std::string_view&& passName, SetupPhase&& setup,
                                 SwapChain* swapChain,

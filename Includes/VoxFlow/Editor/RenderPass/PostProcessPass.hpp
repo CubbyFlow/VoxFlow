@@ -27,15 +27,11 @@ class PostProcessPass : public SceneRenderPass
     ~PostProcessPass() override;
 
  public:
-    bool initialize(ResourceUploadContext* uploadContext) override;
+    bool initialize() override;
+    void updateRender(ResourceUploadContext* uploadContext) override;
     void renderScene(FrameGraph::FrameGraph* frameGraph) override;
 
  protected:
-    struct ToneMappingPassData
-    {
-        FrameGraph::ResourceHandle _afterToneMap;
-    } _toneMapPassData;
-
     std::shared_ptr<BasePipeline> _toneMapPipeline;
     std::unique_ptr<Buffer> _quadVertexBuffer;
     std::unique_ptr<Buffer> _quadIndexBuffer;

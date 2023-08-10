@@ -23,14 +23,12 @@ PostProcessPass::~PostProcessPass()
 {
 }
 
-bool PostProcessPass::initialize(ResourceUploadContext* uploadContext)
-{
-    constexpr glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
+constexpr glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
                                        glm::vec2(1.0f, 1.0f),
                                        glm::vec2(-1.0f, -1.0f),
                                        glm::vec2(1.0f, -1.0f) };
 
-    constexpr uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
+constexpr uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
 
 bool PostProcessPass::initialize()
 {
@@ -40,12 +38,6 @@ bool PostProcessPass::initialize()
     _quadVertexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(quadVertices),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
-
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _quadVertexBuffer.get(),
-                                    UploadData{ ._data = &quadVertices[0].x,
-                                                ._size = sizeof(quadVertices),
-                                                ._dstOffset = 0 });
 
     _quadIndexBuffer = std::make_unique<Buffer>(
         "QuadIndexBuffer", _logicalDevice,
@@ -70,8 +62,6 @@ void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
                                     UploadData{ ._data = &quadIndices[0],
                                                 ._size = sizeof(quadIndices),
                                                 ._dstOffset = 0 });
-    
-    return true;
 }
 
 void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
@@ -79,33 +69,22 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
     FrameGraph::ResourceHandle backBufferHandle =
         frameGraph->getBlackBoard().getHandle("BackBuffer");
 
-    const auto& backBufferDesc =
+    FrameGraph::ResourceHandle sceneColorHandle =
+        frameGraph->getBlackBoard().getHandle("SceneColor");
+
+    const auto& sceneColorDesc =
         frameGraph->getResourceDescriptor<FrameGraph::FrameGraphTexture>(
-            backBufferHandle);
+            sceneColorHandle);
 
-    frameGraph->addCallbackPass<ToneMappingPassData>(
+    frameGraph->addCallbackPass(
         "PostProcessPass",
-        [&](FrameGraph::FrameGraphBuilder& builder,
-            ToneMappingPassData& passData) {
-            builder.read(backBufferHandle);
-            passData._afterToneMap =
-                builder.allocate<FrameGraph::FrameGraphTexture>(
-                    "AfterToneMap",
-                    FrameGraph::FrameGraphTexture::Descriptor{
-                        ._width = backBufferDesc._width,
-                        ._height = backBufferDesc._height,
-                        ._depth = backBufferDesc._depth,
-                        ._level = backBufferDesc._level,
-                        ._sampleCounts = backBufferDesc._sampleCounts,
-                        ._format = backBufferDesc._format });
-            builder.write(passData._afterToneMap);
-
-            builder.setSideEffectPass(); // TODO(snowapril)
+        [&](FrameGraph::FrameGraphBuilder& builder, auto&) {
+            builder.read(sceneColorHandle);
+            builder.write(backBufferHandle);
         },
-        [&](FrameGraph::FrameGraph*, ToneMappingPassData&,
-            CommandStream* cmdStream) {
-            //cmdStream->addJob(CommandJobType::BindPipeline,
-            //                  _toneMapPipeline.get());
+        [&](FrameGraph::FrameGraph*, auto&, CommandStream* cmdStream) {
+            // cmdStream->addJob(CommandJobType::BindPipeline,
+            //                   _toneMapPipeline.get());
 
             cmdStream->addJob(CommandJobType::BindResourceGroup,
                               SetSlotCategory::PerRenderPass,
