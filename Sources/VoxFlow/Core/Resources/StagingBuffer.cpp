@@ -22,17 +22,15 @@ StagingBuffer::~StagingBuffer()
     release();
 }
 
-bool StagingBuffer::makeAllocationResident(const BufferInfo& bufferInfo)
+bool StagingBuffer::makeAllocationResident(const uint32_t size)
 {
-    VOX_ASSERT(bufferInfo._usage != BufferUsage::Unknown,
-               "BufferUsage must be specified");
+    _size = size;
 
-    _bufferInfo = bufferInfo;
     VkBufferCreateInfo bufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .size = bufferInfo._size,
+        .size = size,
         .usage =
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -44,7 +42,7 @@ bool StagingBuffer::makeAllocationResident(const BufferInfo& bufferInfo)
         .flags =
             VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT,  // TODO(snowapril) :
                                                             // choose best one
-        .usage = VMA_MEMORY_USAGE_AUTO,
+        .usage = VMA_MEMORY_USAGE_CPU_TO_GPU,
         .requiredFlags = 0,
         .preferredFlags = 0,
         .memoryTypeBits = 0,
@@ -97,11 +95,6 @@ void StagingBuffer::release()
 
 uint8_t* StagingBuffer::map()
 {
-    VOX_ASSERT(
-        static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
-                                                    BufferUsage::Upload)) > 0,
-        "StagingBuffer without Readback flag must not be mapped");
-
     if (_permanentMappedAddress == nullptr)
     {
         void* memoryAddress = nullptr;

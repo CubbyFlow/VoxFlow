@@ -31,11 +31,8 @@ void ResourceUploadContext::addPendingUpload(UploadPhase uploadPhase,
                                              RenderResource* uploadDst,
                                              UploadData&& uploadData)
 {
-    StagingBuffer* stagingBuffer =
+    auto [stagingBuffer, stagingBufferOffset] =
         _stagingBufferContext->getOrCreateStagingBuffer(uploadData._size);
-
-    // TODO(snowapril) : staging buffer offset
-    const uint32_t stagingBufferOffset = 0;
 
     uint8_t* mappedData = stagingBuffer->map();
     memcpy(mappedData + stagingBufferOffset, uploadData._data,

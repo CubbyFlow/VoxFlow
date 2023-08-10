@@ -5,6 +5,8 @@
 
 #include <VoxFlow/Core/Utils/MemoryAllocator.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <optional>
+#include <tuple>
 
 namespace VoxFlow
 {
@@ -21,15 +23,21 @@ class StagingBufferContext : private NonCopyable
     ~StagingBufferContext();
 
  public:
-    StagingBuffer* getOrCreateStagingBuffer(const uint32_t size);
+    std::tuple<StagingBuffer*, uint32_t> getOrCreateStagingBuffer(
+        const uint32_t size);
 
     void release();
 
  private:
+    struct StagingBufferPool
+    {
+        std::shared_ptr<StagingBuffer> _stagingBuffer;
+        std::unique_ptr<LinearBlockAllocator> _blockAllocator;
+    };
+
     LogicalDevice* _logicalDevice = nullptr;
     RenderResourceMemoryPool* _renderResourceMemoryPool;
-    LinearBlockAllocator _blockAllocator;
-    StagingBuffer* _stagingBuffer = nullptr;
+    std::vector<StagingBufferPool> _stagingBufferPools;
 };
 }  // namespace VoxFlow
 

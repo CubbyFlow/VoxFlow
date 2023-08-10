@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <memory>
 
 namespace VoxFlow

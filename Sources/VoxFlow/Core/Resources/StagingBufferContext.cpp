@@ -7,12 +7,13 @@
 
 namespace VoxFlow
 {
+constexpr uint32_t STAGING_BUFFER_DEFAULT_SIZE = 1024U * 1024U;
+
 StagingBufferContext::StagingBufferContext(
     LogicalDevice* logicalDevice,
     RenderResourceMemoryPool* renderResourceMemoryPool)
     : _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool),
-      _blockAllocator(1024ULL * 1024ULL, true)
+      _renderResourceMemoryPool(renderResourceMemoryPool)
 {
 }
 
@@ -21,13 +22,45 @@ StagingBufferContext ::~StagingBufferContext()
     release();
 }
 
-StagingBuffer* StagingBufferContext::getOrCreateStagingBuffer(const uint32_t size)
+std::tuple<StagingBuffer*, uint32_t>
+StagingBufferContext::getOrCreateStagingBuffer(const uint32_t size)
 {
-    (void)size;
-    return nullptr;
+    StagingBuffer* stagingBuffer = nullptr;
+    uint32_t stagingBufferOffset = UINT32_MAX;
+
+    for (StagingBufferPool& bufferPool : _stagingBufferPools)
+    {
+        const uint32_t offset = bufferPool._blockAllocator->allocate(size);
+        if (offset != BlockAllocator::INVALID_BLOCK_OFFSET)
+        {
+            stagingBuffer = bufferPool._stagingBuffer.get();
+            stagingBufferOffset = offset;
+        }
+    }
+
+    if (stagingBuffer == nullptr)
+    {
+        auto stagingBufferPtr = std::make_shared<StagingBuffer>(
+            "StagingBuffer", _logicalDevice, _renderResourceMemoryPool);
+
+        stagingBufferPtr->makeAllocationResident(STAGING_BUFFER_DEFAULT_SIZE);
+
+        stagingBuffer = stagingBufferPtr.get();
+
+        _stagingBufferPools.push_back(
+            StagingBufferPool{ std::move(stagingBufferPtr),
+                               std::make_unique<LinearBlockAllocator>(
+                                   STAGING_BUFFER_DEFAULT_SIZE, false) });
+
+        stagingBufferOffset =
+            _stagingBufferPools.back()._blockAllocator->allocate(size);
+    }
+
+    return { stagingBuffer, stagingBufferOffset };
 }
 
 void StagingBufferContext::release()
 {
+    _stagingBufferPools.clear();
 }
 }  // namespace VoxFlow

@@ -31,9 +31,9 @@ class StagingBuffer : public RenderResource
         return _vkBuffer;
     }
 
-    [[nodiscard]] inline BufferInfo getBufferInfo() const
+    [[nodiscard]] inline uint32_t getSize() const
     {
-        return _bufferInfo;
+        return _size;
     }
 
     [[nodiscard]] inline RenderResourceType getResourceType() const
@@ -42,7 +42,7 @@ class StagingBuffer : public RenderResource
     }
 
     // Make the buffer allocation resident if evicted
-    bool makeAllocationResident(const BufferInfo& bufferInfo);
+    bool makeAllocationResident(const uint32_t size);
 
     // Release buffer object to fence resource manager
     void release();
@@ -61,7 +61,7 @@ class StagingBuffer : public RenderResource
  protected:
  private:
     VkBuffer _vkBuffer = VK_NULL_HANDLE;
-    BufferInfo _bufferInfo;
+    uint32_t _size = 0;
 };
 }  // namespace VoxFlow
 
