@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
@@ -20,27 +21,20 @@ SceneObjectPass::~SceneObjectPass()
 {
 }
 
-bool SceneObjectPass::initialize(ResourceUploadContext* uploadContext)
-{
-    _sceneObjectPipeline = std::make_unique<GraphicsPipeline>(
-        _logicalDevice, std::initializer_list<const char*>{
-                            RESOURCES_DIR "/Shaders/test_shader.vert",
-                            RESOURCES_DIR "/Shaders/test_shader.vert" });
+const std::vector<glm::vec3> cubeVertices = {
+    { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f },   { -0.5f, 0.5f, 0.5f },
+    { 0.5f, 0.5f, 0.5f },   { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f },
+    { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f },
+};
 
-    const std::vector<glm::vec3> cubeVertices = {
-        { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f },   { -0.5f, 0.5f, 0.5f },
-        { 0.5f, 0.5f, 0.5f },   { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f },
-        { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f },
-    };
-
-    const std::vector<unsigned int> cubeIndices = {
-        0, 3, 2, 0, 1, 3,  //    6-----7     Y
-        1, 7, 3, 1, 5, 7,  //   /|    /|     ^
-        5, 4, 7, 6, 7, 4,  //  2-----3 |     |
-        0, 6, 4, 0, 2, 6,  //  | 4 --|-5     ---> X
-        2, 7, 6, 2, 3, 7,  //  |/    |/     /
-        4, 1, 0, 4, 5, 1,  //  0-----1     Z
-    };
+const std::vector<unsigned int> cubeIndices = {
+    0, 3, 2, 0, 1, 3,  //    6-----7     Y
+    1, 7, 3, 1, 5, 7,  //   /|    /|     ^
+    5, 4, 7, 6, 7, 4,  //  2-----3 |     |
+    0, 6, 4, 0, 2, 6,  //  | 4 --|-5     ---> X
+    2, 7, 6, 2, 3, 7,  //  |/    |/     /
+    4, 1, 0, 4, 5, 1,  //  0-----1     Z
+};
 
 bool SceneObjectPass::initialize()
 {
@@ -55,12 +49,6 @@ bool SceneObjectPass::initialize()
     _cubeVertexBuffer->makeAllocationResident(BufferInfo{
         ._size = sizeof(cubeVertices),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
-
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _cubeVertexBuffer.get(),
-                                    UploadData{ ._data = &cubeVertices[0].x,
-                                                ._size = sizeof(cubeVertices),
-                                                ._dstOffset = 0 });
 
     _cubeIndexBuffer = std::make_unique<Buffer>(
         "QuadIndexBuffer", _logicalDevice,
@@ -85,25 +73,57 @@ void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
                                     UploadData{ ._data = &cubeIndices[0],
                                                 ._size = sizeof(cubeIndices),
                                                 ._dstOffset = 0 });
-
-    return true;
 }
 
 void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
 {
+    FrameGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
     FrameGraph::ResourceHandle backBufferHandle =
-        frameGraph->getBlackBoard().getHandle("BackBuffer");
+        blackBoard.getHandle("BackBuffer");
 
-    struct TempPassData
-    {
-    };
+    const auto& backBufferDesc =
+        frameGraph->getResourceDescriptor<FrameGraph::FrameGraphTexture>(
+            backBufferHandle);
 
-    frameGraph->addCallbackPass<TempPassData>(
+    _passData = frameGraph->addCallbackPass<SceneObjectPassData>(
         "SceneObjectPass",
-        [&](FrameGraph::FrameGraphBuilder& builder, TempPassData&) {
-            builder.write(backBufferHandle);
+        [&](FrameGraph::FrameGraphBuilder& builder,
+            SceneObjectPassData& passData) {
+            passData._sceneColorHandle =
+                builder.allocate<FrameGraph::FrameGraphTexture>(
+                    "SceneColor",
+                    FrameGraph::FrameGraphTexture::Descriptor{
+                        ._width = backBufferDesc._width,
+                        ._height = backBufferDesc._height,
+                        ._depth = backBufferDesc._depth,
+                        ._level = backBufferDesc._level,
+                        ._sampleCounts = backBufferDesc._sampleCounts,
+                        ._format = backBufferDesc._format });
+
+            passData._sceneDepthHandle =
+                builder.allocate<FrameGraph::FrameGraphTexture>(
+                    "SceneDepth", FrameGraph::FrameGraphTexture::Descriptor{
+                                      ._width = backBufferDesc._width,
+                                      ._height = backBufferDesc._height,
+                                      ._depth = 1,
+                                      ._level = backBufferDesc._level,
+                                      ._sampleCounts = 1,
+                                      ._format = VK_FORMAT_D24_UNORM_S8_UINT });
+
+            blackBoard["SceneColor"] = passData._sceneColorHandle;
+            blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](FrameGraph::FrameGraph*, TempPassData&, CommandStream*) {});
+        [&](FrameGraph::FrameGraph*, SceneObjectPassData&,
+            CommandStream* cmdStream) {
+            cmdStream->addJob(CommandJobType::BindPipeline,
+                              _sceneObjectPipeline.get());
+            
+            cmdStream->addJob(CommandJobType::BindVertexBuffer,
+                              _cubeVertexBuffer);
+
+            cmdStream->addJob(CommandJobType::BindIndexBuffer,
+                              _cubeIndexBuffer);
+        });
 }
 
 }  // namespace VoxFlow

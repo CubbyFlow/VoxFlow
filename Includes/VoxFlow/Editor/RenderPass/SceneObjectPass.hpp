@@ -32,6 +32,12 @@ class SceneObjectPass : public SceneRenderPass
 
  protected:
  private:
+    struct SceneObjectPassData
+    {
+        FrameGraph::ResourceHandle _sceneColorHandle;
+        FrameGraph::ResourceHandle _sceneDepthHandle;
+    } _passData;
+
     std::unique_ptr<GraphicsPipeline> _sceneObjectPipeline;
     std::unique_ptr<Buffer> _cubeVertexBuffer;
     std::unique_ptr<Buffer> _cubeIndexBuffer;

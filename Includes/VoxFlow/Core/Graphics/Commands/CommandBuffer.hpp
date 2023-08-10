@@ -50,6 +50,16 @@ class CommandBuffer : private NonCopyable
     // End RenderPass scope
     void endRenderPass();
 
+    /**
+     * @param vertexBuffer to bind as vertex buffer usage
+     */
+    void bindVertexBuffer(Buffer* vertexBuffer);
+
+    /**
+     * @param indexBuffer to bind as index buffer usage
+     */
+    void bindIndexBuffer(Buffer* indexBuffer);
+
     // Bind pipeline to the command buffer
     void bindPipeline(BasePipeline* pipeline);
 

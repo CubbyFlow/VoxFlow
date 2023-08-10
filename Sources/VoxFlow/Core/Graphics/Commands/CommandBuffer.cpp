@@ -120,6 +120,21 @@ void CommandBuffer::endRenderPass()
     _boundRenderPass = nullptr;
 }
 
+void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
+{
+    // TODO(snowapril) : 
+    VkBuffer vkVertexBuffer = vertexBuffer->get();
+    vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &vkVertexBuffer, nullptr);
+}
+
+void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
+{
+    // TODO(snowapril) : 
+    VkBuffer vkIndexBuffer = indexBuffer->get();
+    vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0,
+                         VK_INDEX_TYPE_UINT16);
+}
+
 void CommandBuffer::bindPipeline(BasePipeline* pipeline)
 {
     _boundPipeline = pipeline;
@@ -156,7 +171,7 @@ void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,

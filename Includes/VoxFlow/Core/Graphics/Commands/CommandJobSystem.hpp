@@ -31,7 +31,9 @@ enum class CommandJobType
     UploadBuffer,
     UploadTexture,
     DrawIndexed,
-    MakeSwapChainFinalLayout
+    MakeSwapChainFinalLayout,
+    BindVertexBuffer,
+    BindIndexBuffer
 };
 
 class CommandStream final : private NonCopyable
