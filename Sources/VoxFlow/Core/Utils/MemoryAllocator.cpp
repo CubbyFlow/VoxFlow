@@ -5,30 +5,111 @@
 
 namespace VoxFlow
 {
-LinearBlockAllocator::LinearBlockAllocator(const uint32_t totalSize,
-                                           const bool isThreadSafe)
-    : _totalSize(totalSize), _isThreadSafe(isThreadSafe)
+
+BlockAllocator::BlockAllocator(const bool isThreadSafe)
+    : _isThreadSafe(isThreadSafe)
 {
 }
+
+BlockAllocator::~BlockAllocator()
+{
+}
+
+uint32_t BlockAllocator::allocate(const uint32_t size)
+{
+    std::unique_lock allocatorLock(_mutex, std::defer_lock);
+    if (_isThreadSafe)
+    {
+        allocatorLock.lock();
+    }
+
+    const uint32_t offset = allocateInner(size);
+
+    if (_isThreadSafe)
+    {
+        allocatorLock.unlock();
+    }
+
+    return offset;
+}
+
+void BlockAllocator::deallocate(const uint32_t offset, const uint32_t size)
+{
+    std::unique_lock allocatorLock(_mutex, std::defer_lock);
+    if (_isThreadSafe)
+    {
+        allocatorLock.lock();
+    }
+
+    deallocateInner(offset, size);
+
+    if (_isThreadSafe)
+    {
+        allocatorLock.unlock();
+    }
+}
+
+void BlockAllocator::defragment()
+{
+    std::unique_lock allocatorLock(_mutex, std::defer_lock);
+    if (_isThreadSafe)
+    {
+        allocatorLock.lock();
+    }
+
+    defragmentInner();
+
+    if (_isThreadSafe)
+    {
+        allocatorLock.unlock();
+    }
+}
+
+LinearBlockAllocator::LinearBlockAllocator(const uint32_t totalSize,
+                                           const bool isThreadSafe)
+    : BlockAllocator(isThreadSafe), _totalSize(totalSize)
+{
+    _blockList.emplace(_blockList.end(), 0, _totalSize);
+} 
 
 LinearBlockAllocator::~LinearBlockAllocator()
 {
 }
 
-uint32_t LinearBlockAllocator::allocate(const uint32_t size)
+uint32_t LinearBlockAllocator::allocateInner(const uint32_t size)
 {
-    (void)size;
-    return 0;
+    uint32_t offset = INVALID_BLOCK_OFFSET;
+
+    for (auto iter = _blockList.begin(); iter != _blockList.end();)
+    {
+        BlockSizeInfo& blockInfo = *iter;
+        if (blockInfo._size == size)
+        {
+            offset = blockInfo._offset;
+            iter = _blockList.erase(iter);
+        }
+        else 
+        {
+            if (blockInfo._size > size)
+            {
+                offset = blockInfo._offset;
+                blockInfo._offset += size;
+            }
+            ++iter;
+        }
+    }
+
+    return offset;
 }
 
-void LinearBlockAllocator::deallocate(const uint32_t offset,
+void LinearBlockAllocator::deallocateInner(const uint32_t offset,
                                       const uint32_t size)
 {
     (void)offset;
     (void)size;
 }
 
-void LinearBlockAllocator::defragment()
+void LinearBlockAllocator::defragmentInner()
 {
     // TODO(snowapril)
 }
