@@ -48,7 +48,7 @@ class CommandStream final : private NonCopyable
     explicit CommandStream(LogicalDevice* logicalDevice, Queue* queue);
     ~CommandStream();
 
-    FenceObject flush(SwapChain* swapChain, const FrameContext& frameContext,
+    FenceObject flush(SwapChain* swapChain, const FrameContext* frameContext,
                       const bool waitAllCompletion);
 
     template <typename... CommandJobArgs>

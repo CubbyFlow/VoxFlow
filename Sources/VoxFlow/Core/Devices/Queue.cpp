@@ -80,10 +80,10 @@ Queue& Queue::operator=(Queue&& other) noexcept
 
 FenceObject Queue::submitCommandBuffer(
     const std::shared_ptr<CommandBuffer>& commandBuffer, SwapChain* swapChain,
-    const FrameContext& frameContext, const bool waitCompletion)
+    const FrameContext* frameContext, const bool waitCompletion)
 {
-    VOX_ASSERT((swapChain == nullptr) ||
-                   (frameContext._frameIndex < FRAME_BUFFER_COUNT),
+    VOX_ASSERT((swapChain == nullptr) || (frameContext == nullptr) ||
+                   (frameContext->_frameIndex < FRAME_BUFFER_COUNT),
                "Must provide valid frame index when swapChain is not nullptr");
 
     VkCommandBuffer cmdBufferToSubmit = commandBuffer->get();
@@ -153,9 +153,9 @@ FenceObject Queue::submitCommandBuffer(
         vkWaitSemaphoresKHR(_logicalDevice->get(), &waitInfo, UINT64_MAX);
         _lastCompletedFence = FenceObject(this, signalingValues[0]);
     }
-    else if (swapChain != nullptr)
+    else if (swapChain != nullptr && frameContext != nullptr)
     {
-        swapChain->addWaitSemaphores(frameContext._frameIndex,
+        swapChain->addWaitSemaphores(frameContext->_frameIndex,
                                      _submitTimelineSemaphore,
                                      signalingValues[0]);
     }
@@ -165,11 +165,11 @@ FenceObject Queue::submitCommandBuffer(
 
 FenceObject Queue::submitCommandBufferBatch(
     std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
-    SwapChain* swapChain, const FrameContext& frameContext,
+    SwapChain* swapChain, const FrameContext* frameContext,
     const bool waitAllCompletion)
 {
-    VOX_ASSERT((swapChain == nullptr) ||
-                   (frameContext._frameIndex < FRAME_BUFFER_COUNT),
+    VOX_ASSERT((swapChain == nullptr) || (frameContext == nullptr) ||
+                   (frameContext->_frameIndex < FRAME_BUFFER_COUNT),
                "Must provide valid frame index when swapChain is not nullptr");
 
     std::vector<std::shared_ptr<CommandBuffer>>&& commandBuffersToSubmit =
@@ -261,9 +261,9 @@ FenceObject Queue::submitCommandBufferBatch(
         vkWaitSemaphoresKHR(_logicalDevice->get(), &waitInfo, UINT64_MAX);
         _lastCompletedFence = FenceObject(this, maxFenceSignalValue);
     }
-    else if (swapChain != nullptr)
+    else if (swapChain != nullptr && frameContext != nullptr)
     {
-        swapChain->addWaitSemaphores(frameContext._frameIndex,
+        swapChain->addWaitSemaphores(frameContext->_frameIndex,
                                      _submitTimelineSemaphore,
                                      maxFenceSignalValue);
     }

@@ -57,14 +57,14 @@ class Queue : private NonCopyable
     // waiting submission completed
     FenceObject submitCommandBuffer(
         const std::shared_ptr<CommandBuffer>& commandBuffer,
-        SwapChain* swapChain, const FrameContext& frameContext,
+        SwapChain* swapChain, const FrameContext* frameContext,
         const bool waitCompletion);
 
     // Submit given command buffers to queue and returns FenceObject for waiting
     // submission completed
     FenceObject submitCommandBufferBatch(
         std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
-        SwapChain* swapChain, const FrameContext& frameContext,
+        SwapChain* swapChain, const FrameContext* frameContext,
         const bool waitAllCompletion);
 
     // Returns Timeline semaphore which synchronized with queue submission

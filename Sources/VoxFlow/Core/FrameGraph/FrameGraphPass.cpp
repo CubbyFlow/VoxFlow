@@ -120,7 +120,7 @@ void PresentPassNode::execute(FrameGraph* frameGraph, CommandStream* cmdStream)
                       _swapChainToPresent, _frameContext._backBufferIndex);
 
     FenceObject executedFence =
-        cmdStream->flush(_swapChainToPresent, _frameContext, false);
+        cmdStream->flush(_swapChainToPresent, &_frameContext, false);
     frameGraph->setLastSubmitFence(executedFence);
 }
 

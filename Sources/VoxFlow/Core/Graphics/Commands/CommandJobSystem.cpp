@@ -17,7 +17,7 @@ CommandStream::~CommandStream()
 }
 
 FenceObject CommandStream::flush(SwapChain* swapChain,
-                                 const FrameContext& frameContext,
+                                 const FrameContext* frameContext,
                                  const bool waitAllCompletion)
 {
     std::vector<std::shared_ptr<CommandBuffer>> cmdBufs;
@@ -29,6 +29,11 @@ FenceObject CommandStream::flush(SwapChain* swapChain,
             cmdBufs.emplace_back(std::move(cmdBufPtr));
         }
         _cmdBufferStorage.clear();
+    }
+
+    if (cmdBufs.empty())
+    {
+        return FenceObject::Default();
     }
 
     // TODO(snowapril) : sort command buffer according and set dependency
