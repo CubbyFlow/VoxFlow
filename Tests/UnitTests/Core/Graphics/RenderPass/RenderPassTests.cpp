@@ -12,7 +12,8 @@ TEST_CASE("Vulkan RenderPass Initialization")
     VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     const auto renderPass =
         std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());

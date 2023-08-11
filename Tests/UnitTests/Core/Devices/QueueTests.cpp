@@ -10,8 +10,8 @@ TEST_CASE("Vulkan Queue Initialization")
 {
     VoxFlow::Instance instance(gVulkanContext);
     VoxFlow::PhysicalDevice physicalDevice(&instance);
-    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
-                                         &instance);
+    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     VoxFlow::Queue* gctQueue = logicalDevice.getQueuePtr("GCT");
     CHECK_NE(gctQueue->get(), VK_NULL_HANDLE);

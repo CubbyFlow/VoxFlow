@@ -23,6 +23,14 @@ constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 3;
 constexpr uint32_t MAX_RENDER_TARGET_COUNTS = 8;
 
+enum class LogicalDeviceType : uint8_t
+{
+    MainDevice = 0,
+    // SecondaryDevice = 1, TODO(snowapril) : support secondary device
+    Undefined = 1,
+    Count = Undefined
+};
+
 enum class AttachmentMaskFlags : uint32_t
 {
     None            = 0x00000000,

@@ -5,6 +5,7 @@
 
 #include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
 #include <string_view>
@@ -33,6 +34,11 @@ class RenderResource : private NonCopyable
     RenderResource(RenderResource&&) = default;
     RenderResource& operator=(RenderResource&&) = default;
 
+    [[nodiscard]] inline LogicalDeviceType getDeviceType() const
+    {
+        return _deviceType;
+    }
+
  public:
     virtual RenderResourceType getResourceType() const = 0;
 
@@ -41,10 +47,9 @@ class RenderResource : private NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VmaAllocation _allocation = nullptr;
-
     std::vector<FenceObject> _accessedFences;
-
     void* _permanentMappedAddress = nullptr;
+    LogicalDeviceType _deviceType = LogicalDeviceType::Undefined;
 };
 
 }  // namespace VoxFlow

@@ -14,7 +14,8 @@ TEST_CASE("Vulkan Pipeline Layout Initialization")
     VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     const std::vector<const char*> shaderFilePaths{
         RESOURCES_DIR "/Shaders/test_shader.vert",

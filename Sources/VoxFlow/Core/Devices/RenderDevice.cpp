@@ -36,8 +36,12 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
 
     // TODO(snowapril) : support multiple logical devices
     _logicalDevices.emplace_back(std::make_unique<LogicalDevice>(
-        deviceSetupCtx, _physicalDevice, _instance));
-    _mainSwapChain = _logicalDevices[0]->addSwapChain("VoxFlow Editor",
+        deviceSetupCtx, _physicalDevice, _instance,
+        LogicalDeviceType::MainDevice));
+
+    LogicalDevice* mainLogicalDevice =
+        getLogicalDevice(LogicalDeviceType::MainDevice);
+    _mainSwapChain = mainLogicalDevice->addSwapChain("VoxFlow Editor",
                                                       glm::ivec2(1280, 920));
 
     _commandJobSystem = std::make_unique<CommandJobSystem>(this);

@@ -16,7 +16,8 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
     VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     std::shared_ptr<VoxFlow::RenderPass> renderPass =
         std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());

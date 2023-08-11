@@ -1,5 +1,6 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
 
 namespace VoxFlow
@@ -9,7 +10,8 @@ RenderResource::RenderResource(
     RenderResourceMemoryPool* renderResourceMemoryPool)
     : _debugName(std::move(debugName)),
       _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+      _renderResourceMemoryPool(renderResourceMemoryPool),
+      _deviceType(logicalDevice->getDeviceType())
 {
 }
 

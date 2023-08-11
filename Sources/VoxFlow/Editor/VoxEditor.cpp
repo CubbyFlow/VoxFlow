@@ -57,8 +57,11 @@ VoxEditor::VoxEditor()
 
     _renderDevice = new RenderDevice(context);
 
+    LogicalDevice* mainLogicalDevice =
+        _renderDevice->getLogicalDevice(LogicalDeviceType::MainDevice);
+
     _inputRegistrator.addObserveTargetWindow(
-        _renderDevice->getLogicalDevice(0)->getSwapChain(0)->getGlfwWindow());
+        mainLogicalDevice->getSwapChain(0)->getGlfwWindow());
 
     using namespace std::placeholders;
     auto processKeyCallback = std::mem_fn(&VoxEditor::processKeyInput);
@@ -68,10 +71,10 @@ VoxEditor::VoxEditor()
     SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
     _sceneObjectPass =
         sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>(
-            "SceneObjectPass", _renderDevice->getLogicalDevice(0));
+            "SceneObjectPass", mainLogicalDevice);
     _postProcessPass =
         sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>(
-            "PostProcessPass", _renderDevice->getLogicalDevice(0));
+            "PostProcessPass", mainLogicalDevice);
     _postProcessPass->addDependency("SceneObjectPass");
 }
 

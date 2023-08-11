@@ -55,8 +55,12 @@ class ResourceUploadContext : private NonCopyable
         UploadData _uploadData = {};
     };
 
-    LogicalDevice* _logicalDevice = nullptr;
-    StagingBufferContext* _stagingBufferContext = nullptr;
+    void uploadResource(PendingUploadInfo&& uploadInfo,
+                        CommandStream* cmdStream);
+
+    void release();
+ private:
+    std::vector<std::unique_ptr<StagingBufferContext>> _stagingBufferContexts;
     std::array<std::vector<PendingUploadInfo>,
                static_cast<uint32_t>(UploadPhase::Count)>
         _pendingUploadDatas;

@@ -36,12 +36,9 @@ class RenderDevice final : private NonCopyable
     }
 
     [[nodiscard]] inline LogicalDevice* getLogicalDevice(
-        const uint32_t deviceIndex) const
+        const LogicalDeviceType deviceType) const
     {
-        VOX_ASSERT(deviceIndex < _logicalDevices.size(),
-                   "Given Index({}), Num LogicalDevices({})", deviceIndex,
-                   _logicalDevices.size());
-        return _logicalDevices.at(deviceIndex).get();
+        return _logicalDevices.at(static_cast<uint32_t>(deviceType)).get();
     }
 
     [[nodiscard]] inline SceneRenderer* getSceneRenderer() const

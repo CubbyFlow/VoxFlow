@@ -1,8 +1,8 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/Instance.hpp>
-#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/DeviceQueryContext.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandPool.hpp>
@@ -13,8 +13,9 @@ TEST_CASE("Vulkan Queue Initialization")
 {
     VoxFlow::Instance instance(gVulkanContext);
     VoxFlow::PhysicalDevice physicalDevice(&instance);
-    VoxFlow::LogicalDevice logicalDevice(gVulkanContext, &physicalDevice,
-                                         &instance);
+    VoxFlow::LogicalDevice logicalDevice(
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     VoxFlow::DeviceQueryContext* queryContext =
         new VoxFlow::DeviceQueryContext(&logicalDevice);
