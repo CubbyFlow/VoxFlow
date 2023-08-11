@@ -23,6 +23,8 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
                                     1.0F, false);
     deviceSetupCtx.addRequiredQueue("AsyncCompute", VK_QUEUE_COMPUTE_BIT, 1,
                                     1.0F, false);
+    deviceSetupCtx.addRequiredQueue("ImmediateUpload", VK_QUEUE_TRANSFER_BIT, 1,
+                                    1.0F, false);
 
     deviceSetupCtx.addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
                                         false);
@@ -34,7 +36,6 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     _instance = new Instance(deviceSetupCtx);
     _physicalDevice = new PhysicalDevice(_instance);
 
-    // TODO(snowapril) : support multiple logical devices
     _logicalDevices.emplace_back(std::make_unique<LogicalDevice>(
         deviceSetupCtx, _physicalDevice, _instance,
         LogicalDeviceType::MainDevice));
@@ -42,18 +43,16 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     LogicalDevice* mainLogicalDevice =
         getLogicalDevice(LogicalDeviceType::MainDevice);
     _mainSwapChain = mainLogicalDevice->addSwapChain("VoxFlow Editor",
-                                                      glm::ivec2(1280, 920));
+                                                     glm::ivec2(1280, 920));
 
-    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
+    _sceneRenderer =
+        std::make_unique<SceneRenderer>(mainLogicalDevice, &_frameGraph);
 
-    _sceneRenderer = std::make_unique<SceneRenderer>(
-        _logicalDevices[0].get(), &_frameGraph, _commandJobSystem.get());
+    _mainCmdJobSystem = mainLogicalDevice->getCommandJobSystem();
 
-    _sceneRenderer->initializePasses();
+    _uploadContext = new ResourceUploadContext(this);
 
     Thread::SetThreadName("MainThread");
-
-    initCommandStreams();
 }
 
 RenderDevice::~RenderDevice()
@@ -65,24 +64,9 @@ RenderDevice::~RenderDevice()
     delete _deviceSetupCtx;
 }
 
-void RenderDevice::initCommandStreams()
+void RenderDevice::initializePasses()
 {
-    LogicalDevice* logicalDevice = _logicalDevices[0].get();
-
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Graphics },
-        logicalDevice, logicalDevice->getQueuePtr("MainGraphics"));
-
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Compute },
-        logicalDevice, logicalDevice->getQueuePtr("AsyncCompute"));
-
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
-        logicalDevice, logicalDevice->getQueuePtr("AsyncUpload"));
+    _sceneRenderer->initializePasses();
 }
 
 void RenderDevice::updateRender(const double deltaTime)
@@ -95,19 +79,18 @@ void RenderDevice::updateRender(const double deltaTime)
                                                 CommandStreamUsage::Transfer };
 
     CommandStream* asyncUploadStream =
-        _commandJobSystem->getCommandStream(cmdStreamKey);
+        _mainCmdJobSystem->getCommandStream(cmdStreamKey);
 
     SCOPED_CHROME_TRACING("RenderDevice::updateRender");
     for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
     {
-        ResourceUploadContext* uploadContext =
-            logicalDevice->getResourceUploadContext();
+        _sceneRenderer->updateRender(_uploadContext);
 
-        _sceneRenderer->updateRender(uploadContext);
-
-        uploadContext->processPendingUploads(UploadPhase::PreUpdate,
+        _uploadContext->processPendingUploads(UploadPhase::PreUpdate,
                                              asyncUploadStream);
     }
+
+    asyncUploadStream->flush(nullptr, nullptr, false);
 }
 
 void RenderDevice::renderScene()
@@ -120,16 +103,15 @@ void RenderDevice::renderScene()
                                                 CommandStreamUsage::Transfer };
 
     CommandStream* asyncUploadStream =
-        _commandJobSystem->getCommandStream(cmdStreamKey);
+        _mainCmdJobSystem->getCommandStream(cmdStreamKey);
 
     for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
     {
-        ResourceUploadContext* uploadContext =
-            logicalDevice->getResourceUploadContext();
-
-        uploadContext->processPendingUploads(UploadPhase::PreRender,
+        _uploadContext->processPendingUploads(UploadPhase::PreRender,
                                              asyncUploadStream);
     }
+
+    asyncUploadStream->flush(nullptr, nullptr, false);
 
     _mainSwapChain->prepareForNextFrame();
 

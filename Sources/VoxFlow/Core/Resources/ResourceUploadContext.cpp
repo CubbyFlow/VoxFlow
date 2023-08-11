@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
@@ -12,8 +13,8 @@
 
 namespace VoxFlow
 {
-ResourceUploadContext::ResourceUploadContext(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+ResourceUploadContext::ResourceUploadContext(RenderDevice* renderDevice)
+    : _renderDevice(renderDevice)
 {
     for (uint32_t i = 0; i < static_cast<uint32_t>(LogicalDeviceType::Count);
          ++i)

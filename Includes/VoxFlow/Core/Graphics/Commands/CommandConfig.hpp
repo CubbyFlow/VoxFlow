@@ -8,9 +8,10 @@
 namespace VoxFlow
 {
 
-constexpr const char* MAIN_GRAPHICS_STREAM_NAME = "MainGraphicsStream";
-constexpr const char* ASYNC_UPLOAD_STREAM_NAME  = "AsyncUploadStream";
-constexpr const char* ASYNC_COMPUTE_STREAM_NAME = "AsyncComputeStream";
+constexpr const char* MAIN_GRAPHICS_STREAM_NAME     = "MainGraphicsStream";
+constexpr const char* ASYNC_UPLOAD_STREAM_NAME      = "AsyncUploadStream";
+constexpr const char* ASYNC_COMPUTE_STREAM_NAME     = "AsyncComputeStream";
+constexpr const char* IMMEDIATE_UPLOAD_STREAM_NAME  = "ImmediateUploadStream";
 
 enum class CommandStreamUsage : uint8_t 
 {

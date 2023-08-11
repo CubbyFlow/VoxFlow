@@ -10,13 +10,13 @@
 
 namespace VoxFlow
 {
-SceneRenderer::SceneRenderer(LogicalDevice* logicalDevice,
-                             FrameGraph::FrameGraph* frameGraph,
-                             CommandJobSystem* commandJobSystem)
-    : _logicalDevice(logicalDevice),
-      _frameGraph(frameGraph),
-      _commandJobSystem(commandJobSystem)
+SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice,
+                             FrameGraph::FrameGraph* frameGraph)
+    : _mainLogicalDevice(mainLogicalDevice),
+      _frameGraph(frameGraph)
 {
+    _commandJobSystem = _mainLogicalDevice->getCommandJobSystem();
+
     _renderCmdStreamKey =
         CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
                           ._cmdStreamUsage = CommandStreamUsage::Graphics };
@@ -58,7 +58,7 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
                        nullptr);
 
     SwapChain* swapChain =
-        _logicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)
+        _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)
             .get();
     Texture* currentBackBuffer =
         swapChain->getSwapChainImage(_currentFrameContext._backBufferIndex)

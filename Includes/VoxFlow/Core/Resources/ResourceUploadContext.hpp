@@ -13,7 +13,7 @@ namespace VoxFlow
 class RenderResource;
 class CommandStream;
 class StagingBuffer;
-class LogicalDevice;
+class RenderDevice;
 class StagingBufferContext;
 
 enum class UploadPhase
@@ -36,7 +36,7 @@ struct UploadData
 class ResourceUploadContext : private NonCopyable
 {
  public:
-    ResourceUploadContext(LogicalDevice* logicalDevice);
+    ResourceUploadContext(RenderDevice* renderDevice);
     ~ResourceUploadContext();
 
  public:
@@ -60,6 +60,8 @@ class ResourceUploadContext : private NonCopyable
 
     void release();
  private:
+
+    RenderDevice* _renderDevice = nullptr;
     std::vector<std::unique_ptr<StagingBufferContext>> _stagingBufferContexts;
     std::array<std::vector<PendingUploadInfo>,
                static_cast<uint32_t>(UploadPhase::Count)>

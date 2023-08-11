@@ -46,12 +46,21 @@ class RenderDevice final : private NonCopyable
         return _sceneRenderer.get();
     }
 
+    /**
+     * @return render resource upload context which is dedicated to logical
+     * device
+     */
+    [[nodiscard]] ResourceUploadContext* getResourceUploadContext() const
+    {
+        return _uploadContext;
+    }
+
  public:
+    void initializePasses();
     void updateRender(const double deltaTime);
     void renderScene();
 
  private:
-    void initCommandStreams();
     void waitForRenderReady(const uint32_t frameIndex);
 
  protected:
@@ -64,7 +73,8 @@ class RenderDevice final : private NonCopyable
     FrameGraph::FrameGraph _frameGraph;
     FrameContext _frameContext;
     std::shared_ptr<SwapChain> _mainSwapChain;
-    std::unique_ptr<CommandJobSystem> _commandJobSystem;
+    CommandJobSystem* _mainCmdJobSystem = nullptr;
+    ResourceUploadContext* _uploadContext = nullptr;
 };
 }  // namespace VoxFlow
 

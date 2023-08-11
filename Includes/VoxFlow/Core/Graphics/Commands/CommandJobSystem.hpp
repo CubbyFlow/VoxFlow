@@ -17,7 +17,7 @@
 namespace VoxFlow
 {
 class CommandPool;
-class RenderDevice;
+class LogicalDevice;
 class CommandBuffer;
 class SwapChain;
 class CommandPool;
@@ -73,18 +73,17 @@ class CommandJobSystem final : private NonCopyable
     using CommandStreamMap = std::unordered_map<CommandStreamKey, CommandStreamPtr>;
 
  public:
-    explicit CommandJobSystem(RenderDevice* renderDevice);
+    explicit CommandJobSystem(LogicalDevice* logicalDevice);
     ~CommandJobSystem() override;
 
-    void createCommandStream(const CommandStreamKey& streamKey, LogicalDevice* logicalDevice,
-                          Queue* queue);
+    void createCommandStream(const CommandStreamKey& streamKey, Queue* queue);
     CommandStream* getCommandStream(const CommandStreamKey& streamKey);
 
  private:
     void processJob();
 
  protected:
-    RenderDevice* _renderDevice = nullptr;
+    LogicalDevice* _logicalDevice = nullptr;
     CommandStreamMap _cmdStreams;
 };
 

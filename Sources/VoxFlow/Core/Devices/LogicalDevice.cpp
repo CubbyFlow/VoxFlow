@@ -4,9 +4,10 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
@@ -19,8 +20,11 @@
 namespace VoxFlow
 {
 LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
-                             Instance* instance)
-    : _physicalDevice(physicalDevice), _instance(instance)
+                             Instance* instance,
+                             const LogicalDeviceType deviceType)
+    : _physicalDevice(physicalDevice),
+      _instance(instance),
+      _deviceType(deviceType)
 {
     const std::vector<VkLayerProperties> layerProperties =
         physicalDevice->getPossibleLayers();
@@ -181,7 +185,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     _garbageCollector = new RenderResourceGarbageCollector(this);
     _garbageCollector->threadConstruct();
 
-    _uploadContext = new ResourceUploadContext(this);
+    initializeCommandStreams();
 }
 
 LogicalDevice::~LogicalDevice()
@@ -225,6 +229,31 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     _swapChains.push_back(swapChain);
 
     return swapChain;
+}
+
+void LogicalDevice::initializeCommandStreams()
+{
+    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Graphics },
+        getQueuePtr("MainGraphics"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Compute },
+        getQueuePtr("AsyncCompute"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
+        getQueuePtr("AsyncUpload"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = IMMEDIATE_UPLOAD_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
+        getQueuePtr("ImmediateUpload"));
 }
 
 void LogicalDevice::releaseDedicatedResources()

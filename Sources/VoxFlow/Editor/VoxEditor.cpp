@@ -76,6 +76,8 @@ VoxEditor::VoxEditor()
         sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>(
             "PostProcessPass", mainLogicalDevice);
     _postProcessPass->addDependency("SceneObjectPass");
+
+    sceneRenderer->initializePasses();
 }
 
 VoxEditor::~VoxEditor()

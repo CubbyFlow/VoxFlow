@@ -97,8 +97,8 @@ CommandPool* CommandStream::getOrAllocateCommandPool()
     return cmdPool;
 }
 
-CommandJobSystem::CommandJobSystem(RenderDevice* renderDevice)
-    : _renderDevice(renderDevice)
+CommandJobSystem::CommandJobSystem(LogicalDevice* logicalDevice)
+    : _logicalDevice(logicalDevice)
 {
 }
 
@@ -107,11 +107,10 @@ CommandJobSystem::~CommandJobSystem()
 }
 
 void CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey,
-                                           LogicalDevice* logicalDevice,
                                            Queue* queue)
 {
     _cmdStreams.emplace(streamKey,
-                        std::make_unique<CommandStream>(logicalDevice, queue));
+                        std::make_unique<CommandStream>(_logicalDevice, queue));
 }
 
 CommandStream* CommandJobSystem::getCommandStream(

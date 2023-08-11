@@ -27,6 +27,7 @@ class DescriptorSetAllocatorPool;
 class RenderResourceGarbageCollector;
 class StagingBufferContext;
 class ResourceUploadContext;
+class CommandJobSystem;
 
 class LogicalDevice : NonCopyable
 {
@@ -43,6 +44,11 @@ class LogicalDevice : NonCopyable
     [[nodiscard]] VkDevice get() const noexcept
     {
         return _device;
+    }
+
+    [[nodiscard]] inline LogicalDeviceType getDeviceType() const noexcept
+    {
+        return _deviceType;
     }
 
     /**
@@ -87,14 +93,6 @@ class LogicalDevice : NonCopyable
         return _garbageCollector;
     }
 
-    /**
-     * @return render resource upload context which is dedicated to logical device
-     */
-    [[nodiscard]] ResourceUploadContext* getResourceUploadContext() const
-    {
-        return _uploadContext;
-    }
-
  public:
     /**
      * @param title swapchain window title name
@@ -122,7 +120,15 @@ class LogicalDevice : NonCopyable
         return _physicalDevice;
     }
 
+    inline CommandJobSystem* getCommandJobSystem() const
+    {
+        return _commandJobSystem.get();
+    }
+
  public:
+
+    void initializeCommandStreams();
+
     /**
      * release resources which derived from this logical device
      */
@@ -148,7 +154,7 @@ class LogicalDevice : NonCopyable
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
     RenderResourceGarbageCollector* _garbageCollector = nullptr;
-    ResourceUploadContext* _uploadContext = nullptr;
+    std::unique_ptr<CommandJobSystem> _commandJobSystem;
 };
 }  // namespace VoxFlow
 
