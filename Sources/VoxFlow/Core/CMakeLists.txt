@@ -20,6 +20,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/TypeTraits.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphResources.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp
@@ -44,7 +45,9 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RederTargetGroup.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Renderer/SceneRenderPass.hpp
@@ -125,7 +128,6 @@ set(SRCS
     ${SRC_DIR}/Core/Utils/DeviceInputSubscriber.cpp
     ${SRC_DIR}/Core/Utils/DebugUtil.cpp
     ${SRC_DIR}/Core/Utils/FenceObject.cpp
-    ${SRC_DIR}/Core/Utils/RendererCommon.cpp
     ${SRC_DIR}/Core/Utils/Thread.cpp
     ${SRC_DIR}/Core/Utils/MemoryAllocator.cpp
     ${SRC_DIR}/Core/Utils/VertexFormat.cpp

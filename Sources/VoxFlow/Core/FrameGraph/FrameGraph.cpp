@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <stack>
@@ -26,7 +27,7 @@ ResourceHandle FrameGraphBuilder::declareRenderPass(
     typename FrameGraphRenderPass::Descriptor&& initArgs)
 {
     return static_cast<RenderPassNode*>(_currentPassNode)
-        ->declareRenderTarget(_frameGraph, this, std::move(passName),
+        ->declareRenderPass(_frameGraph, this, std::move(passName),
                               std::move(initArgs));
 }
 
@@ -106,6 +107,48 @@ bool FrameGraph::compile()
     _passNodeLast = std::stable_partition(
         _passNodes.begin(), _passNodes.end(),
         [](PassNode* node) { return node->isCulled() == false; });
+
+    for (auto it = _passNodes.begin(); it != _passNodeLast; ++it)
+    {
+        PassNode* passNode = *it;
+
+        VOX_ASSERT(passNode->isCulled(),
+                   "There must not be culled nodes after culling");
+
+        DependencyGraph::EdgeContainer reads =
+            _dependencyGraph.getIncomingEdges(passNode->getNodeID());
+        for (const DependencyGraph::Edge* edge : reads)
+        {
+            DependencyGraph::Node* node =
+                _dependencyGraph.getNode(edge->_fromNodeID);
+            passNode->registerResource(
+                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+        }
+
+        DependencyGraph::EdgeContainer writes =
+            _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
+        for (const DependencyGraph::Edge* edge : writes)
+        {
+            DependencyGraph::Node* node =
+                _dependencyGraph.getNode(edge->_toNodeID);
+            passNode->registerResource(
+                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+        }
+
+        passNode->resolve(this);
+    }
+
+    for (VirtualResource* resource : _resources)
+    {
+        if (resource->isCulled() == false)
+        {
+            PassNode* firstPass = resource->getFirstReferencedPassNode();
+            PassNode* lastPass = resource->getLastReferencedPassNode();
+
+            firstPass->addDevirtualize(resource);
+            lastPass->addDestroy(resource);
+        }
+    }
 
 #else
 
@@ -326,7 +369,21 @@ void FrameGraph::execute()
     for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
          iter != _passNodeLast; ++iter)
     {
-        (*iter)->execute(this, _cmdStream);
+        PassNode* passNode = *iter;
+
+        for (VirtualResource* resource : passNode->getDevirtualizes())
+        {
+            resource->devirtualize();
+        }
+
+        FrameGraphResources resources(this, passNode);
+
+        passNode->execute(&resources, _cmdStream);
+
+        for (VirtualResource* resource : passNode->getDestroyes())
+        {
+            resource->destroy();
+        }
     }
 }
 

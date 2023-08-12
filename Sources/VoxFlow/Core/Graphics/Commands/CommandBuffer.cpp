@@ -68,20 +68,25 @@ void CommandBuffer::endCommandBuffer()
     _hasBegun = false;
 }
 
-void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
+void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
+                                    const RenderPassParams& passParams)
 {
     RenderPassCollector* renderPassCollector =
         _logicalDevice->getRenderPassCollector();
 
-    _boundRenderPass =
-        renderPassCollector->getOrCreateRenderPass(rtInfo._layoutKey);
+    // TODO(snowapril) :
+    RenderTargetLayoutKey rtLayoutKey = {};
 
-    auto frameBuffer =
-        renderPassCollector->getOrCreateFrameBuffer(_boundRenderPass, rtInfo);
+    _boundRenderPass = renderPassCollector->getOrCreateRenderPass(rtLayoutKey);
+
+    RenderTargetsInfo rtInfo = {};
+    rtInfo._vkRenderPass = _boundRenderPass->get();
+
+    auto frameBuffer = renderPassCollector->getOrCreateFrameBuffer(rtInfo);
 
     std::vector<VkClearValue> clearValues;
     for (const ColorPassDescription& colorPass :
-         rtInfo._layoutKey._colorAttachmentDescs)
+         rtLayoutKey._colorAttachmentDescs)
     {
         clearValues.push_back(
             VkClearValue{ .color = VkClearColorValue{
@@ -91,10 +96,10 @@ void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
                                            colorPass._clearColorValues.w } } });
     }
 
-    if (rtInfo._layoutKey._depthStencilAttachment.has_value())
+    if (rtLayoutKey._depthStencilAttachment.has_value())
     {
         const DepthStencilPassDescription& depthPass =
-            rtInfo._layoutKey._depthStencilAttachment.value();
+            rtLayoutKey._depthStencilAttachment.value();
         clearValues.push_back(
             VkClearValue{ .depthStencil = VkClearDepthStencilValue{
                               .depth = depthPass._clearDepthValue,

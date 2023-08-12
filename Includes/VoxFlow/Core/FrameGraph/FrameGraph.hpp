@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
@@ -151,6 +152,12 @@ class FrameGraph : private NonCopyable
     inline BlackBoard& getBlackBoard()
     {
         return _blackBoard;
+    }
+
+    VirtualResource* getVirtualResource(ResourceHandle resourceHandle)
+    {
+        const ResourceSlot& resourceSlot = getResourceSlot(resourceHandle);
+        return _resources[resourceSlot._resourceIndex];
     }
 
     template <ResourceConcept ResourceDataType>

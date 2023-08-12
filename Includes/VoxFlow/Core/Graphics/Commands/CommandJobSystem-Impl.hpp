@@ -54,6 +54,13 @@ void CommandStream::addJob(CommandJobType jobType, CommandJobArgs&&... args)
 
     switch (jobType)
     {
+        case CommandJobType::BeginRenderPass:
+            cmdBuffer->beginRenderPass(params.getParam<AttachmentGroup>(0),
+                                       params.getParam<RenderPassParams>(1));
+            break;
+        case CommandJobType::EndRenderPass:
+            cmdBuffer->endRenderPass();
+            break;
         case CommandJobType::BindPipeline:
             cmdBuffer->bindPipeline(params.getParam<BasePipeline*>(0));
             break;

@@ -77,7 +77,8 @@ TEST_CASE("FrameGraph")
                 passData._input2 = builder.read(passData._input2);
                 passData._output1 = builder.write(passData._output1);
             },
-            [&](FrameGraph::FrameGraph*, SamplePassData1& passData,
+            [&](const FrameGraph::FrameGraphResources*,
+                SamplePassData1& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
     struct SamplePassData2
@@ -115,7 +116,7 @@ TEST_CASE("FrameGraph")
                 passData._input1 = builder.read(passData._input1);
                 passData._output1 = builder.write(passData._output1);
             },
-            [&](FrameGraph::FrameGraph*, SamplePassData2& passData,
+            [&](const FrameGraph::FrameGraphResources*, SamplePassData2& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
     struct SamplePassData3
@@ -133,7 +134,8 @@ TEST_CASE("FrameGraph")
                 passData._input1 = builder.read(samplePass1._output1);
                 builder.write(blackBoard.getHandle("BackBuffer"));
             },
-            [&](FrameGraph::FrameGraph*, SamplePassData3& passData,
+            [&](const FrameGraph::FrameGraphResources*,
+                SamplePassData3& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
     const bool compileResult = frameGraph.compile();

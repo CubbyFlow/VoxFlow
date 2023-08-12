@@ -55,7 +55,11 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
             builder.read(sceneColorHandle);
             builder.write(backBufferHandle);
         },
-        [&](FrameGraph::FrameGraph*, auto&, CommandStream* cmdStream) {
+        [&](const FrameGraph::FrameGraphResources*, auto&,
+            CommandStream* cmdStream) {
+            // cmdStream
+            //     ->addJob(CommandJobType::BeginRenderPass, )
+
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _toneMapPipeline.get());
 
@@ -67,6 +71,8 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                                   ._usage = ResourceLayout::UniformBuffer } });
 
             cmdStream->addJob(CommandJobType::Draw, 4, 1, 0, 0);
+
+            cmdStream->addJob(CommandJobType::EndRenderPass);
         });
 }
 

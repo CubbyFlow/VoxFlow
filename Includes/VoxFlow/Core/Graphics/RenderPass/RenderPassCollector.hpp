@@ -3,6 +3,7 @@
 #ifndef VOXEL_FLOW_RENDER_PASS_COLLECTOR_HPP
 #define VOXEL_FLOW_RENDER_PASS_COLLECTOR_HPP
 
+#include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
@@ -27,8 +28,7 @@ class RenderPassCollector : private NonCopyable
     [[nodiscard]] RenderPass* getOrCreateRenderPass(
         RenderTargetLayoutKey layoutKey);
 
-    [[nodiscard]] FrameBuffer* getOrCreateFrameBuffer(RenderPass* renderPass,
-                                                      RenderTargetsInfo rtInfo);
+    [[nodiscard]] FrameBuffer* getOrCreateFrameBuffer(RenderTargetsInfo rtInfo);
 
     void release();
 

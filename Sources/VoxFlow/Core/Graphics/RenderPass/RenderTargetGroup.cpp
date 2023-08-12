@@ -1,7 +1,7 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
 #include <algorithm>
 
 namespace VoxFlow
@@ -18,14 +18,16 @@ bool RenderTargetLayoutKey::operator==(const RenderTargetLayoutKey& other) const
 
 bool RenderTargetsInfo::operator==(const RenderTargetsInfo& other) const
 {
-    return (_debugName == other._debugName) && _layoutKey == other._layoutKey &&
+    return (_debugName == other._debugName) &&
+           _vkRenderPass == other._vkRenderPass &&
            std::equal(_colorRenderTarget.begin(), _colorRenderTarget.end(),
                       other._colorRenderTarget.begin(),
                       other._colorRenderTarget.end()) &&
            (_depthStencilImage == other._depthStencilImage) &&
-           (_resolution == other._resolution);
+           (_resolution == other._resolution) && (_layers == other._layers) &&
+           (_numSamples == other._numSamples);
 }
-};
+};  // namespace VoxFlow
 
 std::size_t std::hash<VoxFlow::RenderTargetLayoutKey>::operator()(
     VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept
@@ -69,7 +71,7 @@ std::size_t std::hash<VoxFlow::RenderTargetsInfo>::operator()(
 {
     uint32_t seed = 0;
     VoxFlow::hash_combine(seed, rtInfo._debugName);
-    VoxFlow::hash_combine(seed, rtInfo._layoutKey);
+    VoxFlow::hash_combine(seed, reinterpret_cast<uint64_t>(rtInfo._vkRenderPass);
     for (const std::shared_ptr<VoxFlow::TextureView>& colorRT :
          rtInfo._colorRenderTarget)
     {
@@ -87,6 +89,8 @@ std::size_t std::hash<VoxFlow::RenderTargetsInfo>::operator()(
 
     VoxFlow::hash_combine(seed, rtInfo._resolution.x);
     VoxFlow::hash_combine(seed, rtInfo._resolution.y);
+    VoxFlow::hash_combine(seed, rtInfo._layers);
+    VoxFlow::hash_combine(seed, rtInfo._numSamples);
 
     return seed;
 }

@@ -15,6 +15,13 @@ VirtualResource ::~VirtualResource()
 {
 }
 
+void VirtualResource::isReferencedByPass(PassNode* passNode)
+{
+    _refCount++;
+    _firstPass = (_firstPass == nullptr) ? passNode : _firstPass;
+    _lastPass = passNode;
+}
+
 ImportedRenderTarget::ImportedRenderTarget(
     const FrameGraphTexture& resource,
     FrameGraphTexture::Descriptor&& resourceArgs, Texture* texture)

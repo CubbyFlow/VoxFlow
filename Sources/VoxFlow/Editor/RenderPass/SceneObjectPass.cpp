@@ -113,7 +113,7 @@ void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
             blackBoard["SceneColor"] = passData._sceneColorHandle;
             blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](FrameGraph::FrameGraph*, SceneObjectPassData&,
+        [&](const FrameGraph::FrameGraphResources*, SceneObjectPassData&,
             CommandStream* cmdStream) {
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _sceneObjectPipeline.get());

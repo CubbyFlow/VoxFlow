@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_FRAME_GRAPH_RENDER_PASS_HPP
 
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
 #include <VoxFlow/Core/Utils/Handle.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <array>
@@ -28,7 +29,7 @@ struct FrameGraphRenderPass
 
     struct Descriptor
     {
-        std::vector<Attachment> _attachments;
+        std::array<Attachment, MAX_RENDER_TARGET_COUNTS> _attachments;
         glm::uvec2 _viewportSize;
         std::array<glm::vec4, MAX_RENDER_TARGET_COUNTS> _clearColors;
         float _clearDepth = 0.0f;

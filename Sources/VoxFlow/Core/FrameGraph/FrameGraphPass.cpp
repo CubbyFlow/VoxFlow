@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 
@@ -46,13 +47,35 @@ PassNode& PassNode::operator=(PassNode&& passNode)
     return *this;
 }
 
+void PassNode::registerResource(FrameGraph* frameGraph, ResourceHandle resourceHandle)
+{
+    VirtualResource* resource = frameGraph->getVirtualResource(resourceHandle);
+    resource->isReferencedByPass(this);
+    _declaredHandles.insert(resourceHandle);
+}
+
+void PassNode::addDevirtualize(VirtualResource* resource)
+{
+    _devirtualizes.push_back(resource);
+}
+
+void PassNode::addDestroy(VirtualResource* resource)
+{
+    _destroyes.push_back(resource);
+}
+
+void PassNode::resolve(FrameGraph* frameGraph)
+{
+    (void)frameGraph;
+}
+
 RenderPassNode::RenderPassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName,
                    std::unique_ptr<FrameGraphPassBase>&& pass)
     : PassNode(ownerFrameGraph, std::move(passName)), _passImpl(std::move(pass))
 {
 }
 
-RenderPassNode ::~RenderPassNode()
+RenderPassNode::~RenderPassNode()
 {
     _passImpl.reset();
 }
@@ -74,18 +97,25 @@ RenderPassNode& RenderPassNode::operator=(RenderPassNode&& passNode)
     return *this;
 }
 
-ResourceHandle RenderPassNode::declareRenderTarget(
-    FrameGraph* frameGraph, FrameGraphBuilder* builder,
-    std::string_view&& name,
+void RenderPassNode::execute(const FrameGraphResources* resources,
+                             CommandStream* cmdStream)
+{
+    _passImpl->execute(resources, cmdStream);
+}
+
+ResourceHandle RenderPassNode::declareRenderPass(
+    FrameGraph* frameGraph, FrameGraphBuilder* builder, std::string_view&& name,
     typename FrameGraphRenderPass::Descriptor&& descriptor)
 {
     // TODO(snowapril) : implement
     (void)frameGraph;
     (void)builder;
-    (void)name;
-    (void)descriptor;
 
-    return 0;
+    const ResourceHandle rpID =
+        static_cast<ResourceHandle>(_renderPassData.size());
+    _renderPassData.emplace_back(std::move(name), std::move(descriptor));
+
+    return rpID;
 }
 
 PresentPassNode::PresentPassNode(FrameGraph* ownerFrameGraph,
@@ -114,14 +144,16 @@ PresentPassNode& PresentPassNode::operator=(PresentPassNode&& passNode)
     return *this;
 }
 
-void PresentPassNode::execute(FrameGraph* frameGraph, CommandStream* cmdStream)
+void PresentPassNode::execute(const FrameGraphResources* resources,
+                              CommandStream* cmdStream)
 {
     cmdStream->addJob(CommandJobType::MakeSwapChainFinalLayout,
                       _swapChainToPresent, _frameContext._backBufferIndex);
 
     FenceObject executedFence =
         cmdStream->flush(_swapChainToPresent, &_frameContext, false);
-    frameGraph->setLastSubmitFence(executedFence);
+    
+    resources->getFrameGraph()->setLastSubmitFence(executedFence);
 }
 
 }  // namespace FrameGraph

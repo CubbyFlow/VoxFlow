@@ -25,6 +25,8 @@ class Queue;
 
 enum class CommandJobType
 {
+    BeginRenderPass,
+    EndRenderPass,
     BindPipeline,
     SetViewport,
     BindResourceGroup,

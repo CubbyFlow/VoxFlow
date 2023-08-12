@@ -31,24 +31,6 @@ enum class LogicalDeviceType : uint8_t
     Count = Undefined
 };
 
-enum class AttachmentMaskFlags : uint32_t
-{
-    None            = 0x00000000,
-    Color0          = 0x00000001,
-    Color1          = 0x00000002,
-    Color2          = 0x00000004,
-    Color3          = 0x00000008,
-    Color4          = 0x00000010,
-    Color5          = 0x00000020,
-    Color6          = 0x00000040,
-    Color7          = 0x00000080,
-    Depth           = 0x00000100,
-    Stencil         = 0x00000200,
-    DepthStencil    = Depth | Stencil,
-    All             = DepthStencil | 0x000000ff,
-};
-IMPL_BITWISE_OPERATORS(AttachmentMaskFlags, uint32_t);
-
 struct FrameContext
 {
     uint32_t _swapChainIndex = UINT32_MAX;
@@ -134,63 +116,6 @@ struct TextureViewInfo
     uint32_t _layerCount = 1;
 };
 
-struct ColorPassDescription
-{
-    glm::ivec3 _resolution;
-    VkFormat _format = VK_FORMAT_UNDEFINED;
-    bool _clearColor = false;
-    glm::vec4 _clearColorValues;
-
-    inline bool operator==(const ColorPassDescription& other) const
-    {
-        return (_resolution == other._resolution) &&
-               (_format == other._format) &&
-               (_clearColor == other._clearColor) &&
-               (_clearColorValues == other._clearColorValues);
-    }
-};
-
-struct DepthStencilPassDescription
-{
-    glm::ivec3 _resolution;
-    VkFormat _format = VK_FORMAT_UNDEFINED;
-    bool _clearDepth = false;
-    bool _clearStencil = false;
-    float _clearDepthValue = 0.0f;
-    uint32_t _clearStencilValue = 0;
-
-    inline bool operator==(
-        const DepthStencilPassDescription& other) const
-    {
-        return (_resolution == other._resolution) &&
-               (_format == other._format) &&
-               (_clearDepth == other._clearDepth) &&
-               (_clearStencil == other._clearStencil) &&
-               (_clearDepthValue == other._clearDepthValue) &&
-               (_clearStencilValue == other._clearStencilValue);
-    }
-};
-
-struct RenderTargetLayoutKey
-{
-    std::string _debugName;
-    std::vector<ColorPassDescription> _colorAttachmentDescs;
-    std::optional<DepthStencilPassDescription> _depthStencilAttachment;
-
-    bool operator==(const RenderTargetLayoutKey& other) const;
-};
-
-struct RenderTargetsInfo
-{
-    std::string _debugName;
-    RenderTargetLayoutKey _layoutKey;
-    std::vector<std::shared_ptr<TextureView>> _colorRenderTarget;
-    std::optional<std::shared_ptr<TextureView>> _depthStencilImage;
-    glm::uvec2 _resolution;
-
-    bool operator==(const RenderTargetsInfo& other) const;
-};
-
 // Below helper types from
 // https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
@@ -203,19 +128,5 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
 }  // namespace VoxFlow
-
-template <>
-struct std::hash<VoxFlow::RenderTargetLayoutKey>
-{
-    std::size_t operator()(
-        VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept;
-};
-
-template <>
-struct std::hash<VoxFlow::RenderTargetsInfo>
-{
-    std::size_t operator()(
-        VoxFlow::RenderTargetsInfo const& rtInfo) const noexcept;
-};
 
 #endif

@@ -24,7 +24,7 @@ RenderResourceAllocator ::~RenderResourceAllocator()
     }
 }
 
-std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(
+Handle<Texture> RenderResourceAllocator::allocateTexture(
     const TextureInfo& textureInfo, std::string&& debugName)
 {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(
@@ -38,7 +38,7 @@ std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(
     return texture;
 }
 
-std::shared_ptr<Buffer> RenderResourceAllocator::allocateBuffer(
+Handle<Buffer> RenderResourceAllocator::allocateBuffer(
     const BufferInfo& bufferInfo, std::string&& debugName)
 {
     std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(

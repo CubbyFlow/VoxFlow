@@ -7,10 +7,13 @@
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
 #include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 namespace VoxFlow
@@ -23,6 +26,7 @@ namespace FrameGraph
 
 class FrameGraph;
 class FrameGraphBuilder;
+class FrameGraphResources;
 class PassNode;
 class VirtualResource;
 
@@ -32,7 +36,7 @@ class FrameGraphPassBase : private NonCopyable
     explicit FrameGraphPassBase();
     ~FrameGraphPassBase();
 
-    virtual void execute(FrameGraph* frameGraph,
+    virtual void execute(const FrameGraphResources* resources,
                          CommandStream* cmdStream) = 0;
 };
 
@@ -52,10 +56,10 @@ class FrameGraphPass : public FrameGraphPassBase
         return _resourceData;
     }
 
-    void execute(FrameGraph* frameGraph, CommandStream* cmdStream) final
+    void execute(const FrameGraphResources* resources,
+                 CommandStream* cmdStream) override final
     {
-        std::invoke(_executionPhaseLambda, frameGraph, _resourceData,
-                    cmdStream);
+        std::invoke(_executionPhaseLambda, resources, _resourceData, cmdStream);
     }
 
  private:
@@ -72,7 +76,7 @@ class PassNode : public DependencyGraph::Node
     PassNode(PassNode&& passNode);
     PassNode& operator=(PassNode&& passNode);
 
-    virtual void execute(FrameGraph* frameGraph,
+    virtual void execute(const FrameGraphResources* resources,
                          CommandStream* cmdStream) = 0;
 
     void setSideEffectPass()
@@ -85,7 +89,28 @@ class PassNode : public DependencyGraph::Node
         return _passName;
     }
 
+    inline const std::unordered_set<ResourceHandle>& getDeclaredHandles() const
+    {
+        return _declaredHandles;
+    }
+
+    inline const std::vector<VirtualResource*>& getDevirtualizes() const
+    {
+        return _devirtualizes;
+    }
+
+    inline const std::vector<VirtualResource*>& getDestroyes() const
+    {
+        return _destroyes;
+    }
+
+    void registerResource(FrameGraph* frameGraph, ResourceHandle resourceHandle);
+    void addDevirtualize(VirtualResource* resource);
+    void addDestroy(VirtualResource* resource);
+    void resolve(FrameGraph* frameGraph);
+
  protected:
+    std::unordered_set<ResourceHandle> _declaredHandles;
     std::vector<VirtualResource*> _devirtualizes;
     std::vector<VirtualResource*> _destroyes;
     std::string _passName;
@@ -97,7 +122,11 @@ class RenderPassNode final : public PassNode
  public:
     struct RenderPassData
     {
+        std::string_view _renderPassName;
         FrameGraphRenderPass::Descriptor _descriptor;
+        AttachmentMaskFlags _blendMask = AttachmentMaskFlags::All;
+        AttachmentGroup _attachmentGroup;
+        RenderPassParams _passParams;
     };
 
  public:
@@ -108,21 +137,29 @@ class RenderPassNode final : public PassNode
     RenderPassNode(RenderPassNode&& passNode);
     RenderPassNode& operator=(RenderPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph,
-                 CommandStream* cmdStream) override
-    {
-        _passImpl->execute(frameGraph, cmdStream);
-    }
+    void execute(const FrameGraphResources* resources,
+                 CommandStream* cmdStream) override;
 
-    const RenderPassData* getRenderPassData(const uint32_t id) const
-    {
-        return &_renderPassData[id];
-    }
-
-    ResourceHandle declareRenderTarget(
+    /**
+     * @param frameGraph owner frameGraph of this node
+     * @param builder frame graph builder which is currently declaring this node
+     * @param name render pass name
+     * @param descriptor render pass descriptor to declare
+     * @return resource handle of created render pass data
+     */
+    [[nodiscard]] ResourceHandle declareRenderPass(
         FrameGraph* frameGraph, FrameGraphBuilder* builder,
         std::string_view&& name,
         typename FrameGraphRenderPass::Descriptor&& descriptor);
+
+    /**
+     * @param render pass id of render pass data to return
+     * @return render pass data corresponding to given render pass id
+     */
+    [[nodiscard]] inline RenderPassData const* getRenderPassData(ResourceHandle rpID) const noexcept
+    {
+        return &_renderPassData[rpID];
+    }
 
  protected:
  private:
@@ -141,7 +178,8 @@ class PresentPassNode final : public PassNode
     PresentPassNode(PresentPassNode&& passNode);
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
-    void execute(FrameGraph* frameGraph, CommandStream* cmdStream) override;
+    void execute(const FrameGraphResources* resources,
+                 CommandStream* cmdStream) override;
 
  private:
     SwapChain* _swapChainToPresent = nullptr;

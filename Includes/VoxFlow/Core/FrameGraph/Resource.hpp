@@ -32,7 +32,31 @@ class VirtualResource : private NonCopyable
         return false;
     }
 
+    void isReferencedByPass(PassNode* passNode);
+
+    inline uint32_t isCulled() const
+    {
+        return _refCount == 0;
+    }
+
+    PassNode* getFirstReferencedPassNode() const
+    {
+        return _firstPass;
+    }
+
+    PassNode* getLastReferencedPassNode() const
+    {
+        return _lastPass;
+    }
+
+    virtual void devirtualize() {};
+
+    virtual void destroy() {};
+
  protected:
+    PassNode* _firstPass = nullptr;
+    PassNode* _lastPass = nullptr;
+    uint32_t _refCount = 0;
 };
 
 template <ResourceConcept ResourceDataType>
@@ -99,6 +123,11 @@ class ResourceNode : public DependencyGraph::Node
     inline const std::string& getResourceName() const
     {
         return _resourceName;
+    }
+
+    inline ResourceHandle getResourceHandle() const
+    {
+        return _resourceHandle;
     }
 
  private:

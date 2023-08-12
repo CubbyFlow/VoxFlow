@@ -8,6 +8,8 @@
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <string>
@@ -45,7 +47,8 @@ class CommandBuffer : private NonCopyable
     void endCommandBuffer();
 
     // Begin RenderPass scope
-    void beginRenderPass(const RenderTargetsInfo& rtInfo);
+    void beginRenderPass(const AttachmentGroup& attachmentGroup,
+                         const RenderPassParams& passParams);
 
     // End RenderPass scope
     void endRenderPass();
