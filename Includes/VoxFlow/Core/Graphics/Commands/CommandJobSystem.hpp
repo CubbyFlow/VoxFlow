@@ -30,6 +30,7 @@ enum class CommandJobType
     BindResourceGroup,
     UploadBuffer,
     UploadTexture,
+    Draw,
     DrawIndexed,
     MakeSwapChainFinalLayout,
     BindVertexBuffer,

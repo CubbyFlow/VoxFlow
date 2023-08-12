@@ -9,6 +9,8 @@
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
@@ -138,6 +140,24 @@ void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
 void CommandBuffer::bindPipeline(BasePipeline* pipeline)
 {
     _boundPipeline = pipeline;
+
+    if (_boundPipeline->validatePipeline() == false)
+    {
+        VkPipelineBindPoint bindPoint = _boundPipeline->getBindPoint();
+        switch (bindPoint)
+        {
+            case VK_PIPELINE_BIND_POINT_GRAPHICS:
+                static_cast<GraphicsPipeline*>(_boundPipeline)->initialize(_boundRenderPass);
+                break;
+
+            case VK_PIPELINE_BIND_POINT_COMPUTE:
+                static_cast<ComputePipeline*>(_boundPipeline)->initialize();
+                break;
+
+            default:
+                VOX_ASSERT(false, "Failed to find valid bind point");
+        }
+    }
 
     vkCmdBindPipeline(_vkCommandBuffer, _boundPipeline->getBindPoint(),
                       _boundPipeline->get());
@@ -359,6 +379,15 @@ void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
     (void)dstOffset;
     (void)srcOffset;
     (void)size;
+}
+
+void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount,
+                         uint32_t firstVertex, uint32_t firstInstance)
+{
+    commitPendingResourceBindings();
+
+    vkCmdDraw(_vkCommandBuffer, vertexCount, instanceCount, firstVertex,
+              firstInstance);
 }
 
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,

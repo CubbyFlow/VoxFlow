@@ -32,7 +32,7 @@ public:
     /**
     * Create graphics pipeline with given renderpass and owned shader modules
     */
-    bool initialize(const std::shared_ptr<RenderPass>& renderPass);
+   bool initialize(RenderPass* renderPass);
 };
 }  // namespace VoxFlow
 

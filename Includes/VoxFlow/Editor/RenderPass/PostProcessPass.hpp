@@ -32,9 +32,7 @@ class PostProcessPass : public SceneRenderPass
     void renderScene(FrameGraph::FrameGraph* frameGraph) override;
 
  protected:
-    std::shared_ptr<BasePipeline> _toneMapPipeline;
-    std::unique_ptr<Buffer> _quadVertexBuffer;
-    std::unique_ptr<Buffer> _quadIndexBuffer;
+    std::unique_ptr<BasePipeline> _toneMapPipeline;
     LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow

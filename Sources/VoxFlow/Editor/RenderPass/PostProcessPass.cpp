@@ -23,45 +23,18 @@ PostProcessPass::~PostProcessPass()
 {
 }
 
-constexpr glm::vec2 quadVertices[] = { glm::vec2(-1.0f, 1.0f),
-                                       glm::vec2(1.0f, 1.0f),
-                                       glm::vec2(-1.0f, -1.0f),
-                                       glm::vec2(1.0f, -1.0f) };
-
-constexpr uint32_t quadIndices[] = { 0, 1, 2, 1, 3, 2 };
-
 bool PostProcessPass::initialize()
 {
-    _quadVertexBuffer = std::make_unique<Buffer>(
-        "QuadVertexBuffer", _logicalDevice,
-        _logicalDevice->getDeviceDefaultResourceMemoryPool());
-    _quadVertexBuffer->makeAllocationResident(BufferInfo{
-        ._size = sizeof(quadVertices),
-        ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
-
-    _quadIndexBuffer = std::make_unique<Buffer>(
-        "QuadIndexBuffer", _logicalDevice,
-        _logicalDevice->getDeviceDefaultResourceMemoryPool());
-    _quadIndexBuffer->makeAllocationResident(BufferInfo{
-        ._size = sizeof(quadIndices),
-        ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
-
+    _toneMapPipeline = std::make_unique<GraphicsPipeline>(
+        _logicalDevice, std::initializer_list<const char*>{
+                            RESOURCES_DIR "/Shaders/tonemap.vert",
+                            RESOURCES_DIR "/Shaders/tonemap.frag" });
     return true;
 }
 
 void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
 {
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _quadVertexBuffer.get(),
-                                    UploadData{ ._data = &quadVertices[0].x,
-                                                ._size = sizeof(quadVertices),
-                                                ._dstOffset = 0 });
-
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _quadIndexBuffer.get(),
-                                    UploadData{ ._data = &quadIndices[0],
-                                                ._size = sizeof(quadIndices),
-                                                ._dstOffset = 0 });
+    (void)uploadContext;
 }
 
 void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
@@ -83,8 +56,8 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
             builder.write(backBufferHandle);
         },
         [&](FrameGraph::FrameGraph*, auto&, CommandStream* cmdStream) {
-            // cmdStream->addJob(CommandJobType::BindPipeline,
-            //                   _toneMapPipeline.get());
+            cmdStream->addJob(CommandJobType::BindPipeline,
+                              _toneMapPipeline.get());
 
             cmdStream->addJob(CommandJobType::BindResourceGroup,
                               SetSlotCategory::PerRenderPass,
@@ -92,7 +65,8 @@ void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                                   ._variableName = "ToneMapWeight",
                                   ._view = nullptr,
                                   ._usage = ResourceLayout::UniformBuffer } });
-            // cmdStream->addJob(CommandJobType::DrawIndexed, 4, 1, 0, 0, 0);
+
+            cmdStream->addJob(CommandJobType::Draw, 4, 1, 0, 0);
         });
 }
 

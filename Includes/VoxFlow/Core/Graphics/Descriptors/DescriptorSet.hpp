@@ -13,8 +13,8 @@ namespace VoxFlow
 enum class SetSlotCategory : uint8_t
 {
     Bindless = 0,
-    PerFrame = 1,
-    PerRenderPass = 2,
+    PerRenderPass = 1,
+    PerInstance = 2,
     PerDraw = 3,
     Undefined = 4,
     Count = Undefined,

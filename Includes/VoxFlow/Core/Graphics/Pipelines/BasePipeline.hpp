@@ -28,9 +28,17 @@ class BasePipeline : NonCopyable
     /**
      * @return vulkan pipeline handle created with given shader paths
      */
-    [[nodiscard]] VkPipeline get() const noexcept
+    [[nodiscard]] inline VkPipeline get() const noexcept
     {
         return _pipeline;
+    }
+
+    /**
+     * @return whether pipeline was created or not
+     */
+    [[nodiscard]] inline bool validatePipeline() const noexcept
+    {
+        return _pipeline != VK_NULL_HANDLE;
     }
 
     /**
@@ -66,6 +74,7 @@ class BasePipeline : NonCopyable
     std::unique_ptr<PipelineLayout> _pipelineLayout;
     std::vector<std::unique_ptr<ShaderModule>> _shaderModules;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
+
 };
 }  // namespace VoxFlow
 

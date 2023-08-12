@@ -37,7 +37,7 @@ GraphicsPipeline& GraphicsPipeline::operator=(GraphicsPipeline&& other) noexcept
     return *this;
 }
 
-bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
+bool GraphicsPipeline::initialize(RenderPass* renderPass)
 {
     if (initializePipelineLayout() == false)
     {
