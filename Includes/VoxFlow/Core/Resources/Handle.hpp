@@ -3,9 +3,8 @@
 #ifndef VOXEL_FLOW_HANDLE_HPP
 #define VOXEL_FLOW_HANDLE_HPP
 
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <atomic>
-#include <memory>
+#include <cstdint>
+#include <utility>
 
 namespace VoxFlow
 {
@@ -17,7 +16,7 @@ class HandleBase
     static constexpr HandleID InvalidHandleID = UINT64_MAX;
 
     HandleBase() : _handleId(InvalidHandleID){};
-    HandleBase(HandleBase::HandleID handleID) : _handleId(handleID){};
+    explicit HandleBase(HandleBase::HandleID handleID) : _handleId(handleID){};
     ~HandleBase(){};
     HandleBase(const HandleBase& rhs)
     {
@@ -45,7 +44,7 @@ class HandleBase
         return *this;
     }
 
-    virtual bool isValid() const
+    inline bool isValid() const
     {
         return _handleId != InvalidHandleID;
     }
@@ -66,55 +65,11 @@ class Handle : public HandleBase
     Handle() : HandleBase(HandleBase::InvalidHandleID)
     {
     }
-
-    Handle(std::weak_ptr<Type>&& obj) : _object(std::move(obj))
-    {
-        static std::atomic_uint64_t sAtomicHandleID(0ULL);
-        _handleId = sAtomicHandleID.fetch_add(1ULL);
-    }
-
-    Handle(const Handle& rhs)
-    {
-        operator=(rhs);
-    }
-
-    Handle& operator=(const Handle& rhs)
-    {
-        if (this != &rhs)
-        {
-            _object = rhs._object;
-            HandleBase::operator=(rhs);
-        }
-        return *this;
-    }
-    
-    Handle(Handle&& rhs)
-    {
-        operator=(std::move(rhs));
-    }
-    
-    Handle& operator=(Handle&& rhs)
-    {
-        if (this != &rhs)
-        {
-            _object = std::move(rhs._object);
-            HandleBase::operator=(std::move(rhs));
-        }
-        return *this;
-    }
-
-    inline bool isValid() const
-    {
-        return _object.expired() && HandleBase::isValid();
-    }
-
-    inline Type* getObjectPtr() const
-    {
-        return _object.get();
-    }
-
- private:
-    std::weak_ptr<Type> _object;
+    explicit Handle(HandleID handleID) : HandleBase(handleID){};
+    Handle(const Handle& rhs) noexcept = default;
+    Handle& operator=(const Handle& rhs) noexcept = default;
+    Handle(Handle&& rhs) noexcept = default;
+    Handle& operator=(Handle&& rhs) noexcept = default;
 };
 
 }  // namespace VoxFlow

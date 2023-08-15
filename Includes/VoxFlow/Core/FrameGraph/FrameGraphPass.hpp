@@ -21,7 +21,7 @@ namespace VoxFlow
 class CommandStream;
 class SwapChain;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 
 class FrameGraph;
@@ -107,7 +107,7 @@ class PassNode : public DependencyGraph::Node
     void registerResource(FrameGraph* frameGraph, ResourceHandle resourceHandle);
     void addDevirtualize(VirtualResource* resource);
     void addDestroy(VirtualResource* resource);
-    void resolve(FrameGraph* frameGraph);
+    virtual void resolve(FrameGraph* frameGraph) = 0;
 
  protected:
     std::unordered_set<ResourceHandle> _declaredHandles;
@@ -117,18 +117,20 @@ class PassNode : public DependencyGraph::Node
     bool _hasSideEffect = false;
 };
 
+struct RenderPassData
+{
+    std::string_view _renderPassName;
+    FrameGraphRenderPass::Descriptor _descriptor;
+    AttachmentMaskFlags _blendMask = AttachmentMaskFlags::All;
+    AttachmentGroup _attachmentGroup;
+    RenderPassParams _passParams;
+
+    void devirtualize(FrameGraph* frameGraph, RenderResourceAllocator* allocator);
+    void destroy(RenderResourceAllocator* allocator);
+};
+
 class RenderPassNode final : public PassNode
 {
- public:
-    struct RenderPassData
-    {
-        std::string_view _renderPassName;
-        FrameGraphRenderPass::Descriptor _descriptor;
-        AttachmentMaskFlags _blendMask = AttachmentMaskFlags::All;
-        AttachmentGroup _attachmentGroup;
-        RenderPassParams _passParams;
-    };
-
  public:
     explicit RenderPassNode(FrameGraph* ownerFrameGraph,
                             std::string_view&& passName,
@@ -147,7 +149,7 @@ class RenderPassNode final : public PassNode
      * @param descriptor render pass descriptor to declare
      * @return resource handle of created render pass data
      */
-    [[nodiscard]] ResourceHandle declareRenderPass(
+    [[nodiscard]] uint32_t declareRenderPass(
         FrameGraph* frameGraph, FrameGraphBuilder* builder,
         std::string_view&& name,
         typename FrameGraphRenderPass::Descriptor&& descriptor);
@@ -156,15 +158,20 @@ class RenderPassNode final : public PassNode
      * @param render pass id of render pass data to return
      * @return render pass data corresponding to given render pass id
      */
-    [[nodiscard]] inline RenderPassData const* getRenderPassData(ResourceHandle rpID) const noexcept
+    [[nodiscard]] inline RenderPassData* getRenderPassData(const uint32_t rpID)
     {
-        return &_renderPassData[rpID];
+        return &_renderPassDatas[rpID];
     }
+
+    /**
+     * 
+     */
+    void resolve(FrameGraph* frameGraph) override final;
 
  protected:
  private:
     std::unique_ptr<FrameGraphPassBase> _passImpl = nullptr;
-    std::vector<RenderPassData> _renderPassData;
+    std::vector<RenderPassData> _renderPassDatas;
 };
 
 class PresentPassNode final : public PassNode
@@ -181,11 +188,16 @@ class PresentPassNode final : public PassNode
     void execute(const FrameGraphResources* resources,
                  CommandStream* cmdStream) override;
 
+    void resolve(FrameGraph* frameGraph) override final
+    {
+        (void)frameGraph;
+    }
+
  private:
     SwapChain* _swapChainToPresent = nullptr;
     FrameContext _frameContext;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 }  // namespace VoxFlow
 
 #endif

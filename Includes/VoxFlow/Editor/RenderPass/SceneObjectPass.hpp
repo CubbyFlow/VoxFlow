@@ -15,7 +15,7 @@ class Buffer;
 class GraphicsPipeline;
 class LogicalDevice;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 class FrameGraph;
 }
@@ -29,14 +29,14 @@ class SceneObjectPass : public SceneRenderPass
  public:
     bool initialize() override;
     void updateRender(ResourceUploadContext* uploadContext);
-    void renderScene(FrameGraph::FrameGraph* frameGraph) override;
+    void renderScene(RenderGraph::FrameGraph* frameGraph) override;
 
  protected:
  private:
     struct SceneObjectPassData
     {
-        FrameGraph::ResourceHandle _sceneColorHandle;
-        FrameGraph::ResourceHandle _sceneDepthHandle;
+        RenderGraph::ResourceHandle _sceneColorHandle;
+        RenderGraph::ResourceHandle _sceneDepthHandle;
     } _passData;
 
     std::unique_ptr<GraphicsPipeline> _sceneObjectPipeline;

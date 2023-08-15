@@ -10,7 +10,7 @@
 namespace VoxFlow
 {
 
-namespace FrameGraph
+namespace RenderGraph
 {
 constexpr uint32_t EXECUTION_LAMBDA_SIZE_LIMIT = 1024U;
 
@@ -75,11 +75,10 @@ ResourceHandle FrameGraph::create(
     std::string_view&& resourceName,
     typename ResourceDataType::Descriptor&& resourceDescArgs)
 {
-    VirtualResource* virtualResource =
-        new Resource<ResourceDataType>(std::move(resourceDescArgs));
+    VirtualResource* virtualResource = new Resource<ResourceDataType>(
+        std::move(resourceName), std::move(resourceDescArgs));
 
-    ResourceHandle resourceHandle =
-        static_cast<ResourceHandle>(_resources.size());
+    ResourceHandle resourceHandle(_resources.size());
 
     _resourceSlots.push_back(
         { ._resourceIndex =
@@ -88,8 +87,8 @@ ResourceHandle FrameGraph::create(
           ._version = static_cast<ResourceSlot::VersionType>(0) });
     _resources.push_back(virtualResource);
 
-    ResourceNode* resourceNode = new ResourceNode(
-        &_dependencyGraph, std::move(resourceName), resourceHandle);
+    ResourceNode* resourceNode =
+        new ResourceNode(&_dependencyGraph, resourceHandle);
     _resourceNodes.push_back(resourceNode);
 
     return resourceHandle;
@@ -105,7 +104,7 @@ const typename ResourceDataType::Descriptor FrameGraph::getResourceDescriptor(
     return resource->getDescriptor();
 }
 
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

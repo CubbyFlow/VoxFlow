@@ -92,7 +92,7 @@ std::optional<uint32_t> Buffer::createBufferView(const BufferViewInfo& viewInfo)
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
     std::shared_ptr<BufferView> bufferView = std::make_shared<BufferView>(
         fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-        weak_from_this());
+        this);
 
     if (bufferView->initialize(viewInfo) == false)
     {
@@ -156,9 +156,8 @@ void Buffer::unmap()
 }
 
 BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                       std::weak_ptr<Buffer>&& ownerBuffer)
-    : BindableResourceView(std::move(debugName), logicalDevice),
-      _ownerBuffer(std::move(ownerBuffer))
+                       RenderResource* ownerResource)
+    : BindableResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }
 
@@ -181,10 +180,10 @@ void BufferView::release()
 
 VkDescriptorBufferInfo BufferView::getDescriptorBufferInfo() const
 {
-    std::shared_ptr<Buffer> ownerBuffer = _ownerBuffer.lock();
+    VkBuffer vkBuffer = static_cast<Buffer*>(_ownerResource)->get();
 
     return VkDescriptorBufferInfo{
-        .buffer = ownerBuffer == nullptr ? VK_NULL_HANDLE : ownerBuffer->get(),
+        .buffer = vkBuffer,
         .offset = _bufferViewInfo._offset,
         .range = _bufferViewInfo._range,
     };

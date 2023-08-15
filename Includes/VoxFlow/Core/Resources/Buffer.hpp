@@ -20,7 +20,7 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class BufferView;
 
-class Buffer final : public RenderResource, std::enable_shared_from_this<Buffer>
+class Buffer final : public RenderResource
 {
  public:
     explicit Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
@@ -82,7 +82,7 @@ class BufferView : public BindableResourceView
 {
  public:
     explicit BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                        std::weak_ptr<Buffer>&& ownerBuffer);
+                        RenderResource* ownerResource);
     ~BufferView();
 
  public:
@@ -105,7 +105,6 @@ class BufferView : public BindableResourceView
 
  protected:
  private:
-    std::weak_ptr<Buffer> _ownerBuffer;
     BufferViewInfo _bufferViewInfo;
 };
 }  // namespace VoxFlow

@@ -37,37 +37,56 @@ void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
     (void)uploadContext;
 }
 
-void PostProcessPass::renderScene(FrameGraph::FrameGraph* frameGraph)
+void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 {
-    FrameGraph::ResourceHandle backBufferHandle =
+    RenderGraph::ResourceHandle backBufferHandle =
         frameGraph->getBlackBoard().getHandle("BackBuffer");
 
-    FrameGraph::ResourceHandle sceneColorHandle =
+    RenderGraph::ResourceHandle sceneColorHandle =
         frameGraph->getBlackBoard().getHandle("SceneColor");
 
     const auto& sceneColorDesc =
-        frameGraph->getResourceDescriptor<FrameGraph::FrameGraphTexture>(
+        frameGraph->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
             sceneColorHandle);
 
-    frameGraph->addCallbackPass(
+    _passData = frameGraph->addCallbackPass<PostProcessPassData>(
         "PostProcessPass",
-        [&](FrameGraph::FrameGraphBuilder& builder, auto&) {
+        [&](RenderGraph::FrameGraphBuilder& builder,
+            PostProcessPassData& passData) {
             builder.read(sceneColorHandle);
             builder.write(backBufferHandle);
+
+            auto descriptor = RenderGraph::FrameGraphRenderPass::Descriptor{
+                ._viewportSize =
+                    glm::uvec2(sceneColorDesc._width, sceneColorDesc._height),
+                ._writableAttachment = AttachmentMaskFlags::Color0,
+                ._numSamples = 1
+            };
+            descriptor._attachments._colors = { backBufferHandle };
+
+            passData._renderPassID = builder.declareRenderPass(
+                "PostProcess RenderPass", std::move(descriptor));
         },
-        [&](const FrameGraph::FrameGraphResources*, auto&,
-            CommandStream* cmdStream) {
-            // cmdStream
-            //     ->addJob(CommandJobType::BeginRenderPass, )
+        [&](const RenderGraph::FrameGraphResources* fgResources,
+            PostProcessPassData& passData, CommandStream* cmdStream) {
+
+            RenderGraph::RenderPassData* rpData =
+                fgResources->getRenderPassData(passData._renderPassID);
+
+            cmdStream->addJob(CommandJobType::BeginRenderPass,
+                              rpData->_attachmentGroup, rpData->_passParams);
 
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _toneMapPipeline.get());
 
+            TextureView* sceneColorView =
+                fgResources->getTextureView(sceneColorHandle);
+
             cmdStream->addJob(CommandJobType::BindResourceGroup,
                               SetSlotCategory::PerRenderPass,
                               std::vector<ShaderVariable>{ ShaderVariable{
-                                  ._variableName = "ToneMapWeight",
-                                  ._view = nullptr,
+                                  ._variableName = "g_sceneColor",
+                                  ._view = sceneColorView,
                                   ._usage = ResourceLayout::UniformBuffer } });
 
             cmdStream->addJob(CommandJobType::Draw, 4, 1, 0, 0);

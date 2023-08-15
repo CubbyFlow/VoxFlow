@@ -4,14 +4,16 @@
 #define VOXEL_FLOW_FRAME_GRAPH_RESOURCES_HPP
 
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
+#include <VoxFlow/Core/FrameGraph/Resource.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
+#include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 
 namespace VoxFlow
 {
+class TextureView;
 
-namespace FrameGraph
+namespace RenderGraph
 {
-
-class FrameGraph;
 
 class FrameGraphResources
 {
@@ -35,8 +37,17 @@ class FrameGraphResources
         return _passNode;
     }
 
-    RenderPassNode::RenderPassData const* getRenderPassData(
-        ResourceHandle rpID) const
+    template <ResourceConcept ResourceDataType>
+    [[nodiscard]] inline const Resource<ResourceDataType>& getResource(
+        ResourceHandle handle) const;
+
+    template <ResourceConcept ResourceDataType>
+    [[nodiscard]] inline const typename ResourceDataType::Descriptor&
+    getResourceDescriptor(ResourceHandle handle) const;
+
+    [[nodiscard]] TextureView* getTextureView(ResourceHandle handle) const;
+
+    RenderPassData* getRenderPassData(const uint32_t rpID) const
     {
         return static_cast<RenderPassNode*>(_passNode)->getRenderPassData(rpID);
     }
@@ -45,8 +56,10 @@ class FrameGraphResources
     FrameGraph* _frameGraph = nullptr;
     PassNode* _passNode = nullptr;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
+
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources-Impl.hpp>
 
 #endif

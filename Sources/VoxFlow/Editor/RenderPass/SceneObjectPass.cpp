@@ -75,24 +75,24 @@ void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
                                                 ._dstOffset = 0 });
 }
 
-void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
+void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 {
-    FrameGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
-    FrameGraph::ResourceHandle backBufferHandle =
+    RenderGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
+    RenderGraph::ResourceHandle backBufferHandle =
         blackBoard.getHandle("BackBuffer");
 
     const auto& backBufferDesc =
-        frameGraph->getResourceDescriptor<FrameGraph::FrameGraphTexture>(
+        frameGraph->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
             backBufferHandle);
 
     _passData = frameGraph->addCallbackPass<SceneObjectPassData>(
         "SceneObjectPass",
-        [&](FrameGraph::FrameGraphBuilder& builder,
+        [&](RenderGraph::FrameGraphBuilder& builder,
             SceneObjectPassData& passData) {
             passData._sceneColorHandle =
-                builder.allocate<FrameGraph::FrameGraphTexture>(
+                builder.allocate<RenderGraph::FrameGraphTexture>(
                     "SceneColor",
-                    FrameGraph::FrameGraphTexture::Descriptor{
+                    RenderGraph::FrameGraphTexture::Descriptor{
                         ._width = backBufferDesc._width,
                         ._height = backBufferDesc._height,
                         ._depth = backBufferDesc._depth,
@@ -101,8 +101,8 @@ void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
                         ._format = backBufferDesc._format });
 
             passData._sceneDepthHandle =
-                builder.allocate<FrameGraph::FrameGraphTexture>(
-                    "SceneDepth", FrameGraph::FrameGraphTexture::Descriptor{
+                builder.allocate<RenderGraph::FrameGraphTexture>(
+                    "SceneDepth", RenderGraph::FrameGraphTexture::Descriptor{
                                       ._width = backBufferDesc._width,
                                       ._height = backBufferDesc._height,
                                       ._depth = 1,
@@ -113,7 +113,7 @@ void SceneObjectPass::renderScene(FrameGraph::FrameGraph* frameGraph)
             blackBoard["SceneColor"] = passData._sceneColorHandle;
             blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](const FrameGraph::FrameGraphResources*, SceneObjectPassData&,
+        [&](const RenderGraph::FrameGraphResources*, SceneObjectPassData&,
             CommandStream* cmdStream) {
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _sceneObjectPipeline.get());

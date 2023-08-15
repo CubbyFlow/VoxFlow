@@ -21,11 +21,13 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/TypeTraits.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphResources.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphResources-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/Resource-Impl.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/ResourceHandle.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Commands/CommandConfig.hpp
@@ -46,6 +48,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RederTargetGroup.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp
@@ -56,6 +59,8 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBuffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Handle.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/HandleAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResource.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/ResourceUploadContext.hpp
@@ -65,7 +70,6 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/BitwiseOperators.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Handle.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/HashUtil.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DeviceInputSubscriber.hpp
@@ -92,7 +96,9 @@ set(SRCS
     ${SRC_DIR}/Core/FrameGraph/DependencyGraph.cpp
     ${SRC_DIR}/Core/FrameGraph/FrameGraph.cpp
     ${SRC_DIR}/Core/FrameGraph/FrameGraphPass.cpp
+    ${SRC_DIR}/Core/FrameGraph/FrameGraphResources.cpp
     ${SRC_DIR}/Core/FrameGraph/Resource.cpp
+    ${SRC_DIR}/Core/FrameGraph/ResourceHandle.cpp
     ${SRC_DIR}/Core/FrameGraph/FrameGraphTexture.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandBuffer.cpp
     ${SRC_DIR}/Core/Graphics/Commands/CommandConfig.cpp
@@ -109,7 +115,9 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ShaderModule.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/FrameBuffer.cpp
+    ${SRC_DIR}/Core/Graphics/RenderPass/RenderTargetGroup.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPass.cpp
+    ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassParams.cpp
     ${SRC_DIR}/Core/Graphics/RenderPass/RenderPassCollector.cpp
     ${SRC_DIR}/Core/Renderer/SceneRenderer.cpp
     ${SRC_DIR}/Core/Renderer/SceneRenderPass.cpp

@@ -10,7 +10,6 @@
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <memory>
 #include <string>
 #include <string_view>
 
@@ -20,7 +19,7 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class TextureView;
 
-class Texture final : public RenderResource, std::enable_shared_from_this<Texture>
+class Texture final : public RenderResource
 {
  public:
     explicit Texture(std::string_view&& debugName, LogicalDevice* logicalDevice,
@@ -78,7 +77,7 @@ class TextureView : public BindableResourceView
 {
  public:
     explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
-                         std::weak_ptr<Texture>&& ownerTexture);
+                         RenderResource* ownerResource);
     ~TextureView();
 
  public:
@@ -90,8 +89,12 @@ class TextureView : public BindableResourceView
     {
         return _textureViewInfo;
     }
+    [[nodiscard]] inline TextureInfo getOwnerTextureInfo() const
+    {
+        return _ownerTextureInfo;
+    }
 
-    bool initialize(const TextureViewInfo& viewInfo);
+    bool initialize(const TextureInfo& ownerTextureInfo, const TextureViewInfo& viewInfo);
 
     void release();
 
@@ -104,8 +107,8 @@ class TextureView : public BindableResourceView
 
  protected:
  private:
-    std::weak_ptr<Texture> _ownerTexture;
     VkImageView _vkImageView = VK_NULL_HANDLE;
+    TextureInfo _ownerTextureInfo;
     TextureViewInfo _textureViewInfo;
 };
 }  // namespace VoxFlow

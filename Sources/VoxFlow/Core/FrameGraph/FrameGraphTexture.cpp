@@ -6,10 +6,10 @@
 namespace VoxFlow
 {
 
-namespace FrameGraph
+namespace RenderGraph
 {
 bool FrameGraphTexture::create(RenderResourceAllocator* resourceAllocator,
-                               std::string&& debugName, Descriptor descriptor,
+                               std::string_view&& debugName, Descriptor descriptor,
                                Usage usage)
 {
     (void)resourceAllocator;
@@ -19,10 +19,10 @@ bool FrameGraphTexture::create(RenderResourceAllocator* resourceAllocator,
     return true;
 }
 
-void FrameGraphTexture::release(RenderResourceAllocator* resourceAllocator)
+void FrameGraphTexture::destroy(RenderResourceAllocator* resourceAllocator)
 {
     (void)resourceAllocator;
 }
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow

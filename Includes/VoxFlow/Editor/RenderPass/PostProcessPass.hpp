@@ -15,7 +15,7 @@ class BasePipeline;
 class Buffer;
 class LogicalDevice;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 class FrameGraph;
 }
@@ -29,9 +29,14 @@ class PostProcessPass : public SceneRenderPass
  public:
     bool initialize() override;
     void updateRender(ResourceUploadContext* uploadContext) override;
-    void renderScene(FrameGraph::FrameGraph* frameGraph) override;
+    void renderScene(RenderGraph::FrameGraph* frameGraph) override;
 
  protected:
+    struct PostProcessPassData
+    {
+        uint32_t _renderPassID = 0;
+    } _passData;
+
     std::unique_ptr<BasePipeline> _toneMapPipeline;
     LogicalDevice* _logicalDevice = nullptr;
 };

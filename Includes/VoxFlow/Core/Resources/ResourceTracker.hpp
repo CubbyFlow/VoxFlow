@@ -4,7 +4,7 @@
 #define VOXEL_FLOW_RESOURCE_TRACKER_HPP
 
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
-#include <VoxFlow/Core/Utils/Handle.hpp>
+#include <VoxFlow/Core/Resources/Handle.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <string_view>

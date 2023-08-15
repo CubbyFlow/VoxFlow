@@ -57,7 +57,7 @@ RenderPass* RenderPassCollector::getOrCreateRenderPass(
 }
 
 FrameBuffer* RenderPassCollector::getOrCreateFrameBuffer(
-    RenderPass* renderPass, RenderTargetsInfo rtInfo)
+    RenderTargetsInfo rtInfo)
 {
     auto it = _frameBufferCollection.find(rtInfo);
 
@@ -65,7 +65,7 @@ FrameBuffer* RenderPassCollector::getOrCreateFrameBuffer(
     {
         auto frameBufferCreated = std::make_shared<FrameBuffer>(_logicalDevice);
 
-        if (frameBufferCreated->initialize(renderPass, rtInfo) == false)
+        if (frameBufferCreated->initialize(rtInfo) == false)
         {
             frameBufferCreated.reset();
             return nullptr;

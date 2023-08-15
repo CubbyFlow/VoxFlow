@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
@@ -24,7 +25,7 @@ class CommandStream;
 class RenderResourceAllocator;
 class DependencyGraph;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 
 class FrameGraph;
@@ -55,7 +56,7 @@ class FrameGraphBuilder
     ResourceHandle read(ResourceHandle id);
     ResourceHandle write(ResourceHandle id);
 
-    [[nodiscard]] ResourceHandle declareRenderPass(
+    [[nodiscard]] uint32_t declareRenderPass(
         std::string_view&& passName,
         typename FrameGraphRenderPass::Descriptor&& initArgs);
 
@@ -108,7 +109,7 @@ class FrameGraph : private NonCopyable
 
     [[nodiscard]] ResourceHandle importRenderTarget(
         std::string_view&& resourceName,
-        FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture);
+        FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView);
 
     // Compile given frame graph
     bool compile();
@@ -154,6 +155,11 @@ class FrameGraph : private NonCopyable
         return _blackBoard;
     }
 
+    inline RenderResourceAllocator* getRenderResourceAllocator()
+    {
+        return _renderResourceAllocator;
+    }
+
     VirtualResource* getVirtualResource(ResourceHandle resourceHandle)
     {
         const ResourceSlot& resourceSlot = getResourceSlot(resourceHandle);
@@ -167,12 +173,12 @@ class FrameGraph : private NonCopyable
 private:
     const ResourceSlot& getResourceSlot(ResourceHandle id) const
     {
-        return _resourceSlots[id];
+        return _resourceSlots[id.get()];
     }
 
     ResourceSlot& getResourceSlot(ResourceHandle id)
     {
-        return _resourceSlots[id];
+        return _resourceSlots[id.get()];
     }
 
     void buildAdjacencyLists(const uint32_t numPassNodes);

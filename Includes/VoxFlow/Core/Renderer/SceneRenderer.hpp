@@ -22,7 +22,7 @@ class SceneRenderer final : NonCopyable
 {
  public:
     SceneRenderer(LogicalDevice* mainLogicalDevice,
-                  FrameGraph::FrameGraph* frameGraph);
+                  RenderGraph::FrameGraph* frameGraph);
     ~SceneRenderer() override;
 
  public:
@@ -50,7 +50,7 @@ class SceneRenderer final : NonCopyable
  protected:
  private:
     LogicalDevice* _mainLogicalDevice = nullptr;
-    FrameGraph::FrameGraph* _frameGraph = nullptr;
+    RenderGraph::FrameGraph* _frameGraph = nullptr;
     FrameContext _currentFrameContext;
     CommandJobSystem* _commandJobSystem = nullptr;
     CommandStreamKey _renderCmdStreamKey;

@@ -74,36 +74,61 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
     RenderPassCollector* renderPassCollector =
         _logicalDevice->getRenderPassCollector();
 
-    // TODO(snowapril) :
+    const uint32_t numColorAttachments =
+        attachmentGroup.getNumColorAttachments();
+    const bool hasDepthStencil = attachmentGroup.hasDepthStencil();
+
     RenderTargetLayoutKey rtLayoutKey = {};
+    RenderTargetsInfo rtInfo = {};
+
+    for (uint32_t i = 0; i < numColorAttachments; ++i)
+    {
+        TextureView* textureView = attachmentGroup.getColor(i).getView();
+        const TextureViewInfo& viewInfo = textureView->getViewInfo();
+        rtLayoutKey._colorFormats.emplace_back(viewInfo._format);
+
+        rtInfo._colorRenderTarget.emplace_back(textureView);
+    }
+
+    if (hasDepthStencil)
+    {
+        TextureView* textureView = attachmentGroup.getDepthStencil().getView();
+        const TextureViewInfo& viewInfo = textureView->getViewInfo();
+        rtLayoutKey._depthStencilFormat = viewInfo._format;
+
+        rtInfo._depthStencilImage = textureView;
+    }
+
+    rtLayoutKey._renderPassFlags = passParams._attachmentFlags;
 
     _boundRenderPass = renderPassCollector->getOrCreateRenderPass(rtLayoutKey);
-
-    RenderTargetsInfo rtInfo = {};
     rtInfo._vkRenderPass = _boundRenderPass->get();
+    rtInfo._resolution = passParams._viewportSize;
+
+    // rtInfo._resolution = 0;
+    // rtInfo._layers = 0;
+    // rtInfo._numSamples = 0;
 
     auto frameBuffer = renderPassCollector->getOrCreateFrameBuffer(rtInfo);
 
     std::vector<VkClearValue> clearValues;
-    for (const ColorPassDescription& colorPass :
-         rtLayoutKey._colorAttachmentDescs)
+    for (uint32_t i = 0; i < numColorAttachments; ++i)
     {
+        const glm::vec4& clearColorValue = passParams._clearColors[i];
         clearValues.push_back(
             VkClearValue{ .color = VkClearColorValue{
-                              .float32 = { colorPass._clearColorValues.x,
-                                           colorPass._clearColorValues.y,
-                                           colorPass._clearColorValues.z,
-                                           colorPass._clearColorValues.w } } });
+                              .float32 = { clearColorValue.x,
+                                           clearColorValue.y,
+                                           clearColorValue.z,
+                                           clearColorValue.w } } });
     }
 
-    if (rtLayoutKey._depthStencilAttachment.has_value())
+    if (hasDepthStencil)
     {
-        const DepthStencilPassDescription& depthPass =
-            rtLayoutKey._depthStencilAttachment.value();
         clearValues.push_back(
             VkClearValue{ .depthStencil = VkClearDepthStencilValue{
-                              .depth = depthPass._clearDepthValue,
-                              .stencil = depthPass._clearStencilValue } });
+                              .depth = passParams._clearDepth,
+                              .stencil = passParams._clearStencil } });
     }
 
     VkRenderPassBeginInfo renderPassInfo = {
@@ -117,6 +142,7 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         .clearValueCount = static_cast<uint32_t>(clearValues.size()),
         .pClearValues = clearValues.data()
     };
+
     vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
 }

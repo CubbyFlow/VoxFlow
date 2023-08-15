@@ -11,7 +11,7 @@
 namespace VoxFlow
 {
 SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice,
-                             FrameGraph::FrameGraph* frameGraph)
+                             RenderGraph::FrameGraph* frameGraph)
     : _mainLogicalDevice(mainLogicalDevice),
       _frameGraph(frameGraph)
 {
@@ -60,13 +60,23 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     SwapChain* swapChain =
         _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)
             .get();
+
     Texture* currentBackBuffer =
         swapChain->getSwapChainImage(_currentFrameContext._backBufferIndex)
             .get();
 
     const TextureInfo& backBufferInfo = currentBackBuffer->getTextureInfo();
 
-    auto backBufferDescriptor = FrameGraph::FrameGraphTexture::Descriptor{
+    // TODO(snowapril) : create back buffer view other place.
+    std::optional<uint32_t> backBufferViewIndex =
+        currentBackBuffer->createTextureView(
+            TextureViewInfo{ ._format = backBufferInfo._format,
+                             ._aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT });
+
+    std::shared_ptr<TextureView> backBufferView =
+        currentBackBuffer->getView(backBufferViewIndex.value());
+
+    auto backBufferDescriptor = RenderGraph::FrameGraphTexture::Descriptor{
         ._width = backBufferInfo._extent.x,
         ._height = backBufferInfo._extent.y,
         ._depth = backBufferInfo._extent.z,
@@ -75,11 +85,11 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
         ._format = backBufferInfo._format,
     };
 
-    FrameGraph::BlackBoard& blackBoard = _frameGraph->getBlackBoard();
+    RenderGraph::BlackBoard& blackBoard = _frameGraph->getBlackBoard();
 
-    FrameGraph::ResourceHandle backBufferHandle =
+    RenderGraph::ResourceHandle backBufferHandle =
         _frameGraph->importRenderTarget(
-            "BackBuffer", std::move(backBufferDescriptor), currentBackBuffer);
+            "BackBuffer", std::move(backBufferDescriptor), backBufferView.get());
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
@@ -115,7 +125,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add present pass which followed by all other passes
-    FrameGraph::ResourceHandle backBufferHandle =
+    RenderGraph::ResourceHandle backBufferHandle =
         _frameGraph->getBlackBoard().getHandle("BackBuffer");
 
     tf::Task presentTask =
@@ -123,7 +133,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
             .emplace([&]() {
                 _frameGraph->addPresentPass(
                     "PresentPass",
-                    std::move([&](FrameGraph::FrameGraphBuilder& builder) {
+                    std::move([&](RenderGraph::FrameGraphBuilder& builder) {
                         builder.read(backBufferHandle);
                     }),
                     swapChain, _currentFrameContext);

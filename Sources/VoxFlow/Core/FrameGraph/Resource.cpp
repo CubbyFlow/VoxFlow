@@ -5,10 +5,11 @@
 
 namespace VoxFlow
 {
-namespace FrameGraph
+namespace RenderGraph
 {
 
-VirtualResource::VirtualResource()
+VirtualResource::VirtualResource(std::string_view&& name)
+    : _resourceName(std::move(name))
 {
 }
 VirtualResource ::~VirtualResource()
@@ -23,12 +24,12 @@ void VirtualResource::isReferencedByPass(PassNode* passNode)
 }
 
 ImportedRenderTarget::ImportedRenderTarget(
-    const FrameGraphTexture& resource,
-    FrameGraphTexture::Descriptor&& resourceArgs, Texture* texture)
-    : ImportedResource<FrameGraphTexture>(resource, std::move(resourceArgs)),
-      _textureHandle(texture)
+    std::string_view&& name, const FrameGraphTexture& resource,
+    FrameGraphTexture::Descriptor&& resourceArgs, TextureView* textureView)
+    : ImportedResource<FrameGraphTexture>(std::move(name), resource,
+                                          std::move(resourceArgs)),
+      _textureViewHandle(textureView)
 {
-    (void)_textureHandle;
 }
 
 ImportedRenderTarget::~ImportedRenderTarget()
@@ -36,15 +37,11 @@ ImportedRenderTarget::~ImportedRenderTarget()
 }
 
 ResourceNode::ResourceNode(DependencyGraph* dependencyGraph,
-                           std::string_view&& resourceName,
                            ResourceHandle resourceHandle)
-    : DependencyGraph::Node(dependencyGraph),
-      _resourceName(std::move(resourceName)),
-      _resourceHandle(resourceHandle)
+    : DependencyGraph::Node(dependencyGraph), _resourceHandle(resourceHandle)
 {
-    (void)_resourceHandle;
 }
 
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow

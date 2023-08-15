@@ -4,11 +4,13 @@
 #include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
+#include <glm/common.hpp>
 
 namespace VoxFlow
 {
 
-namespace FrameGraph
+namespace RenderGraph
 {
 
 FrameGraphPassBase::FrameGraphPassBase()
@@ -64,9 +66,67 @@ void PassNode::addDestroy(VirtualResource* resource)
     _destroyes.push_back(resource);
 }
 
-void PassNode::resolve(FrameGraph* frameGraph)
+void RenderPassData::devirtualize(FrameGraph* frameGraph,
+                                  RenderResourceAllocator* allocator)
 {
-    (void)frameGraph;
+    (void)allocator;
+
+    std::vector<Attachment> colorAttachments;
+    Attachment depthStencilAttachment(nullptr);
+
+    for (uint32_t i = 0; i < MAX_RENDER_TARGET_COUNTS; ++i)
+    {
+        ResourceHandle colorHandle = _descriptor._attachments._colors[i];
+        if (colorHandle)
+        {
+            Resource<FrameGraphTexture>* resource =
+                static_cast<Resource<FrameGraphTexture>*>(
+                    frameGraph->getVirtualResource(colorHandle));
+
+            TextureView* attachmentView = nullptr;
+            if (resource->isImported())
+            {
+                attachmentView = static_cast<ImportedRenderTarget*>(resource)
+                                     ->getTextureView();
+            }
+            else
+            {
+                attachmentView = resource->getInternalResource()._textureView;
+            }
+
+            colorAttachments.emplace_back(attachmentView);
+        }
+    }
+
+    if (_descriptor._attachments._depthStencil)
+    {
+        Resource<FrameGraphTexture>* resource =
+            static_cast<Resource<FrameGraphTexture>*>(
+                frameGraph->getVirtualResource(
+                    _descriptor._attachments._depthStencil));
+
+        TextureView* attachmentView = nullptr;
+        if (resource->isImported())
+        {
+            attachmentView =
+                static_cast<ImportedRenderTarget*>(resource)->getTextureView();
+        }
+        else
+        {
+            attachmentView = resource->getInternalResource()._textureView;
+        }
+
+        depthStencilAttachment = Attachment(attachmentView);
+    }
+
+    _attachmentGroup = AttachmentGroup(std::move(colorAttachments),
+                                       std::move(depthStencilAttachment),
+                                       _descriptor._numSamples);
+}
+
+void RenderPassData::destroy(RenderResourceAllocator* allocator)
+{
+    (void)allocator;
 }
 
 RenderPassNode::RenderPassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName,
@@ -91,6 +151,7 @@ RenderPassNode& RenderPassNode::operator=(RenderPassNode&& passNode)
     if (this != &passNode)
     {
         _passImpl.swap(passNode._passImpl);
+        _renderPassDatas.swap(passNode._renderPassDatas);
     }
 
     PassNode::operator=(std::move(passNode));
@@ -100,10 +161,25 @@ RenderPassNode& RenderPassNode::operator=(RenderPassNode&& passNode)
 void RenderPassNode::execute(const FrameGraphResources* resources,
                              CommandStream* cmdStream)
 {
+    FrameGraph* frameGraph = resources->getFrameGraph();
+    RenderResourceAllocator* allocator =
+        frameGraph->getRenderResourceAllocator();
+
+    for (RenderPassData& passData : _renderPassDatas)
+    {
+        passData.devirtualize(frameGraph, allocator);
+    }
+
     _passImpl->execute(resources, cmdStream);
+
+    
+    for (RenderPassData& passData : _renderPassDatas)
+    {
+        passData.destroy(allocator);
+    }
 }
 
-ResourceHandle RenderPassNode::declareRenderPass(
+uint32_t RenderPassNode::declareRenderPass(
     FrameGraph* frameGraph, FrameGraphBuilder* builder, std::string_view&& name,
     typename FrameGraphRenderPass::Descriptor&& descriptor)
 {
@@ -111,11 +187,62 @@ ResourceHandle RenderPassNode::declareRenderPass(
     (void)frameGraph;
     (void)builder;
 
-    const ResourceHandle rpID =
-        static_cast<ResourceHandle>(_renderPassData.size());
-    _renderPassData.emplace_back(std::move(name), std::move(descriptor));
+    const uint32_t rpID =
+        static_cast<uint32_t>(_renderPassDatas.size());
+
+    RenderPassData renderPassData = { ._renderPassName = std::move(name),
+                                      ._descriptor = std::move(descriptor) };
+    _renderPassDatas.emplace_back(renderPassData);
 
     return rpID;
+}
+
+void RenderPassNode::resolve(FrameGraph* frameGraph)
+{
+    for (RenderPassData& rpData : _renderPassDatas)
+    {
+        uint32_t maxWidth = 0;
+        uint32_t maxHeight = 0;
+
+        for (ResourceHandle attachmentHandle :
+             rpData._descriptor._attachments._array)
+        {
+            if (attachmentHandle)
+            {
+                Resource<FrameGraphTexture>* resource =
+                    static_cast<Resource<FrameGraphTexture>*>(
+                        frameGraph->getVirtualResource(attachmentHandle));
+
+                TextureView* attachmentView = nullptr;
+                if (resource->isImported())
+                {
+                    attachmentView =
+                        static_cast<ImportedRenderTarget*>(resource)
+                            ->getTextureView();
+                }
+                else
+                {
+                    attachmentView =
+                        resource->getInternalResource()._textureView;
+                }
+
+                const TextureInfo& textureInfo =
+                    attachmentView->getOwnerTextureInfo();
+
+                maxWidth = glm::max(textureInfo._extent.x, maxWidth);
+                maxHeight = glm::max(textureInfo._extent.y, maxHeight);
+            }
+        }
+
+        if ((rpData._descriptor._viewportSize.x != 0U) &&
+            (rpData._descriptor._viewportSize.y != 0U))
+        {
+            maxWidth = rpData._descriptor._viewportSize.x;
+            maxHeight = rpData._descriptor._viewportSize.y;
+        }
+
+        rpData._passParams._viewportSize = glm::uvec2(maxWidth, maxHeight);
+    }
 }
 
 PresentPassNode::PresentPassNode(FrameGraph* ownerFrameGraph,
@@ -156,6 +283,6 @@ void PresentPassNode::execute(const FrameGraphResources* resources,
     resources->getFrameGraph()->setLastSubmitFence(executedFence);
 }
 
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow

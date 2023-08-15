@@ -6,6 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
 
 namespace VoxFlow
 {
@@ -31,7 +32,7 @@ class FrameBuffer : private NonCopyable
     }
 
  public:
-    bool initialize(RenderPass* renderPass, const RenderTargetsInfo& rtInfo);
+    bool initialize(const RenderTargetsInfo& rtInfo);
     void release();
 
  private:

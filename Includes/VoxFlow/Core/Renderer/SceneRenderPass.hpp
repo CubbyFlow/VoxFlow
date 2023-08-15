@@ -9,7 +9,7 @@
 
 namespace VoxFlow
 {
-namespace FrameGraph
+namespace RenderGraph
 {
 class FrameGraph;
 }
@@ -41,7 +41,7 @@ class SceneRenderPass : NonCopyable
  public:
     virtual bool initialize() = 0;
     virtual void updateRender(ResourceUploadContext* uploadContext) = 0;
-    virtual void renderScene(FrameGraph::FrameGraph* frameGraph) = 0;
+    virtual void renderScene(RenderGraph::FrameGraph* frameGraph) = 0;
 
  protected:
     std::vector<std::string> _dependencyPass;

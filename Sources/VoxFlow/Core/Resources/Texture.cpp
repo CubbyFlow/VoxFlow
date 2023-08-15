@@ -119,9 +119,9 @@ std::optional<uint32_t> Texture::createTextureView(
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedTextureViews.size());
     std::shared_ptr<TextureView> textureView = std::make_shared<TextureView>(
         fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-        weak_from_this());
+        this);
 
-    if (textureView->initialize(viewInfo) == false)
+    if (textureView->initialize(_textureInfo, viewInfo) == false)
     {
         return {};
     }
@@ -151,9 +151,8 @@ void Texture::release()
 }
 
 TextureView::TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
-                         std::weak_ptr<Texture>&& ownerTexture)
-    : BindableResourceView(std::move(debugName), logicalDevice),
-      _ownerTexture(std::move(ownerTexture))
+                         RenderResource* ownerResource)
+    : BindableResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }
 
@@ -162,19 +161,17 @@ TextureView::~TextureView()
     release();
 }
 
-bool TextureView::initialize(const TextureViewInfo& viewInfo)
+bool TextureView::initialize(const TextureInfo& ownerTextureInfo,
+                             const TextureViewInfo& viewInfo)
 {
-    std::shared_ptr<Texture> ownerTexture = _ownerTexture.lock();
-    if (ownerTexture == nullptr)
-        return false;
-
+    _ownerTextureInfo = ownerTextureInfo;
     _textureViewInfo = viewInfo;
 
     VkImageViewCreateInfo viewCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .image = ownerTexture->get(),
+        .image = static_cast<Texture*>(_ownerResource)->get(),
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = viewInfo._format,
         .components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G,

@@ -10,7 +10,7 @@
 namespace VoxFlow
 {
 
-namespace FrameGraph
+namespace RenderGraph
 {
 ResourceHandle FrameGraphBuilder::read(ResourceHandle id)
 {
@@ -22,7 +22,7 @@ ResourceHandle FrameGraphBuilder::write(ResourceHandle id)
     return _frameGraph->writeInternal(id, _currentPassNode);
 }
 
-ResourceHandle FrameGraphBuilder::declareRenderPass(
+uint32_t FrameGraphBuilder::declareRenderPass(
     std::string_view&& passName,
     typename FrameGraphRenderPass::Descriptor&& initArgs)
 {
@@ -50,13 +50,12 @@ void FrameGraph::reset(CommandStream* cmdStream,
 
 ResourceHandle FrameGraph::importRenderTarget(
     std::string_view&& resourceName,
-    FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture)
+    FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView)
 {
-    VirtualResource* virtualResource =
-        new ImportedRenderTarget({}, std::move(resourceDescArgs), texture);
+    VirtualResource* virtualResource = new ImportedRenderTarget(
+        std::move(resourceName), {}, std::move(resourceDescArgs), textureView);
 
-    ResourceHandle resourceHandle =
-        static_cast<ResourceHandle>(_resources.size());
+    ResourceHandle resourceHandle(_resources.size());
 
     _resourceSlots.push_back(
         { ._resourceIndex =
@@ -66,7 +65,7 @@ ResourceHandle FrameGraph::importRenderTarget(
     _resources.push_back(virtualResource);
 
     ResourceNode* resourceNode = new ResourceNode(
-        &_dependencyGraph, std::move(resourceName), resourceHandle);
+        &_dependencyGraph, resourceHandle);
     resourceNode->_refCount = UINT32_MAX;
 
     _resourceNodes.push_back(resourceNode);
@@ -112,7 +111,7 @@ bool FrameGraph::compile()
     {
         PassNode* passNode = *it;
 
-        VOX_ASSERT(passNode->isCulled(),
+        VOX_ASSERT(passNode->isCulled() == false,
                    "There must not be culled nodes after culling");
 
         DependencyGraph::EdgeContainer reads =
@@ -161,8 +160,7 @@ bool FrameGraph::compile()
 ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given",
-               static_cast<uint32_t>(id));
+               "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
@@ -178,8 +176,7 @@ ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
 ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given",
-               static_cast<uint32_t>(id));
+               "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     VirtualResource* resource = _resources[resourceSlot._resourceIndex];
@@ -373,7 +370,7 @@ void FrameGraph::execute()
 
         for (VirtualResource* resource : passNode->getDevirtualizes())
         {
-            resource->devirtualize();
+            resource->devirtualize(_renderResourceAllocator);
         }
 
         FrameGraphResources resources(this, passNode);
@@ -382,7 +379,7 @@ void FrameGraph::execute()
 
         for (VirtualResource* resource : passNode->getDestroyes())
         {
-            resource->destroy();
+            resource->destroy(_renderResourceAllocator);
         }
     }
 }
@@ -467,10 +464,14 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
 
     for (ResourceNode* resourceNode : _resourceNodes)
     {
+        VirtualResource* vresource =
+            _resources[getResourceSlot(resourceNode->getResourceHandle())
+                           ._resourceIndex];
+
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[resourceNode->getNodeID()] = nodeLabel;
         osstr << "\t" << nodeLabel << "[ label=\""
-              << resourceNode->getResourceName() << "\" shape=label "
+              << vresource->getResourceName() << "\" shape=label "
               << (resourceNode->isCulled() ? "style=dashed" : "") << "];\n";
     }
     osstr << '\n';
@@ -482,6 +483,6 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
     }
     osstr << '}';
 }
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow

@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
 #include <string_view>
@@ -14,17 +15,14 @@ namespace VoxFlow
 {
 class Texture;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 class PassNode;
-
-using ResourceHandle = uint32_t;
-constexpr ResourceHandle InvalidFrameGraphResource = UINT32_MAX;
 
 class VirtualResource : private NonCopyable
 {
  public:
-    VirtualResource();
+    VirtualResource(std::string_view&& name);
     virtual ~VirtualResource();
 
     virtual bool isImported() const
@@ -34,26 +32,32 @@ class VirtualResource : private NonCopyable
 
     void isReferencedByPass(PassNode* passNode);
 
-    inline uint32_t isCulled() const
+    [[nodiscard]] inline uint32_t isCulled() const
     {
         return _refCount == 0;
     }
 
-    PassNode* getFirstReferencedPassNode() const
+    [[nodiscard]] inline PassNode* getFirstReferencedPassNode() const
     {
         return _firstPass;
     }
 
-    PassNode* getLastReferencedPassNode() const
+    [[nodiscard]] inline PassNode* getLastReferencedPassNode() const
     {
         return _lastPass;
     }
 
-    virtual void devirtualize() {};
+    [[nodiscard]] inline const std::string_view& getResourceName() const
+    {
+        return _resourceName;
+    }
 
-    virtual void destroy() {};
+    virtual void devirtualize(RenderResourceAllocator*) = 0;
+
+    virtual void destroy(RenderResourceAllocator*) = 0;
 
  protected:
+    std::string_view _resourceName;
     PassNode* _firstPass = nullptr;
     PassNode* _lastPass = nullptr;
     uint32_t _refCount = 0;
@@ -63,22 +67,43 @@ template <ResourceConcept ResourceDataType>
 class Resource : public VirtualResource
 {
  public:
-    explicit Resource(typename ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(std::string_view&& name,
+                      typename ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(std::string_view&& name,
+                      typename ResourceDataType::Descriptor&& resourceArgs,
+                      const ResourceDataType& resource);
     ~Resource();
 
  public:
-    inline PassNode* getProducerNode() const
+    [[nodiscard]] inline PassNode* getProducerNode() const
     {
         return _producerPassNode;
     }
 
-    inline typename ResourceDataType::Descriptor getDescriptor() const
+    [[nodiscard]] inline const ResourceDataType& getInternalResource() const
+    {
+        return _resource;
+    }
+
+    [[nodiscard]] inline typename ResourceDataType::Descriptor getDescriptor() const
     {
         return _descriptor;
     }
 
+    void devirtualize(RenderResourceAllocator* allocator) override
+    {
+        _resource.create(allocator, std::move(_resourceName), _descriptor, _usage);
+    }
+
+    void destroy(RenderResourceAllocator* allocator) override
+    {
+        _resource.destroy(allocator);
+    }
+
  protected:
+    ResourceDataType _resource;
     typename ResourceDataType::Descriptor _descriptor;
+    typename ResourceDataType::Usage _usage;
     PassNode* _producerPassNode = nullptr;
 };
 
@@ -86,7 +111,8 @@ template <ResourceConcept ResourceDataType>
 class ImportedResource : public Resource<ResourceDataType>
 {
  public:
-    ImportedResource(const ResourceDataType& resource,
+    ImportedResource(std::string_view&& name,
+                     const ResourceDataType& resource,
                      typename ResourceDataType::Descriptor&& resourceArgs);
     ~ImportedResource();
 
@@ -96,34 +122,35 @@ class ImportedResource : public Resource<ResourceDataType>
         return true;
     }
 
- protected:
-    ResourceDataType _resource;
+    void devirtualize(RenderResourceAllocator*) final {};
+
+    void destroy(RenderResourceAllocator*) final {};
 };
 
 class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
 {
  public:
-    ImportedRenderTarget(const FrameGraphTexture& resource,
+    ImportedRenderTarget(std::string_view&& name,
+                         const FrameGraphTexture& resource,
                          FrameGraphTexture::Descriptor&& resourceArgs,
-                         Texture* texture);
+                         TextureView* textureView);
     ~ImportedRenderTarget();
+
+    inline TextureView* getTextureView()
+    {
+        return _textureViewHandle;
+    }
 
  protected:
  private:
-    Texture* _textureHandle = nullptr;
+    TextureView* _textureViewHandle = nullptr;
 };
 
 class ResourceNode : public DependencyGraph::Node
 {
  public:
     explicit ResourceNode(DependencyGraph* dependencyGraph,
-                          std::string_view&& resourceName,
                           ResourceHandle resourceHandle);
-
-    inline const std::string& getResourceName() const
-    {
-        return _resourceName;
-    }
 
     inline ResourceHandle getResourceHandle() const
     {
@@ -131,10 +158,9 @@ class ResourceNode : public DependencyGraph::Node
     }
 
  private:
-    std::string _resourceName;
     ResourceHandle _resourceHandle;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 }  // namespace VoxFlow
 
 #endif

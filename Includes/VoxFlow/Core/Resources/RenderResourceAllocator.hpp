@@ -26,11 +26,11 @@ class RenderResourceAllocator : private NonCopyable
     ~RenderResourceAllocator();
 
  public:
-    Handle<Texture> allocateTexture(const TextureInfo& textureInfo,
-                                    std::string&& debugName);
+    Texture* allocateTexture(const TextureInfo& textureInfo,
+                             std::string&& debugName);
 
-    Handle<Buffer> allocateBuffer(const BufferInfo& bufferInfo,
-                                           std::string&& debugName);
+    Buffer* allocateBuffer(const BufferInfo& bufferInfo,
+                           std::string&& debugName);
 
  protected:
  private:

@@ -36,29 +36,37 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
     _renderTargetLayout = rtLayoutKey;
 
     const uint32_t numColorAttachments =
-        static_cast<uint32_t>(rtLayoutKey._colorAttachmentDescs.size());
+        static_cast<uint32_t>(rtLayoutKey._colorFormats.size());
     const bool hasDepthStencilAttachment =
-        rtLayoutKey._depthStencilAttachment.has_value();
+        rtLayoutKey._depthStencilFormat.has_value();
     std::vector<VkAttachmentDescription> attachmentDescs;
     std::vector<VkAttachmentReference> colorAttachments;
     VkAttachmentReference depthAttachment;
 
     uint32_t attachmentIndex = 0;
-    for (const ColorPassDescription& colorDesc :
-         _renderTargetLayout._colorAttachmentDescs)
+    for (uint32_t i = 0; i < numColorAttachments; ++i)
     {
+        const VkFormat vkColorFormat = rtLayoutKey._colorFormats[i];
+        const bool loadColor =
+            hasColorAspect(rtLayoutKey._renderPassFlags._loadFlags, i);
+        const bool storeColor =
+            hasColorAspect(rtLayoutKey._renderPassFlags._storeFlags, i);
+        const bool clearColor =
+            hasColorAspect(rtLayoutKey._renderPassFlags._clearFlags, i);
+
         VkAttachmentDescription colorAttachmentDesc{
             .flags = 0,
-            .format = colorDesc._format,
+            .format = vkColorFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = colorDesc._clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR
-                                            : VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .loadOp = clearColor
+                          ? VK_ATTACHMENT_LOAD_OP_CLEAR
+                          : (loadColor ? VK_ATTACHMENT_LOAD_OP_LOAD
+                                       : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+            .storeOp = storeColor ? VK_ATTACHMENT_STORE_OP_STORE
+                                  : VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = colorDesc._clearColor
-                                 ? VK_IMAGE_LAYOUT_UNDEFINED
-                                 : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
         attachmentDescs.push_back(colorAttachmentDesc);
@@ -72,19 +80,37 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
 
     if (hasDepthStencilAttachment)
     {
-        const DepthStencilPassDescription& depthStencilDesc =
-            _renderTargetLayout._depthStencilAttachment.value();
-        VkAttachmentDescription depthAttachmentDesc{
-            .flags = 0,
-            .format = depthStencilDesc._format,
+        const VkFormat& vkDepthStencilFormat =
+            _renderTargetLayout._depthStencilFormat.value();
+
+        const bool loadDepth =
+            hasDepthAspect(rtLayoutKey._renderPassFlags._loadFlags);
+        const bool storeDepth =
+            hasDepthAspect(rtLayoutKey._renderPassFlags._storeFlags);
+        const bool clearDepth =
+            hasDepthAspect(rtLayoutKey._renderPassFlags._clearFlags);
+
+        const bool loadStencil =
+            hasStencilAspect(rtLayoutKey._renderPassFlags._loadFlags);
+        const bool storeStencil =
+            hasStencilAspect(rtLayoutKey._renderPassFlags._storeFlags);
+        const bool clearStencil =
+            hasStencilAspect(rtLayoutKey._renderPassFlags._clearFlags);
+
+        VkAttachmentDescription depthAttachmentDesc
+        {
+            .flags = 0, .format = vkDepthStencilFormat,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = depthStencilDesc._clearDepth ? VK_ATTACHMENT_LOAD_OP_CLEAR
-                                                   : VK_ATTACHMENT_LOAD_OP_LOAD,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp = depthStencilDesc._clearStencil
+            .loadOp = clearDepth
+                          ? VK_ATTACHMENT_LOAD_OP_CLEAR
+                          : (loadDepth ? VK_ATTACHMENT_LOAD_OP_LOAD
+                                       : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+            .storeOp = storeDepth ? VK_ATTACHMENT_STORE_OP_STORE
+                                  : VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .stencilLoadOp = clearStencil
                                  ? VK_ATTACHMENT_LOAD_OP_CLEAR
-                                 : VK_ATTACHMENT_LOAD_OP_LOAD,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                 : (loadStencil ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE),
+            .stencilStoreOp = storeStencil ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };

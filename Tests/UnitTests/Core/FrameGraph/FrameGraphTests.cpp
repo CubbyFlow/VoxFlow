@@ -12,13 +12,13 @@ TEST_CASE("FrameGraph")
 {
     using namespace VoxFlow;
 
-    FrameGraph::FrameGraph frameGraph;
-    FrameGraph::BlackBoard& blackBoard = frameGraph.getBlackBoard();
+    RenderGraph::FrameGraph frameGraph;
+    RenderGraph::BlackBoard& blackBoard = frameGraph.getBlackBoard();
 
     {
-        FrameGraph::ResourceHandle backBuffer = frameGraph.importRenderTarget(
+        RenderGraph::ResourceHandle backBuffer = frameGraph.importRenderTarget(
             "BackBuffer",
-            FrameGraph::FrameGraphTexture::Descriptor{
+            RenderGraph::FrameGraphTexture::Descriptor{
                 ._width = 1200,
                 ._height = 900,
                 ._depth = 1,
@@ -32,21 +32,21 @@ TEST_CASE("FrameGraph")
 
     struct SamplePassData1
     {
-        FrameGraph::ResourceHandle _input1;
-        FrameGraph::ResourceHandle _input2;
-        FrameGraph::ResourceHandle _output1;
+        RenderGraph::ResourceHandle _input1;
+        RenderGraph::ResourceHandle _input2;
+        RenderGraph::ResourceHandle _output1;
         bool _isExecuted = false;
     };
 
     const SamplePassData1& samplePass1 =
         frameGraph.addCallbackPass<SamplePassData1>(
             "Sample Pass 1",
-            [&](FrameGraph::FrameGraphBuilder& builder,
+            [&](RenderGraph::FrameGraphBuilder& builder,
                 SamplePassData1& passData) {
                 passData._input1 =
-                    builder.allocate<FrameGraph::FrameGraphTexture>(
+                    builder.allocate<RenderGraph::FrameGraphTexture>(
                         "Sample Pass 1 Resource Input 1",
-                        FrameGraph::FrameGraphTexture::Descriptor{
+                        RenderGraph::FrameGraphTexture::Descriptor{
                             ._width = 1200,
                             ._height = 900,
                             ._depth = 1,
@@ -54,9 +54,9 @@ TEST_CASE("FrameGraph")
                             ._sampleCounts = 1,
                             ._format = VK_FORMAT_R8G8B8A8_UNORM });
                 passData._input2 =
-                    builder.allocate<FrameGraph::FrameGraphTexture>(
+                    builder.allocate<RenderGraph::FrameGraphTexture>(
                         "Sample Pass 1 Resource Input 2",
-                        FrameGraph::FrameGraphTexture::Descriptor{
+                        RenderGraph::FrameGraphTexture::Descriptor{
                             ._width = 1200,
                             ._height = 900,
                             ._depth = 1,
@@ -64,9 +64,9 @@ TEST_CASE("FrameGraph")
                             ._sampleCounts = 1,
                             ._format = VK_FORMAT_R8G8B8A8_UNORM });
                 passData._output1 =
-                    builder.allocate<FrameGraph::FrameGraphTexture>(
+                    builder.allocate<RenderGraph::FrameGraphTexture>(
                         "Sample Pass 1 Resource Output 1",
-                        FrameGraph::FrameGraphTexture::Descriptor{
+                        RenderGraph::FrameGraphTexture::Descriptor{
                             ._width = 1200,
                             ._height = 900,
                             ._depth = 1,
@@ -77,26 +77,26 @@ TEST_CASE("FrameGraph")
                 passData._input2 = builder.read(passData._input2);
                 passData._output1 = builder.write(passData._output1);
             },
-            [&](const FrameGraph::FrameGraphResources*,
+            [&](const RenderGraph::FrameGraphResources*,
                 SamplePassData1& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
     struct SamplePassData2
     {
-        FrameGraph::ResourceHandle _input1;
-        FrameGraph::ResourceHandle _output1;
+        RenderGraph::ResourceHandle _input1;
+        RenderGraph::ResourceHandle _output1;
         bool _isExecuted = false;
     };
 
     const SamplePassData2& samplePass2 =
         frameGraph.addCallbackPass<SamplePassData2>(
             "Sample Pass 2 (Unreferenced)",
-            [&](FrameGraph::FrameGraphBuilder& builder,
+            [&](RenderGraph::FrameGraphBuilder& builder,
                 SamplePassData2& passData) {
                 passData._input1 =
-                    builder.allocate<FrameGraph::FrameGraphTexture>(
+                    builder.allocate<RenderGraph::FrameGraphTexture>(
                         "Sample Pass 2 Resource Input 1 (Unreferenced)",
-                        FrameGraph::FrameGraphTexture::Descriptor{
+                        RenderGraph::FrameGraphTexture::Descriptor{
                             ._width = 1200,
                             ._height = 900,
                             ._depth = 1,
@@ -104,9 +104,9 @@ TEST_CASE("FrameGraph")
                             ._sampleCounts = 1,
                             ._format = VK_FORMAT_R8G8B8A8_UNORM });
                 passData._output1 =
-                    builder.allocate<FrameGraph::FrameGraphTexture>(
+                    builder.allocate<RenderGraph::FrameGraphTexture>(
                         "Sample Pass 2 Resource Output 1 (Unreferenced)",
-                        FrameGraph::FrameGraphTexture::Descriptor{
+                        RenderGraph::FrameGraphTexture::Descriptor{
                             ._width = 1200,
                             ._height = 900,
                             ._depth = 1,
@@ -116,25 +116,25 @@ TEST_CASE("FrameGraph")
                 passData._input1 = builder.read(passData._input1);
                 passData._output1 = builder.write(passData._output1);
             },
-            [&](const FrameGraph::FrameGraphResources*, SamplePassData2& passData,
+            [&](const RenderGraph::FrameGraphResources*, SamplePassData2& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
     struct SamplePassData3
     {
-        FrameGraph::ResourceHandle _input1;
-        FrameGraph::ResourceHandle _output1;
+        RenderGraph::ResourceHandle _input1;
+        RenderGraph::ResourceHandle _output1;
         bool _isExecuted = false;
     };
 
     const SamplePassData3& samplePass3 =
         frameGraph.addCallbackPass<SamplePassData3>(
             "Sample Pass 3",
-            [&](FrameGraph::FrameGraphBuilder& builder,
+            [&](RenderGraph::FrameGraphBuilder& builder,
                 SamplePassData3& passData) {
                 passData._input1 = builder.read(samplePass1._output1);
                 builder.write(blackBoard.getHandle("BackBuffer"));
             },
-            [&](const FrameGraph::FrameGraphResources*,
+            [&](const RenderGraph::FrameGraphResources*,
                 SamplePassData3& passData,
                 CommandStream*) { passData._isExecuted = true; });
 
