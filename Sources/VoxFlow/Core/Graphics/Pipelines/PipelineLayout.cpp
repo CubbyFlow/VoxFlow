@@ -56,15 +56,19 @@ static void organizeCombinedDescSetLayouts(
             for (const auto& [name, info] : reflectionDataGroup->_descriptors)
             {
                 (void)name;  // TODO(snowapril) :
-
-                const uint32_t key =
-                    (static_cast<uint32_t>(info._descriptorCategory) << 24) |
-                    info._binding;
-                if (collisionCheckTable.find(key) == collisionCheckTable.end())
+                if (set == static_cast<uint32_t>(info._setCategory))
                 {
-                    collisionCheckTable.emplace(key, info);
-                    combinedPipelineLayoutDesc->_sets[set]
-                        ._descriptorInfos.emplace_back(info);
+                    const uint32_t key =
+                        (static_cast<uint32_t>(info._descriptorCategory)
+                         << 24) |
+                        info._binding;
+                    if (collisionCheckTable.find(key) ==
+                        collisionCheckTable.end())
+                    {
+                        collisionCheckTable.emplace(key, info);
+                        combinedPipelineLayoutDesc->_sets[set]
+                            ._descriptorInfos.emplace_back(info);
+                    }
                 }
             }
 
