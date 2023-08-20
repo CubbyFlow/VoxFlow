@@ -22,7 +22,7 @@ class PassNode;
 class VirtualResource : private NonCopyable
 {
  public:
-    VirtualResource(std::string_view&& name);
+    VirtualResource(std::string&& name);
     virtual ~VirtualResource();
 
     virtual bool isImported() const
@@ -47,7 +47,7 @@ class VirtualResource : private NonCopyable
         return _lastPass;
     }
 
-    [[nodiscard]] inline const std::string_view& getResourceName() const
+    [[nodiscard]] inline const std::string& getResourceName() const
     {
         return _resourceName;
     }
@@ -57,7 +57,7 @@ class VirtualResource : private NonCopyable
     virtual void destroy(RenderResourceAllocator*) = 0;
 
  protected:
-    std::string_view _resourceName;
+    std::string _resourceName;
     PassNode* _firstPass = nullptr;
     PassNode* _lastPass = nullptr;
     uint32_t _refCount = 0;
@@ -67,9 +67,9 @@ template <ResourceConcept ResourceDataType>
 class Resource : public VirtualResource
 {
  public:
-    explicit Resource(std::string_view&& name,
+    explicit Resource(std::string&& name,
                       typename ResourceDataType::Descriptor&& resourceArgs);
-    explicit Resource(std::string_view&& name,
+    explicit Resource(std::string&& name,
                       typename ResourceDataType::Descriptor&& resourceArgs,
                       const ResourceDataType& resource);
     ~Resource();
@@ -111,7 +111,7 @@ template <ResourceConcept ResourceDataType>
 class ImportedResource : public Resource<ResourceDataType>
 {
  public:
-    ImportedResource(std::string_view&& name,
+    ImportedResource(std::string&& name,
                      const ResourceDataType& resource,
                      typename ResourceDataType::Descriptor&& resourceArgs);
     ~ImportedResource();
@@ -130,7 +130,7 @@ class ImportedResource : public Resource<ResourceDataType>
 class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
 {
  public:
-    ImportedRenderTarget(std::string_view&& name,
+    ImportedRenderTarget(std::string&& name,
                          const FrameGraphTexture& resource,
                          FrameGraphTexture::Descriptor&& resourceArgs,
                          TextureView* textureView);

@@ -7,13 +7,12 @@
 
 namespace VoxFlow
 {
-RenderResourceAllocator::RenderResourceAllocator(Instance* instance,
-                                                 PhysicalDevice* physicalDevice,
-                                                 LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+RenderResourceAllocator::RenderResourceAllocator(
+    LogicalDevice* logicalDevice,
+    RenderResourceMemoryPool* renderResourceMemoryPool)
+    : _logicalDevice(logicalDevice),
+      _renderResourceMemoryPool(renderResourceMemoryPool)
 {
-    _renderResourceMemoryPool =
-        new RenderResourceMemoryPool(logicalDevice, physicalDevice, instance);
 }
 
 RenderResourceAllocator::~RenderResourceAllocator()
@@ -24,7 +23,7 @@ RenderResourceAllocator::~RenderResourceAllocator()
     }
 }
 
-Texture* RenderResourceAllocator::allocateTexture(
+std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(
     const TextureInfo& textureInfo, std::string&& debugName)
 {
     std::shared_ptr<Texture> texture = std::make_shared<Texture>(
@@ -35,10 +34,10 @@ Texture* RenderResourceAllocator::allocateTexture(
         return nullptr;
     }
 
-    return texture.get();
+    return texture;
 }
 
-Buffer* RenderResourceAllocator::allocateBuffer(
+std::shared_ptr<Buffer> RenderResourceAllocator::allocateBuffer(
     const BufferInfo& bufferInfo, std::string&& debugName)
 {
     std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
@@ -49,7 +48,7 @@ Buffer* RenderResourceAllocator::allocateBuffer(
         return nullptr;
     }
 
-    return buffer.get();
+    return buffer;
 }
 
 }  // namespace VoxFlow

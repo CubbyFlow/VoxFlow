@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <functional>
 
 namespace VoxFlow
@@ -16,7 +17,7 @@ constexpr uint32_t EXECUTION_LAMBDA_SIZE_LIMIT = 1024U;
 
 template <ResourceConcept ResourceDataType>
 ResourceHandle FrameGraphBuilder::allocate(
-    std::string_view&& resourceName,
+    std::string&& resourceName,
     typename ResourceDataType::Descriptor&& initArgs)
 {
     return _frameGraph->create<ResourceDataType>(std::move(resourceName),
@@ -72,7 +73,7 @@ void FrameGraph::addPresentPass(std::string_view&& passName, SetupPhase&& setup,
 
 template <ResourceConcept ResourceDataType>
 ResourceHandle FrameGraph::create(
-    std::string_view&& resourceName,
+    std::string&& resourceName,
     typename ResourceDataType::Descriptor&& resourceDescArgs)
 {
     VirtualResource* virtualResource = new Resource<ResourceDataType>(

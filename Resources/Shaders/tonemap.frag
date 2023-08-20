@@ -9,7 +9,7 @@ layout ( location = 0 ) in VSOUT {
 layout (location = 0) out vec4 outFragCoord;
 
 // TODO(snowapril) : modify to input attachment
-layout(set = 2, binding = 0) uniform sampler2D g_sceneColor;
+layout(set = 1, binding = 0) uniform sampler2D g_sceneColor;
 
 vec4 SRGBtoLinear(vec4 srgbIn, float gamma)
 {

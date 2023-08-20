@@ -14,6 +14,7 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class SceneRenderPass;
+class RenderResourceAllocator;
 class ResourceUploadContext;
 class CommandJobSystem;
 class SwapChain;
@@ -53,6 +54,7 @@ class SceneRenderer final : NonCopyable
     RenderGraph::FrameGraph* _frameGraph = nullptr;
     FrameContext _currentFrameContext;
     CommandJobSystem* _commandJobSystem = nullptr;
+    std::unique_ptr<RenderResourceAllocator> _renderResourceAllocator;
     CommandStreamKey _renderCmdStreamKey;
 
     std::unordered_map<std::string, std::unique_ptr<SceneRenderPass>>

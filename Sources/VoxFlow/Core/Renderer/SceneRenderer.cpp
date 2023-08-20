@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceAllocator.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 
 namespace VoxFlow
@@ -20,6 +21,10 @@ SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice,
     _renderCmdStreamKey =
         CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
                           ._cmdStreamUsage = CommandStreamUsage::Graphics };
+
+    _renderResourceAllocator = std::make_unique<RenderResourceAllocator>(
+        mainLogicalDevice,
+        mainLogicalDevice->getDeviceDefaultResourceMemoryPool());
 }
 
 SceneRenderer::~SceneRenderer()
@@ -55,7 +60,7 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     _currentFrameContext = frameContext;
 
     _frameGraph->reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey),
-                       nullptr);
+                       _renderResourceAllocator.get());
 
     SwapChain* swapChain =
         _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)

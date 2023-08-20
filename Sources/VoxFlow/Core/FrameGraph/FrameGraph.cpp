@@ -49,7 +49,7 @@ void FrameGraph::reset(CommandStream* cmdStream,
 }
 
 ResourceHandle FrameGraph::importRenderTarget(
-    std::string_view&& resourceName,
+    std::string&& resourceName,
     FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView)
 {
     VirtualResource* virtualResource = new ImportedRenderTarget(

@@ -11,8 +11,6 @@
 namespace VoxFlow
 {
 class LogicalDevice;
-class PhysicalDevice;
-class Instance;
 class RenderResourceMemoryPool;
 class Texture;
 class Buffer;
@@ -20,17 +18,17 @@ class Buffer;
 class RenderResourceAllocator : private NonCopyable
 {
  public:
-    explicit RenderResourceAllocator(Instance* instance,
-                                     PhysicalDevice* physicalDevice,
-                                     LogicalDevice* logicalDevice);
+    explicit RenderResourceAllocator(
+        LogicalDevice* logicalDevice,
+        RenderResourceMemoryPool* renderResourceMemoryPool);
     ~RenderResourceAllocator();
 
  public:
-    Texture* allocateTexture(const TextureInfo& textureInfo,
-                             std::string&& debugName);
+    std::shared_ptr<Texture> allocateTexture(const TextureInfo& textureInfo,
+                                             std::string&& debugName);
 
-    Buffer* allocateBuffer(const BufferInfo& bufferInfo,
-                           std::string&& debugName);
+    std::shared_ptr<Buffer> allocateBuffer(const BufferInfo& bufferInfo,
+                                           std::string&& debugName);
 
  protected:
  private:

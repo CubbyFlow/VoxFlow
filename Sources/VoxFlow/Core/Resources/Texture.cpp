@@ -46,6 +46,7 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
     VOX_ASSERT(textureInfo._usage != TextureUsage::Unknown,
                "TextureUsage must be specified");
 
+    // TODO(snowapril) : sample count, mipLevels, arrayLayers
     _textureInfo = textureInfo;
     VkImageCreateInfo imageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -56,14 +57,14 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
         .extent = VkExtent3D{ textureInfo._extent.x, textureInfo._extent.y,
                               textureInfo._extent.z },
         .mipLevels = 1,
-        .arrayLayers = 0,
+        .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = convertToImageUsage(textureInfo._usage),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-        .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
     VmaAllocationCreateInfo vmaInfo = {

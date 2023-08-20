@@ -51,7 +51,7 @@ class FrameGraphBuilder
  public:
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle allocate(
-        std::string_view&& resourceName,
+        std::string&& resourceName,
         typename ResourceDataType::Descriptor&& initArgs);
     ResourceHandle read(ResourceHandle id);
     ResourceHandle write(ResourceHandle id);
@@ -104,11 +104,11 @@ class FrameGraph : private NonCopyable
 
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
-        std::string_view&& resourceName,
+        std::string&& resourceName,
         typename ResourceDataType::Descriptor&& resourceDescArgs);
 
     [[nodiscard]] ResourceHandle importRenderTarget(
-        std::string_view&& resourceName,
+        std::string&& resourceName,
         FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView);
 
     // Compile given frame graph

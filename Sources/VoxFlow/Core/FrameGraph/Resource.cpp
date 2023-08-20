@@ -8,7 +8,7 @@ namespace VoxFlow
 namespace RenderGraph
 {
 
-VirtualResource::VirtualResource(std::string_view&& name)
+VirtualResource::VirtualResource(std::string&& name)
     : _resourceName(std::move(name))
 {
 }
@@ -24,7 +24,7 @@ void VirtualResource::isReferencedByPass(PassNode* passNode)
 }
 
 ImportedRenderTarget::ImportedRenderTarget(
-    std::string_view&& name, const FrameGraphTexture& resource,
+    std::string&& name, const FrameGraphTexture& resource,
     FrameGraphTexture::Descriptor&& resourceArgs, TextureView* textureView)
     : ImportedResource<FrameGraphTexture>(std::move(name), resource,
                                           std::move(resourceArgs)),

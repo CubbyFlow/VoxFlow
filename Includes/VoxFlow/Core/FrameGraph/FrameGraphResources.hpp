@@ -60,6 +60,4 @@ class FrameGraphResources
 
 }  // namespace VoxFlow
 
-#include <VoxFlow/Core/FrameGraph/FrameGraphResources-Impl.hpp>
-
 #endif

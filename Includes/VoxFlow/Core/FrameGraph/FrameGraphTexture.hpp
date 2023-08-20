@@ -30,10 +30,11 @@ struct FrameGraphTexture
     using Usage = TextureUsage;
 
     bool create(RenderResourceAllocator* resourceAllocator,
-                std::string_view&& debugName, Descriptor descriptor, Usage usage);
+                std::string&& debugName, Descriptor descriptor, Usage usage);
 
     void destroy(RenderResourceAllocator* resourceAllocator);
 
+    std::shared_ptr<Texture> _texture;
     TextureView* _textureView = nullptr;
 };
 }  // namespace RenderGraph

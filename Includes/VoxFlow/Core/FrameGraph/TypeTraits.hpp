@@ -5,7 +5,7 @@
 
 #include <concepts>
 #include <type_traits>
-#include <string_view>
+#include <string>
 
 namespace VoxFlow
 {
@@ -24,7 +24,7 @@ concept ResourceConcept = requires(Type resource)
         std::is_move_constructible_v<Type>;
 
     {
-        resource.create((RenderResourceAllocator *)nullptr, std::string_view{},
+        resource.create((RenderResourceAllocator *)nullptr, std::string{},
                         typename Type::Descriptor{}, typename Type::Usage{})
         } -> std::same_as<bool>;
     {
