@@ -77,11 +77,10 @@ class CommandBuffer : private NonCopyable
     void makeSwapChainFinalLayout(SwapChain* swapChain,
                                   const uint32_t backBufferIndex);
 
-    // Bind given resource group to command buffer according to descriptor set layout informations
-    void bindResourceGroup(
-        SetSlotCategory setSlotCategory,
-        std::vector<ShaderVariable>&&
-            bindGroup);
+    // Bind given resource group to command buffer according to descriptor set
+    // layout informations
+    void bindResourceGroup(SetSlotCategory setSlotCategory,
+                           std::vector<ShaderVariableBinding>&& bindGroup);
 
     // Commit pending resource bindings to command buffer
     void commitPendingResourceBindings();
@@ -118,7 +117,7 @@ class CommandBuffer : private NonCopyable
     RenderTargetsInfo _boundRenderTargetsInfo;
     FenceObject _fenceToSignal = FenceObject::Default();
     VkCommandBuffer _vkCommandBuffer = VK_NULL_HANDLE;
-    std::array<std::vector<ShaderVariable>, MAX_NUM_SET_SLOTS>
+    std::array<std::vector<ShaderVariableBinding>, MAX_NUM_SET_SLOTS>
         _pendingResourceBindings;
     std::string _debugName;
     bool _hasBegun = false;

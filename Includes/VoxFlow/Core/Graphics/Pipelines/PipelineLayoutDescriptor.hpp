@@ -30,6 +30,7 @@ struct FragmentOutputLayout
 
 struct PipelineLayoutDescriptor
 {
+    std::unordered_map<std::string_view, ShaderVariable> _shaderVariablesMap;
     std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _sets{};
     std::vector<VertexInputLayout> _stageInputs;
     std::vector<FragmentOutputLayout> _stageOutputs;
@@ -38,7 +39,7 @@ struct PipelineLayoutDescriptor
 
 struct ShaderReflectionDataGroup
 {
-    std::unordered_map<std::string, DescriptorInfo> _descriptors;
+    std::unordered_map<std::string, ShaderVariable> _descriptors;
     std::vector<VertexInputLayout> _vertexInputLayouts;
     std::vector<FragmentOutputLayout> _fragmentOutputLayouts;
     uint32_t _pushConstantSize = 0;

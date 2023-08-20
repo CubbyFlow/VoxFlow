@@ -290,9 +290,11 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
             (void)imageFormat;
             reflectionDataGroup->_descriptors.emplace(
                 resource.name,
-                DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                DescriptorCategory::CombinedImage, count,
-                                binding });
+                ShaderVariable{
+                    ._variableName = resource.name,
+                    ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                             DescriptorCategory::CombinedImage,
+                                             count, binding } });
         }
     }
 
@@ -337,11 +339,13 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        (void)totalSize;
         reflectionDataGroup->_descriptors.emplace(
-            resource.name, DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                           DescriptorCategory::UniformBuffer,
-                                           count, binding });
+            resource.name,
+            ShaderVariable{
+                ._variableName = resource.name,
+                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                         DescriptorCategory::UniformBuffer,
+                                         count, binding } });
     }
 
     for (const spirv_cross::Resource& resource :
@@ -385,11 +389,13 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        (void)totalSize;
         reflectionDataGroup->_descriptors.emplace(
-            resource.name, DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                           DescriptorCategory::StorageBuffer,
-                                           count, binding });
+            resource.name,
+            ShaderVariable{
+                ._variableName = resource.name,
+                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                         DescriptorCategory::StorageBuffer,
+                                         count, binding } });
     }
 
     for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)

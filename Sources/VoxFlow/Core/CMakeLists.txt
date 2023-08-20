@@ -21,7 +21,6 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/TypeTraits.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraph-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphResources.hpp
-    ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphResources-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphPass-Impl.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp

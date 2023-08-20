@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <algorithm>
+#include <unordered_set>
 
 namespace VoxFlow
 {
@@ -47,27 +48,37 @@ static void organizeCombinedDescSetLayouts(
     // TODO(snowapril) : As each descriptor set layout desc might have same
     // bindings, collision handling must be needed.
 
-    std::unordered_map<uint32_t, DescriptorInfo> collisionCheckTable;
+    std::unordered_set<uint32_t> collisionCheckSet;
     for (const ShaderReflectionDataGroup* reflectionDataGroup :
          combinedReflectionGroups)
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
-            for (const auto& [name, info] : reflectionDataGroup->_descriptors)
+            for (const auto& [name, shaderVariable] :
+                 reflectionDataGroup->_descriptors)
             {
-                (void)name;  // TODO(snowapril) :
-                if (set == static_cast<uint32_t>(info._setCategory))
+                if (set ==
+                    static_cast<uint32_t>(shaderVariable._info._setCategory))
                 {
                     const uint32_t key =
-                        (static_cast<uint32_t>(info._descriptorCategory)
+                        (static_cast<uint32_t>(
+                             shaderVariable._info._descriptorCategory)
                          << 24) |
-                        info._binding;
-                    if (collisionCheckTable.find(key) ==
-                        collisionCheckTable.end())
+                        shaderVariable._info._binding;
+                    if (collisionCheckSet.find(key) == collisionCheckSet.end())
                     {
-                        collisionCheckTable.emplace(key, info);
+                        collisionCheckSet.emplace(key);
+
                         combinedPipelineLayoutDesc->_sets[set]
-                            ._descriptorInfos.emplace_back(info);
+                            ._descriptorInfos.emplace_back(
+                                shaderVariable._info);
+
+                        combinedPipelineLayoutDesc->_shaderVariablesMap.emplace(
+                            name, shaderVariable);
+                    }
+                    else
+                    {
+                        // TODO(snowapril) : handling collision. It may not exist at now.
                     }
                 }
             }

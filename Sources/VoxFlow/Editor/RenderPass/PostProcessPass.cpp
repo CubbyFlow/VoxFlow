@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
@@ -39,20 +40,23 @@ void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
 
 void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 {
-    RenderGraph::ResourceHandle backBufferHandle =
-        frameGraph->getBlackBoard().getHandle("BackBuffer");
-
-    RenderGraph::ResourceHandle sceneColorHandle =
-        frameGraph->getBlackBoard().getHandle("SceneColor");
-
-    const auto& sceneColorDesc =
-        frameGraph->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
-            sceneColorHandle);
+    RenderGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
 
     _passData = frameGraph->addCallbackPass<PostProcessPassData>(
         "PostProcessPass",
         [&](RenderGraph::FrameGraphBuilder& builder,
             PostProcessPassData& passData) {
+            RenderGraph::ResourceHandle backBufferHandle =
+                blackBoard.getHandle("BackBuffer");
+
+            RenderGraph::ResourceHandle sceneColorHandle =
+                blackBoard.getHandle("SceneColor");
+
+            const auto& sceneColorDesc =
+                frameGraph
+                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                        sceneColorHandle);
+
             builder.read(sceneColorHandle);
             builder.write(backBufferHandle);
 
@@ -69,7 +73,6 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
         },
         [&](const RenderGraph::FrameGraphResources* fgResources,
             PostProcessPassData& passData, CommandStream* cmdStream) {
-
             RenderGraph::RenderPassData* rpData =
                 fgResources->getRenderPassData(passData._renderPassID);
 
@@ -79,15 +82,18 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _toneMapPipeline.get());
 
+            RenderGraph::ResourceHandle sceneColorHandle =
+                blackBoard.getHandle("SceneColor");
             TextureView* sceneColorView =
                 fgResources->getTextureView(sceneColorHandle);
 
-            cmdStream->addJob(CommandJobType::BindResourceGroup,
-                              SetSlotCategory::PerRenderPass,
-                              std::vector<ShaderVariable>{ ShaderVariable{
-                                  ._variableName = "g_sceneColor",
-                                  ._view = sceneColorView,
-                                  ._usage = ResourceLayout::UniformBuffer } });
+            cmdStream->addJob(
+                CommandJobType::BindResourceGroup,
+                SetSlotCategory::PerRenderPass,
+                std::vector<ShaderVariableBinding>{ ShaderVariableBinding{
+                    ._variableName = "g_sceneColor",
+                    ._view = sceneColorView,
+                    ._usage = ResourceLayout::ShaderReadOnly } });
 
             cmdStream->addJob(CommandJobType::Draw, 4, 1, 0, 0);
 

@@ -70,8 +70,9 @@ void CommandStream::addJob(CommandJobType jobType, CommandJobArgs&&... args)
             break;
 
         case CommandJobType::BindResourceGroup:
-            cmdBuffer->bindResourceGroup(params.getParam<SetSlotCategory>(0),
-                                         params.getParam<std::vector<ShaderVariable>>(1));
+            cmdBuffer->bindResourceGroup(
+                params.getParam<SetSlotCategory>(0),
+                params.getParam<std::vector<ShaderVariableBinding>>(1));
             break;
 
         case CommandJobType::UploadBuffer:

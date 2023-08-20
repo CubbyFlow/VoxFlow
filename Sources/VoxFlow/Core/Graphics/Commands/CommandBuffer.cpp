@@ -242,9 +242,9 @@ void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_
 
 void CommandBuffer::bindResourceGroup(
     SetSlotCategory setSlotCategory,
-    std::vector<ShaderVariable>&& shaderVariables)
+    std::vector<ShaderVariableBinding>&& shaderVariables)
 {
-    std::vector<ShaderVariable>& dstBindingResources =
+    std::vector<ShaderVariableBinding>& dstBindingResources =
         _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
 
     if (dstBindingResources.empty())
@@ -265,18 +265,21 @@ void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
     PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    const auto& shaderVariablesMap = pipelineLayout->getPipelineLayoutDescriptor()._shaderVariablesMap;
+
     for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
         const SetSlotCategory setSlotCategory =
             static_cast<SetSlotCategory>(setIndex);
 
-        std::vector<ShaderVariable>&
-            bindGroup = _pendingResourceBindings[setIndex];
+        std::vector<ShaderVariableBinding>& bindGroup =
+            _pendingResourceBindings[setIndex];
 
         DescriptorSetAllocator* setAllocator =
             pipelineLayout->getDescSetAllocator(setSlotCategory);
         const DescriptorSetLayoutDesc& setLayoutDesc =
             setAllocator->getDescriptorSetLayoutDesc();
+        const size_t numDescriptors = setLayoutDesc._descriptorInfos.size();
 
         VkDescriptorSet pooledDescriptorSet =
             static_cast<PooledDescriptorSetAllocator*>(setAllocator)
@@ -285,74 +288,74 @@ void CommandBuffer::commitPendingResourceBindings()
         std::vector<VkWriteDescriptorSet> vkWrites;
         vkWrites.reserve(bindGroup.size());
 
-        static VkDescriptorImageInfo sTmpImageInfo = {};
-        static VkDescriptorBufferInfo sTmpBufferInfo = {};
+        static thread_local std::vector<VkDescriptorImageInfo> sTmpImageInfos;
+        static thread_local std::vector<VkDescriptorBufferInfo> sTmpBufferInfos;
+        sTmpImageInfos.clear();
+        sTmpImageInfos.resize(numDescriptors);
+        sTmpBufferInfos.clear();
+        sTmpBufferInfos.resize(numDescriptors);
+        size_t currentDescriptorInfoIndex = 0;
 
-        for (const ShaderVariable& resourceBinding : bindGroup)
+        for (const ShaderVariableBinding& resourceBinding : bindGroup)
         {
-            const std::string_view& resourceBindingName = resourceBinding._variableName;
+            const std::string_view& resourceBindingName =
+                resourceBinding._variableName;
+
+            auto shaderVariableIter = shaderVariablesMap.find(resourceBindingName);
+            if (shaderVariableIter == shaderVariablesMap.end())
+            {
+                VOX_ASSERT(false,
+                           "Given shader variable name ({}) does not exist in "
+                           "the current pipeline.",
+                           resourceBindingName);
+                continue;
+            }
+
+            const ShaderVariable& shaderVariable = shaderVariableIter->second;
+
             BindableResourceView* bindingResourceView = resourceBinding._view;
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
-            // TODO(snowapril) : figure out other way to find descriptor type
-            // for given binding name
-            // DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-            //    setLayoutDesc._bindingMap.find(
-            //        std::string(resourceBindingName));
-            //
-            //VOX_ASSERT(it != setLayoutDesc._bindingMap.end(),
-            //           "Unknown binding name ({})", resourceBindingName);
-
-            uint32_t binding = 0;
-            uint32_t arraySize = 0;
-
+            uint32_t binding = shaderVariable._info._binding;
+            uint32_t arraySize = shaderVariable._info._arraySize;
             VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-
-            //std::visit(
-            //    overloaded{
-            //        [&binding, &arraySize, &vkDescriptorType](
-            //            DescriptorSetLayoutDesc::CombinedImage setBinding) {
-            //            binding = setBinding._binding;
-            //            arraySize = setBinding._arraySize;
-            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            //        },
-            //        [&binding, &arraySize, &vkDescriptorType](
-            //            DescriptorSetLayoutDesc::UniformBuffer setBinding) {
-            //            binding = setBinding._binding;
-            //            arraySize = setBinding._arraySize;
-            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            //        },
-            //        [&binding, &arraySize, &vkDescriptorType](
-            //            DescriptorSetLayoutDesc::StorageBuffer setBinding) {
-            //            binding = setBinding._binding;
-            //            arraySize = setBinding._arraySize;
-            //            vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            //        },
-            //    },
-            //    it->second);
-
-            VOX_ASSERT(vkDescriptorType != VK_DESCRIPTOR_TYPE_MAX_ENUM,
-                       "Unknown descriptor type {}", vkDescriptorType);
+            switch (shaderVariable._info._descriptorCategory)
+            {
+                case DescriptorCategory::CombinedImage:
+                    vkDescriptorType =
+                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    break;
+                case DescriptorCategory::UniformBuffer:
+                    vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    break;
+                case DescriptorCategory::StorageBuffer:
+                    vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                    break;
+                default:
+                    VOX_ASSERT(false,
+                               "Unknown descriptor category must not be exist");
+                    break;
+            }
 
             switch (bindingResourceView->getResourceViewType())
             {
                 case ResourceViewType::BufferView:
-                    sTmpBufferInfo =
+                    sTmpBufferInfos[currentDescriptorInfoIndex] =
                         static_cast<BufferView*>(bindingResourceView)
                             ->getDescriptorBufferInfo();
-                    bufferInfo = &sTmpBufferInfo;
+                    bufferInfo = &sTmpBufferInfos[currentDescriptorInfoIndex++];
                     break;
                 case ResourceViewType::ImageView:
-                    sTmpImageInfo =
+                    sTmpImageInfos[currentDescriptorInfoIndex] =
                         static_cast<TextureView*>(bindingResourceView)
                             ->getDescriptorImageInfo();
 
                     // TODO(snowapril) : set image layout
                     // sTmpImageInfo.imageLayout = ;
 
-                    imageInfo = &sTmpImageInfo;
+                    imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
             }
 
@@ -362,8 +365,8 @@ void CommandBuffer::commitPendingResourceBindings()
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .pNext = nullptr,
                 .dstSet = pooledDescriptorSet,
-                .dstBinding = static_cast<uint32_t>(setSlotCategory),
-                .dstArrayElement = binding,
+                .dstBinding = static_cast<uint32_t>(binding),
+                .dstArrayElement = 0,
                 .descriptorCount = arraySize,
                 .descriptorType = vkDescriptorType,
                 .pImageInfo = imageInfo,
