@@ -7,7 +7,7 @@
 
 namespace VoxFlow
 {
-constexpr uint32_t STAGING_BUFFER_DEFAULT_SIZE = 1024U * 1024U;
+constexpr uint64_t STAGING_BUFFER_DEFAULT_SIZE = 1024U * 1024U;
 
 StagingBufferContext::StagingBufferContext(
     LogicalDevice* logicalDevice,
@@ -22,15 +22,15 @@ StagingBufferContext ::~StagingBufferContext()
     release();
 }
 
-std::tuple<StagingBuffer*, uint32_t>
-StagingBufferContext::getOrCreateStagingBuffer(const uint32_t size)
+std::tuple<StagingBuffer*, uint64_t>
+StagingBufferContext::getOrCreateStagingBuffer(const uint64_t size)
 {
     StagingBuffer* stagingBuffer = nullptr;
-    uint32_t stagingBufferOffset = UINT32_MAX;
+    uint64_t stagingBufferOffset = UINT32_MAX;
 
     for (StagingBufferPool& bufferPool : _stagingBufferPools)
     {
-        const uint32_t offset = bufferPool._blockAllocator->allocate(size);
+        const uint64_t offset = bufferPool._blockAllocator->allocate(size);
         if (offset != BlockAllocator::INVALID_BLOCK_OFFSET)
         {
             stagingBuffer = bufferPool._stagingBuffer.get();

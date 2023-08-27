@@ -16,20 +16,20 @@ namespace VoxFlow
 class BlockAllocator : private NonCopyable
 {
  public:
-    static const uint32_t INVALID_BLOCK_OFFSET = UINT32_MAX;
+    static const uint64_t INVALID_BLOCK_OFFSET = UINT64_MAX;
 
     BlockAllocator() = default;
     BlockAllocator(const bool isThreadSafe);
     ~BlockAllocator();
 
-    uint32_t allocate(const uint32_t size);
-    void deallocate(const uint32_t offset, const uint32_t size);
+    uint64_t allocate(const uint64_t size);
+    void deallocate(const uint64_t offset, const uint64_t size);
     void defragment();
 
  protected:
-    virtual uint32_t allocateInner(const uint32_t size) = 0;
-    virtual void deallocateInner(const uint32_t offset,
-                                 const uint32_t size) = 0;
+    virtual uint64_t allocateInner(const uint64_t size) = 0;
+    virtual void deallocateInner(const uint64_t offset,
+                                 const uint64_t size) = 0;
     virtual void defragmentInner() = 0;
 
  private:
@@ -42,19 +42,19 @@ class FixedBlockAllocator : public BlockAllocator
 {
  public:
     FixedBlockAllocator() = default;
-    FixedBlockAllocator(const uint32_t blockSize, const uint32_t numBlocks,
+    FixedBlockAllocator(const uint64_t blockSize, const uint64_t numBlocks,
                         const bool isThreadSafe);
     ~FixedBlockAllocator();
 
-    uint32_t allocateInner(const uint32_t size) override;
-    void deallocateInner(const uint32_t offset, const uint32_t size) override;
+    uint64_t allocateInner(const uint64_t size) override;
+    void deallocateInner(const uint64_t offset, const uint64_t size) override;
     void defragmentInner() override;
 
  private:
     struct BlockSizeInfo
     {
-        uint32_t _offset = 0;
-        uint32_t _size = 0;
+        uint64_t _offset = 0;
+        uint64_t _size = 0;
     };
     std::vector<BlockSizeInfo> _blockList;
 };
@@ -63,32 +63,32 @@ class LinearBlockAllocator : public BlockAllocator
 {
  public:
     LinearBlockAllocator() = default;
-    LinearBlockAllocator(const uint32_t totalSize, const bool isThreadSafe);
+    LinearBlockAllocator(const uint64_t totalSize, const bool isThreadSafe);
     ~LinearBlockAllocator();
 
-    uint32_t allocateInner(const uint32_t size) override;
-    void deallocateInner(const uint32_t offset, const uint32_t size) override;
+    uint64_t allocateInner(const uint64_t size) override;
+    void deallocateInner(const uint64_t offset, const uint64_t size) override;
     void defragmentInner() override;
 
  private:
     struct BlockSizeInfo
     {
-        uint32_t _offset = 0;
-        uint32_t _size = 0;
+        uint64_t _offset = 0;
+        uint64_t _size = 0;
     };
 
-    uint32_t _totalSize = 0;
+    uint64_t _totalSize = 0;
     std::list<BlockSizeInfo> _blockList;
 };
 
 class LinearMemoryAllocator : private NonCopyable
 {
  public:
-    LinearMemoryAllocator(const uint32_t totalSize, const bool isThreadSafe);
+    LinearMemoryAllocator(const uint64_t totalSize, const bool isThreadSafe);
     ~LinearMemoryAllocator();
 
-    uint8_t* allocate(const uint32_t size);
-    void deallocate(void* data, const uint32_t size);
+    uint8_t* allocate(const uint64_t size);
+    void deallocate(void* data, const uint64_t size);
     void defragment();
 
  protected:

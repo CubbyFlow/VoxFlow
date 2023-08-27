@@ -29,8 +29,8 @@ struct UploadData
 {
     // Note(snowapril) : can be destructed after pending call
     const void* _data = nullptr;
-    uint32_t _size = 0;
-    uint32_t _dstOffset = 0;
+    uint64_t _size = 0;
+    uint64_t _dstOffset = 0;
 };
 
 class ResourceUploadContext : private NonCopyable
@@ -51,7 +51,7 @@ class ResourceUploadContext : private NonCopyable
     {
         StagingBuffer* _srcBuffer = nullptr;
         RenderResource* _dstResource = nullptr;
-        uint32_t _stagingBufferOffset = 0;
+        uint64_t _stagingBufferOffset = 0;
         UploadData _uploadData = {};
     };
 

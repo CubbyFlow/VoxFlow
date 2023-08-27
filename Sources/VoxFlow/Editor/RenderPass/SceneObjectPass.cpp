@@ -47,14 +47,14 @@ bool SceneObjectPass::initialize()
         "QuadVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeVertexBuffer->makeAllocationResident(BufferInfo{
-        ._size = sizeof(cubeVertices),
+        ._size = cubeVertices.size() * sizeof(glm::vec3),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
 
     _cubeIndexBuffer = std::make_unique<Buffer>(
         "QuadIndexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeIndexBuffer->makeAllocationResident(BufferInfo{
-        ._size = sizeof(cubeIndices),
+        ._size = cubeIndices.size() * sizeof(uint32_t),
         ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
 
     return true;
@@ -65,13 +65,13 @@ void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
     uploadContext->addPendingUpload(UploadPhase::Immediate,
                                     _cubeVertexBuffer.get(),
                                     UploadData{ ._data = &cubeVertices[0].x,
-                                                ._size = sizeof(cubeVertices),
+                    ._size = cubeVertices.size() * sizeof(glm::vec3),
                                                 ._dstOffset = 0 });
 
     uploadContext->addPendingUpload(UploadPhase::Immediate,
                                     _cubeIndexBuffer.get(),
                                     UploadData{ ._data = &cubeIndices[0],
-                                                ._size = sizeof(cubeIndices),
+                    ._size = cubeIndices.size() * sizeof(uint32_t),
                                                 ._dstOffset = 0 });
 }
 

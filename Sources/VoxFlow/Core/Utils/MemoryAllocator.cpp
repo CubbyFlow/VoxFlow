@@ -15,7 +15,7 @@ BlockAllocator::~BlockAllocator()
 {
 }
 
-uint32_t BlockAllocator::allocate(const uint32_t size)
+uint64_t BlockAllocator::allocate(const uint64_t size)
 {
     std::unique_lock allocatorLock(_mutex, std::defer_lock);
     if (_isThreadSafe)
@@ -23,7 +23,7 @@ uint32_t BlockAllocator::allocate(const uint32_t size)
         allocatorLock.lock();
     }
 
-    const uint32_t offset = allocateInner(size);
+    const uint64_t offset = allocateInner(size);
 
     if (_isThreadSafe)
     {
@@ -33,7 +33,7 @@ uint32_t BlockAllocator::allocate(const uint32_t size)
     return offset;
 }
 
-void BlockAllocator::deallocate(const uint32_t offset, const uint32_t size)
+void BlockAllocator::deallocate(const uint64_t offset, const uint64_t size)
 {
     std::unique_lock allocatorLock(_mutex, std::defer_lock);
     if (_isThreadSafe)
@@ -65,7 +65,7 @@ void BlockAllocator::defragment()
     }
 }
 
-LinearBlockAllocator::LinearBlockAllocator(const uint32_t totalSize,
+LinearBlockAllocator::LinearBlockAllocator(const uint64_t totalSize,
                                            const bool isThreadSafe)
     : BlockAllocator(isThreadSafe), _totalSize(totalSize)
 {
@@ -76,9 +76,9 @@ LinearBlockAllocator::~LinearBlockAllocator()
 {
 }
 
-uint32_t LinearBlockAllocator::allocateInner(const uint32_t size)
+uint64_t LinearBlockAllocator::allocateInner(const uint64_t size)
 {
-    uint32_t offset = INVALID_BLOCK_OFFSET;
+    uint64_t offset = INVALID_BLOCK_OFFSET;
 
     for (auto iter = _blockList.begin(); iter != _blockList.end();)
     {
@@ -102,8 +102,8 @@ uint32_t LinearBlockAllocator::allocateInner(const uint32_t size)
     return offset;
 }
 
-void LinearBlockAllocator::deallocateInner(const uint32_t offset,
-                                      const uint32_t size)
+void LinearBlockAllocator::deallocateInner(const uint64_t offset,
+                                      const uint64_t size)
 {
     (void)offset;
     (void)size;
@@ -114,7 +114,7 @@ void LinearBlockAllocator::defragmentInner()
     // TODO(snowapril)
 }
 
-LinearMemoryAllocator::LinearMemoryAllocator(const uint32_t totalSize,
+LinearMemoryAllocator::LinearMemoryAllocator(const uint64_t totalSize,
                                              const bool isThreadSafe)
     : _linearBlockAllocator(totalSize, isThreadSafe)
 {
@@ -129,9 +129,9 @@ LinearMemoryAllocator::~LinearMemoryAllocator()
     }
 }
 
-uint8_t* LinearMemoryAllocator::allocate(const uint32_t size)
+uint8_t* LinearMemoryAllocator::allocate(const uint64_t size)
 {
-    const uint32_t offset = _linearBlockAllocator.allocate(size);
+    const uint64_t offset = _linearBlockAllocator.allocate(size);
     if (offset == LinearBlockAllocator::INVALID_BLOCK_OFFSET)
     {
         return nullptr;
@@ -140,7 +140,7 @@ uint8_t* LinearMemoryAllocator::allocate(const uint32_t size)
     return static_cast<uint8_t*>(_dataAddress) + offset;
 }
 
-void LinearMemoryAllocator::deallocate(void* data, const uint32_t size)
+void LinearMemoryAllocator::deallocate(void* data, const uint64_t size)
 {
     const bool isInThisAllocator =
         (static_cast<uint8_t*>(_dataAddress) <= static_cast<uint8_t*>(data)) &&
@@ -152,7 +152,7 @@ void LinearMemoryAllocator::deallocate(void* data, const uint32_t size)
     }
     else
     {
-        const uint32_t offset = static_cast<uint32_t>(
+        const uint64_t offset = static_cast<uint64_t>(
             static_cast<uint8_t*>(data) - static_cast<uint8_t*>(_dataAddress));
         _linearBlockAllocator.deallocate(offset, size);
     }

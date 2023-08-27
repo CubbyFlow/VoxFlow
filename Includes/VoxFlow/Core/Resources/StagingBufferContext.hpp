@@ -23,8 +23,8 @@ class StagingBufferContext : private NonCopyable
     ~StagingBufferContext();
 
  public:
-    std::tuple<StagingBuffer*, uint32_t> getOrCreateStagingBuffer(
-        const uint32_t size);
+    std::tuple<StagingBuffer*, uint64_t> getOrCreateStagingBuffer(
+        const uint64_t size);
 
     void release();
 
