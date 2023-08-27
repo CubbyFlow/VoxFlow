@@ -398,51 +398,59 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
                                          count, binding } });
     }
 
-    for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
+    if (shaderStageBits == VK_SHADER_STAGE_VERTEX_BIT)
     {
-        auto location =
-            compiler.get_decoration(attribute.id, spv::DecorationLocation);
-        
-        const spirv_cross::SPIRType& resourceType =
-            compiler.get_type(attribute.type_id);
+        for (const spirv_cross::Resource& attribute :
+             shaderResources.stage_inputs)
+        {
+            auto location =
+                compiler.get_decoration(attribute.id, spv::DecorationLocation);
 
-        const uint32_t size =
-            static_cast<uint32_t>(resourceType.width * resourceType.vecsize);
-        VOX_ASSERT(resourceType.columns == 1,
-                   "Matrix should not be used in stage input/output");
+            const spirv_cross::SPIRType& resourceType =
+                compiler.get_type(attribute.type_id);
 
-        VertexFormatBaseType baseType =
-            convertToBaseType(resourceType.basetype);
+            const uint32_t size = static_cast<uint32_t>(resourceType.width *
+                                                        resourceType.vecsize);
+            VOX_ASSERT(resourceType.columns == 1,
+                       "Matrix should not be used in stage input/output");
 
-        reflectionDataGroup->_vertexInputLayouts.emplace_back(
-            location, (size >> 3), baseType);
+            VertexFormatBaseType baseType =
+                convertToBaseType(resourceType.basetype);
+
+            reflectionDataGroup->_vertexInputLayouts.emplace_back(
+                location, (size >> 3), baseType);
+        }
+        std::sort(reflectionDataGroup->_vertexInputLayouts.begin(),
+                  reflectionDataGroup->_vertexInputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs._location <= rhs._location;
+                  });
     }
-    std::sort(reflectionDataGroup->_vertexInputLayouts.begin(),
-              reflectionDataGroup->_vertexInputLayouts.end(),
-              [](const auto& lhs, const auto& rhs) {
-                  return lhs._location <= rhs._location;
-              });
-
-    for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
+    
+    if (shaderStageBits == VK_SHADER_STAGE_FRAGMENT_BIT)
     {
-        auto location =
-            compiler.get_decoration(attribute.id, spv::DecorationLocation);
+        for (const spirv_cross::Resource& attribute :
+             shaderResources.stage_outputs)
+        {
+            auto location =
+                compiler.get_decoration(attribute.id, spv::DecorationLocation);
 
-        const spirv_cross::SPIRType& resourceType =
-            compiler.get_type(attribute.type_id);
+            const spirv_cross::SPIRType& resourceType =
+                compiler.get_type(attribute.type_id);
 
-        VkFormat imageFormat =
-            convertSpirvImageFormat(resourceType.image.format);
+            VkFormat imageFormat =
+                convertSpirvImageFormat(resourceType.image.format);
 
-        reflectionDataGroup->_fragmentOutputLayouts.emplace_back(
-            location,
-            imageFormat);  // TODO(snowapril) : need format query
+            reflectionDataGroup->_fragmentOutputLayouts.emplace_back(
+                location,
+                imageFormat);  // TODO(snowapril) : need format query
+        }
+        std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(),
+                  reflectionDataGroup->_fragmentOutputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs._location <= rhs._location;
+                  });
     }
-    std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(),
-              reflectionDataGroup->_fragmentOutputLayouts.end(),
-              [](const auto& lhs, const auto& rhs) {
-                  return lhs._location <= rhs._location;
-              });
 
     if (!shaderResources.push_constant_buffers.empty())
     {
