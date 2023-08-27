@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
@@ -33,33 +34,43 @@ VkFormat VertexInputLayout::getVkFormat() const
     switch (_baseType)
     {
         case VertexFormatBaseType::Float16:
-            resultFormat = FORMAT_TABLE[(_stride / 2)];
+            resultFormat = FORMAT_TABLE[((_stride / 2) - 1)];
             break;
         case VertexFormatBaseType::Float32:
-            resultFormat = FORMAT_TABLE[(_stride / 4) + 4];
+            resultFormat = FORMAT_TABLE[((_stride / 4) - 1) + 4];
+            break;
+        case VertexFormatBaseType::Float48:
+            resultFormat = FORMAT_TABLE[((_stride / 6) - 1) + 4];
             break;
         case VertexFormatBaseType::Float64:
-            resultFormat = FORMAT_TABLE[(_stride / 8) + 8];
+            resultFormat = FORMAT_TABLE[((_stride / 8) - 1) + 8];
             break;
         case VertexFormatBaseType::Int16:
-            resultFormat = FORMAT_TABLE[(_stride / 2) + 12];
+            resultFormat = FORMAT_TABLE[((_stride / 2) - 1) + 12];
             break;
         case VertexFormatBaseType::Int32:
-            resultFormat = FORMAT_TABLE[(_stride / 4) + 16];
+            resultFormat = FORMAT_TABLE[((_stride / 4) - 1) + 16];
+            break;
+        case VertexFormatBaseType::Int48:
+            resultFormat = FORMAT_TABLE[((_stride / 6) - 1) + 20];
             break;
         case VertexFormatBaseType::Int64:
-            resultFormat = FORMAT_TABLE[(_stride / 8) + 20];
+            resultFormat = FORMAT_TABLE[((_stride / 8) - 1) + 20];
             break;
         case VertexFormatBaseType::Uint16:
-            resultFormat = FORMAT_TABLE[(_stride / 2) + 24];
+            resultFormat = FORMAT_TABLE[((_stride / 2) - 1) + 24];
             break;
         case VertexFormatBaseType::Uint32:
-            resultFormat = FORMAT_TABLE[(_stride / 4) + 28];
+            resultFormat = FORMAT_TABLE[((_stride / 4) - 1) + 28];
+            break;
+        case VertexFormatBaseType::Uint48:
+            resultFormat = FORMAT_TABLE[((_stride / 6) - 1) + 32];
             break;
         case VertexFormatBaseType::Uint64:
-            resultFormat = FORMAT_TABLE[(_stride / 8) + 32];
+            resultFormat = FORMAT_TABLE[((_stride / 8) - 1) + 32];
             break;
         case VertexFormatBaseType::Unknown:
+            VOX_ASSERT(false, "Unknown vertex format must be handled");
             break;
     }
     return resultFormat;

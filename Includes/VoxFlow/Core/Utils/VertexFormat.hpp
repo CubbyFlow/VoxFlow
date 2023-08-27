@@ -13,14 +13,17 @@ enum class VertexFormatBaseType : uint8_t
 {
     Float16 = 0,
     Float32 = 1,
-    Float64 = 2,
-    Int16 = 3,
-    Int32 = 4,
-    Int64 = 5,
-    Uint16 = 6,
-    Uint32 = 7,
-    Uint64 = 8,
-    Unknown = 9,
+    Float48 = 2,
+    Float64 = 3,
+    Int16 = 4,
+    Int32 = 5,
+    Int48 = 6,
+    Int64 = 7,
+    Uint16 = 8,
+    Uint32 = 9,
+    Uint48 = 10,
+    Uint64 = 11,
+    Unknown = 12,
     Count = Unknown
 };
 
