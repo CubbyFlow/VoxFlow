@@ -259,7 +259,12 @@ void SwapChain::querySwapChainCapability(
     {
         for (const VkPresentModeKHR& presentMode : supportedPresentModes)
         {
-            if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+            if (presentMode == VK_PRESENT_MODE_FIFO_KHR)
+            {
+                resultPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+                break;
+            }
+            else if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
             {
                 resultPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
                 break;
