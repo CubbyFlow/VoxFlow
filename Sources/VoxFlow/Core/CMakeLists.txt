@@ -59,6 +59,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Texture.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Buffer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Handle.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/Sampler.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/HandleAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResource.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceAllocator.hpp
@@ -124,6 +125,7 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResource.cpp
     ${SRC_DIR}/Core/Resources/Texture.cpp
     ${SRC_DIR}/Core/Resources/Buffer.cpp
+    ${SRC_DIR}/Core/Resources/Sampler.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceAllocator.cpp
     ${SRC_DIR}/Core/Resources/ResourceUploadContext.cpp
     ${SRC_DIR}/Core/Resources/RenderResourceGarbageCollector.cpp

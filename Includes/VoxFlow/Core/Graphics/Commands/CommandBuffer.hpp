@@ -121,6 +121,9 @@ class CommandBuffer : private NonCopyable
         _pendingResourceBindings;
     std::string _debugName;
     bool _hasBegun = false;
+
+    // TODO(snowapril) : temporary member variable
+    class Sampler* _sampler = nullptr;
 };
 }  // namespace VoxFlow
 

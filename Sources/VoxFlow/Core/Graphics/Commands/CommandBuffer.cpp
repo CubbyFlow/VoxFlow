@@ -20,6 +20,7 @@
 #include <VoxFlow/Core/Resources/StagingBuffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceTracker.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Resources/Sampler.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
@@ -28,10 +29,18 @@ CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
                              VkCommandBuffer vkCommandBuffer)
     : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer)
 {
+    // TODO(snowapril) : temporal sampler
+    _sampler = new Sampler("TempSampler", logicalDevice);
+    _sampler->initialize();
 }
+
 CommandBuffer::~CommandBuffer()
 {
     // Do nothing
+    if (_sampler)
+    {
+        delete _sampler;
+}
 }
 
 void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
@@ -155,14 +164,14 @@ void CommandBuffer::endRenderPass()
 
 void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
 {
-    // TODO(snowapril) : 
+    // TODO(snowapril) : must implement details
     VkBuffer vkVertexBuffer = vertexBuffer->get();
     vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &vkVertexBuffer, nullptr);
 }
 
 void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
 {
-    // TODO(snowapril) : 
+    // TODO(snowapril) : must implement details
     VkBuffer vkIndexBuffer = indexBuffer->get();
     vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0,
                          VK_INDEX_TYPE_UINT16);
@@ -353,7 +362,13 @@ void CommandBuffer::commitPendingResourceBindings()
                             ->getDescriptorImageInfo();
 
                     // TODO(snowapril) : set image layout
-                    // sTmpImageInfo.imageLayout = ;
+                    // sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                    if (shaderVariable._info._descriptorCategory == DescriptorCategory::CombinedImage)
+                    {
+                        sTmpImageInfos[currentDescriptorInfoIndex].sampler =
+                            _sampler->get();
+                    }
 
                     imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
