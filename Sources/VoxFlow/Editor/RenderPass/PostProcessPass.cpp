@@ -95,6 +95,15 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                     ._view = sceneColorView,
                     ._usage = ResourceLayout::ShaderReadOnly } });
 
+            const auto& sceneColorDesc =
+                fgResources
+                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                        sceneColorHandle);
+
+            cmdStream->addJob(
+                CommandJobType::SetViewport,
+                glm::uvec2(sceneColorDesc._width, sceneColorDesc._height));
+
             cmdStream->addJob(CommandJobType::Draw, 4, 1, 0, 0);
 
             cmdStream->addJob(CommandJobType::EndRenderPass);

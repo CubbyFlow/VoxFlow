@@ -42,7 +42,7 @@ class FrameGraphResources
         ResourceHandle handle) const;
 
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] inline const typename ResourceDataType::Descriptor&
+    [[nodiscard]] inline const typename ResourceDataType::Descriptor
     getResourceDescriptor(ResourceHandle handle) const;
 
     [[nodiscard]] TextureView* getTextureView(ResourceHandle handle) const;

@@ -121,7 +121,7 @@ FrameGraphResources::getResource(ResourceHandle handle) const
 }
 
 template <ResourceConcept ResourceDataType>
-[[nodiscard]] inline const typename ResourceDataType::Descriptor&
+[[nodiscard]] inline const typename ResourceDataType::Descriptor
 FrameGraphResources::getResourceDescriptor(ResourceHandle handle) const
 {
 #if defined(VOXFLOW_DEBUG)
@@ -131,7 +131,7 @@ FrameGraphResources::getResourceDescriptor(ResourceHandle handle) const
         "Should not try to get resource that is not declared in this pass");
 #endif
 
-    return _frameGraph->getResourceDescriptor(handle);
+    return _frameGraph->getResourceDescriptor<ResourceDataType>(handle);
 }
 
 }  // namespace RenderGraph
