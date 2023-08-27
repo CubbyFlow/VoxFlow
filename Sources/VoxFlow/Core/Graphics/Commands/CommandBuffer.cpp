@@ -40,7 +40,7 @@ CommandBuffer::~CommandBuffer()
     if (_sampler)
     {
         delete _sampler;
-}
+    }
 }
 
 void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
@@ -166,7 +166,8 @@ void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
 {
     // TODO(snowapril) : must implement details
     VkBuffer vkVertexBuffer = vertexBuffer->get();
-    vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &vkVertexBuffer, nullptr);
+    const VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
 }
 
 void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
@@ -174,7 +175,7 @@ void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
     // TODO(snowapril) : must implement details
     VkBuffer vkIndexBuffer = indexBuffer->get();
     vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0,
-                         VK_INDEX_TYPE_UINT16);
+                         VK_INDEX_TYPE_UINT32);
 }
 
 void CommandBuffer::bindPipeline(BasePipeline* pipeline)
@@ -289,6 +290,11 @@ void CommandBuffer::commitPendingResourceBindings()
         const DescriptorSetLayoutDesc& setLayoutDesc =
             setAllocator->getDescriptorSetLayoutDesc();
         const size_t numDescriptors = setLayoutDesc._descriptorInfos.size();
+
+        if (numDescriptors == 0ULL)
+        {
+            continue;
+        }
 
         VkDescriptorSet pooledDescriptorSet =
             static_cast<PooledDescriptorSetAllocator*>(setAllocator)
