@@ -14,17 +14,17 @@ static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
 {
     VkImageUsageFlags resultUsage = 0;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::RenderTarget) > 0)
-        resultUsage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::DepthStencil) > 0)
-        resultUsage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::Sampled) > 0)
-        resultUsage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::Storage) > 0)
-        resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::CopySrc) > 0)
-        resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::CopyDst) > 0)
-        resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        resultUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     return resultUsage;
 }
 
