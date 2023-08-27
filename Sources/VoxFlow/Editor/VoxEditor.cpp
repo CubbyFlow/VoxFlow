@@ -14,7 +14,7 @@
 namespace VoxFlow
 {
 
-VoxEditor::VoxEditor()
+VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
 {
     if (glfwInit() == GLFW_FALSE)
     {
@@ -38,7 +38,7 @@ VoxEditor::VoxEditor()
         return;
     }
 
-    constexpr bool enableDebugLayer = true;
+    const bool enableDebugLayer = arguments["debug"].as<bool>();
 
     Context context(enableDebugLayer);
     context.setVersion(1, 3);

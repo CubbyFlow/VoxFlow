@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_VOX_EDITOR_HPP
 
 #include <VoxFlow/Core/Utils/DeviceInputSubscriber.hpp>
+#include <cxxopts/include/cxxopts.hpp>
 
 namespace VoxFlow
 {
@@ -14,7 +15,7 @@ class PostProcessPass;
 class VoxEditor
 {
  public:
-    VoxEditor();
+    VoxEditor(cxxopts::ParseResult&& arguments);
     ~VoxEditor();
 
  public:

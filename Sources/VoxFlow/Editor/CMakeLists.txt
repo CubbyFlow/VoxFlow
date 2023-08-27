@@ -46,6 +46,7 @@ target_include_directories(${target}
     ${LIBRARY_DIR}/volk
     ${LIBRARY_DIR}/glslang
     ${LIBRARY_DIR}/assimp/include
+    ${LIBRARY_DIR}/cxxopts/include
 )
 
 # Compile options
