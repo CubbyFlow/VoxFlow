@@ -37,6 +37,7 @@ class SceneObjectPass : public SceneRenderPass
     {
         RenderGraph::ResourceHandle _sceneColorHandle;
         RenderGraph::ResourceHandle _sceneDepthHandle;
+        uint32_t _renderPassID = UINT32_MAX;
     } _passData;
 
     std::unique_ptr<GraphicsPipeline> _sceneObjectPipeline;

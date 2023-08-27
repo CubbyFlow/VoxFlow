@@ -40,8 +40,8 @@ bool SceneObjectPass::initialize()
 {
     _sceneObjectPipeline = std::make_unique<GraphicsPipeline>(
         _logicalDevice, std::initializer_list<const char*>{
-                            RESOURCES_DIR "/Shaders/test_shader.vert",
-                            RESOURCES_DIR "/Shaders/test_shader.vert" });
+                            RESOURCES_DIR "/Shaders/scene_object.vert",
+                            RESOURCES_DIR "/Shaders/scene_object.frag" });
 
     _cubeVertexBuffer = std::make_unique<Buffer>(
         "QuadVertexBuffer", _logicalDevice,
@@ -62,17 +62,17 @@ bool SceneObjectPass::initialize()
 
 void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
 {
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _cubeVertexBuffer.get(),
-                                    UploadData{ ._data = &cubeVertices[0].x,
+    uploadContext->addPendingUpload(
+        UploadPhase::Immediate, _cubeVertexBuffer.get(),
+        UploadData{ ._data = &cubeVertices[0].x,
                     ._size = cubeVertices.size() * sizeof(glm::vec3),
-                                                ._dstOffset = 0 });
+                    ._dstOffset = 0 });
 
-    uploadContext->addPendingUpload(UploadPhase::Immediate,
-                                    _cubeIndexBuffer.get(),
-                                    UploadData{ ._data = &cubeIndices[0],
+    uploadContext->addPendingUpload(
+        UploadPhase::Immediate, _cubeIndexBuffer.get(),
+        UploadData{ ._data = &cubeIndices[0],
                     ._size = cubeIndices.size() * sizeof(uint32_t),
-                                                ._dstOffset = 0 });
+                    ._dstOffset = 0 });
 }
 
 void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
@@ -108,13 +108,32 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                                       ._depth = 1,
                                       ._level = backBufferDesc._level,
                                       ._sampleCounts = 1,
-                                      ._format = VK_FORMAT_D24_UNORM_S8_UINT });
+                                      ._format = VK_FORMAT_D32_SFLOAT_S8_UINT });
+
+            builder.write(passData._sceneColorHandle);
+            builder.write(passData._sceneDepthHandle);
+
+            auto descriptor = RenderGraph::FrameGraphRenderPass::Descriptor{
+                ._viewportSize =
+                    glm::uvec2(backBufferDesc._width, backBufferDesc._height),
+                ._writableAttachment = AttachmentMaskFlags::Color0,
+                ._numSamples = 1
+            };
+            descriptor._attachments._colors = { passData._sceneColorHandle };
+
+            passData._renderPassID = builder.declareRenderPass(
+                "SceneObjectPass RenderPass", std::move(descriptor));
 
             blackBoard["SceneColor"] = passData._sceneColorHandle;
             blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](const RenderGraph::FrameGraphResources*, SceneObjectPassData&,
-            CommandStream* cmdStream) {
+        [&](const RenderGraph::FrameGraphResources* fgResources,
+            SceneObjectPassData& passData, CommandStream* cmdStream) {
+            RenderGraph::RenderPassData* rpData =
+                fgResources->getRenderPassData(passData._renderPassID);
+
+            cmdStream->addJob(CommandJobType::BeginRenderPass,
+                              rpData->_attachmentGroup, rpData->_passParams);
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _sceneObjectPipeline.get());
             
@@ -123,6 +142,19 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 
             cmdStream->addJob(CommandJobType::BindIndexBuffer,
                               _cubeIndexBuffer);
+            
+            const auto& sceneColorDesc =
+                fgResources
+                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                        passData._sceneColorHandle);
+
+            cmdStream->addJob(
+                CommandJobType::SetViewport,
+                glm::uvec2(sceneColorDesc._width, sceneColorDesc._height));
+
+            cmdStream->addJob(CommandJobType::DrawIndexed, 36, 1, 0, 0, 0);
+
+            cmdStream->addJob(CommandJobType::EndRenderPass);
         });
 }
 
