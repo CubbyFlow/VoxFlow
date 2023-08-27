@@ -22,6 +22,7 @@ class TextureView;
 constexpr uint32_t BACK_BUFFER_COUNT = 3;
 constexpr uint32_t FRAME_BUFFER_COUNT = 3;
 constexpr uint32_t MAX_RENDER_TARGET_COUNTS = 8;
+constexpr uint32_t MAX_ATTACHMENTS_COUNTS = MAX_RENDER_TARGET_COUNTS + 1;
 
 enum class LogicalDeviceType : uint8_t
 {

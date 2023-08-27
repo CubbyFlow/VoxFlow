@@ -101,8 +101,8 @@ class Resource : public VirtualResource
     }
 
  protected:
-    ResourceDataType _resource;
     typename ResourceDataType::Descriptor _descriptor;
+    ResourceDataType _resource;
     typename ResourceDataType::Usage _usage;
     PassNode* _producerPassNode = nullptr;
 };
@@ -112,8 +112,8 @@ class ImportedResource : public Resource<ResourceDataType>
 {
  public:
     ImportedResource(std::string&& name,
-                     const ResourceDataType& resource,
-                     typename ResourceDataType::Descriptor&& resourceArgs);
+                     typename ResourceDataType::Descriptor&& resourceArgs,
+                     const ResourceDataType& resource);
     ~ImportedResource();
 
  public:
@@ -131,8 +131,8 @@ class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
 {
  public:
     ImportedRenderTarget(std::string&& name,
-                         const FrameGraphTexture& resource,
                          FrameGraphTexture::Descriptor&& resourceArgs,
+                         const FrameGraphTexture& resource,
                          TextureView* textureView);
     ~ImportedRenderTarget();
 

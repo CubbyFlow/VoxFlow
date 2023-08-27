@@ -71,6 +71,7 @@ void RenderDevice::initializePasses()
 
 void RenderDevice::updateRender(const double deltaTime)
 {
+    SCOPED_CHROME_TRACING("RenderDevice::updateRender");
     (void)deltaTime;
 
     const CommandStreamKey cmdStreamKey = { ._cmdStreamName =
@@ -81,14 +82,10 @@ void RenderDevice::updateRender(const double deltaTime)
     CommandStream* asyncUploadStream =
         _mainCmdJobSystem->getCommandStream(cmdStreamKey);
 
-    SCOPED_CHROME_TRACING("RenderDevice::updateRender");
-    for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
-    {
-        _sceneRenderer->updateRender(_uploadContext);
+    _sceneRenderer->updateRender(_uploadContext);
 
-        _uploadContext->processPendingUploads(UploadPhase::PreUpdate,
-                                             asyncUploadStream);
-    }
+    _uploadContext->processPendingUploads(UploadPhase::PreUpdate,
+                                          asyncUploadStream);
 
     asyncUploadStream->flush(nullptr, nullptr, false);
 }
@@ -105,11 +102,8 @@ void RenderDevice::renderScene()
     CommandStream* asyncUploadStream =
         _mainCmdJobSystem->getCommandStream(cmdStreamKey);
 
-    for (const std::unique_ptr<LogicalDevice>& logicalDevice : _logicalDevices)
-    {
-        _uploadContext->processPendingUploads(UploadPhase::PreRender,
-                                             asyncUploadStream);
-    }
+    _uploadContext->processPendingUploads(UploadPhase::PreRender,
+                                          asyncUploadStream);
 
     asyncUploadStream->flush(nullptr, nullptr, false);
 

@@ -24,10 +24,10 @@ void VirtualResource::isReferencedByPass(PassNode* passNode)
 }
 
 ImportedRenderTarget::ImportedRenderTarget(
-    std::string&& name, const FrameGraphTexture& resource,
-    FrameGraphTexture::Descriptor&& resourceArgs, TextureView* textureView)
-    : ImportedResource<FrameGraphTexture>(std::move(name), resource,
-                                          std::move(resourceArgs)),
+    std::string&& name, FrameGraphTexture::Descriptor&& resourceArgs,
+    const FrameGraphTexture& resource, TextureView* textureView)
+    : ImportedResource<FrameGraphTexture>(std::move(name),
+                                          std::move(resourceArgs), resource),
       _textureViewHandle(textureView)
 {
 }

@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_HASH_UTIL_HPP
 
 #include <functional>
+#include <cstdint>
 
 namespace VoxFlow
 {

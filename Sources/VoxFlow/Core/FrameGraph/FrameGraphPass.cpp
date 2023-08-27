@@ -76,7 +76,7 @@ void RenderPassData::devirtualize(FrameGraph* frameGraph,
 
     for (uint32_t i = 0; i < MAX_RENDER_TARGET_COUNTS; ++i)
     {
-        ResourceHandle colorHandle = _descriptor._attachments._colors[i];
+        ResourceHandle colorHandle = _descriptor._attachments[i];
         if (colorHandle)
         {
             Resource<FrameGraphTexture>* resource =
@@ -98,12 +98,12 @@ void RenderPassData::devirtualize(FrameGraph* frameGraph,
         }
     }
 
-    if (_descriptor._attachments._depthStencil)
+    if (_descriptor._attachments[MAX_RENDER_TARGET_COUNTS])
     {
         Resource<FrameGraphTexture>* resource =
             static_cast<Resource<FrameGraphTexture>*>(
                 frameGraph->getVirtualResource(
-                    _descriptor._attachments._depthStencil));
+                    _descriptor._attachments[MAX_RENDER_TARGET_COUNTS]));
 
         TextureView* attachmentView = nullptr;
         if (resource->isImported())
@@ -204,8 +204,7 @@ void RenderPassNode::resolve(FrameGraph* frameGraph)
         uint32_t maxWidth = 0;
         uint32_t maxHeight = 0;
 
-        for (ResourceHandle attachmentHandle :
-             rpData._descriptor._attachments._array)
+        for (ResourceHandle attachmentHandle : rpData._descriptor._attachments)
         {
             if (attachmentHandle)
             {

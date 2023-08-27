@@ -21,23 +21,12 @@ namespace RenderGraph
 {
 struct FrameGraphRenderPass
 {
-    struct Attachments
-    {
-        union
-        {
-            std::array<ResourceHandle, MAX_RENDER_TARGET_COUNTS + 1> _array = {
-                INVALID_RESOURCE_HANDLE,
-            };
-            struct
-            {
-                std::array<ResourceHandle, MAX_RENDER_TARGET_COUNTS> _colors;
-                ResourceHandle _depthStencil;
-            };
-        };
-    };
     struct Descriptor
     {
-        Attachments _attachments;
+        std::array<ResourceHandle, MAX_RENDER_TARGET_COUNTS + 1>
+            _attachments = {
+                INVALID_RESOURCE_HANDLE,
+            };
         glm::uvec2 _viewportSize = glm::uvec2(0U, 0U);
         std::array<glm::vec4, MAX_RENDER_TARGET_COUNTS> _clearColors;
         float _clearDepth = 0.0f;

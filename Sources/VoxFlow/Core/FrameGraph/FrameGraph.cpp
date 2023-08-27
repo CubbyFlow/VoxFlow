@@ -53,7 +53,7 @@ ResourceHandle FrameGraph::importRenderTarget(
     FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView)
 {
     VirtualResource* virtualResource = new ImportedRenderTarget(
-        std::move(resourceName), {}, std::move(resourceDescArgs), textureView);
+        std::move(resourceName), std::move(resourceDescArgs), {}, textureView);
 
     ResourceHandle resourceHandle(_resources.size());
 

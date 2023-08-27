@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_FRAME_GRAPH_RESOURCE_HANDLE_HPP
 
 #include <VoxFlow/Core/Utils/HashUtil.hpp>
+#include <cstdint>
 
 namespace VoxFlow
 {

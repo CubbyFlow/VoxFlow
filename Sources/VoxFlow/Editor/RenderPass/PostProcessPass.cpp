@@ -66,7 +66,7 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                 ._writableAttachment = AttachmentMaskFlags::Color0,
                 ._numSamples = 1
             };
-            descriptor._attachments._colors = { backBufferHandle };
+            descriptor._attachments[0] = backBufferHandle;
 
             passData._renderPassID = builder.declareRenderPass(
                 "PostProcess RenderPass", std::move(descriptor));

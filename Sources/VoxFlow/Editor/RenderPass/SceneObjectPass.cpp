@@ -119,7 +119,7 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                 ._writableAttachment = AttachmentMaskFlags::Color0,
                 ._numSamples = 1
             };
-            descriptor._attachments._colors = { passData._sceneColorHandle };
+            descriptor._attachments[0] = passData._sceneColorHandle;
 
             passData._renderPassID = builder.declareRenderPass(
                 "SceneObjectPass RenderPass", std::move(descriptor));

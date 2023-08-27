@@ -39,8 +39,9 @@ class ResourceTracker : private NonCopyable
             std::make_unique<RenderResourceType>(std::move(debugName),
                                                  logicalDevice, memoryPool);
 
-        Handle resourceHandle(renderResource);
-        HandleBase::HandleID handleID = resourceHandle.getHandleID();
+        const HandleBase::HandleID handleID =
+            static_cast<HandleBase::HandleID>(_nextHandleID++);
+        Handle<RenderResourceType> resourceHandle(handleID);
 
         auto iter = _renderResources.find(handleID);
         if (iter != _renderResources.end())
@@ -49,7 +50,7 @@ class ResourceTracker : private NonCopyable
         }
         else
         {
-            _renderResources.insert(handleID, std::move(renderResource));
+            _renderResources.emplace(handleID, std::move(renderResource));
         }
 
         return std::move(resourceHandle);
@@ -79,6 +80,7 @@ class ResourceTracker : private NonCopyable
  private:
     std::unordered_map<HandleBase::HandleID, std::unique_ptr<RenderResource>>
         _renderResources;
+    HandleBase::HandleID _nextHandleID = 0;
 
  private:
     ResourceTracker(){};

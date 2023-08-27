@@ -23,19 +23,18 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
         std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());
 
     VoxFlow::RenderTargetLayoutKey dummyRTKey = {
-        "DummyRenderPass",
-        { VoxFlow::ColorPassDescription{ glm::ivec3(100, 100, 1),
-                                         VK_FORMAT_R8G8B8A8_UNORM, false,
-                                         glm::vec4(1.0f) } },
-        std::nullopt
+        ._debugName = "DummyRenderPass",
+        ._colorFormats = { VK_FORMAT_R8G8B8A8_UNORM },
+        ._depthStencilFormat = std::nullopt,
     };
+
     renderPass->initialize(dummyRTKey);
 
     VoxFlow::GraphicsPipeline testPipeline(
         logicalDevice.get(), { RESOURCES_DIR "/Shaders/test_shader.vert",
                                RESOURCES_DIR "/Shaders/test_shader.frag" });
 
-    const bool result = testPipeline.initialize(renderPass);
+    const bool result = testPipeline.initialize(renderPass.get());
     CHECK_EQ(result, true);
     CHECK_NE(testPipeline.get(), VK_NULL_HANDLE);
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
