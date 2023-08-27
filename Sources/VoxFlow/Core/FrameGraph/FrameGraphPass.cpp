@@ -213,24 +213,11 @@ void RenderPassNode::resolve(FrameGraph* frameGraph)
                     static_cast<Resource<FrameGraphTexture>*>(
                         frameGraph->getVirtualResource(attachmentHandle));
 
-                TextureView* attachmentView = nullptr;
-                if (resource->isImported())
-                {
-                    attachmentView =
-                        static_cast<ImportedRenderTarget*>(resource)
-                            ->getTextureView();
-                }
-                else
-                {
-                    attachmentView =
-                        resource->getInternalResource()._textureView;
-                }
+                const FrameGraphTexture::Descriptor descriptor =
+                    resource->getDescriptor();
 
-                const TextureInfo& textureInfo =
-                    attachmentView->getOwnerTextureInfo();
-
-                maxWidth = glm::max(textureInfo._extent.x, maxWidth);
-                maxHeight = glm::max(textureInfo._extent.y, maxHeight);
+                maxWidth = glm::max(descriptor._width, maxWidth);
+                maxHeight = glm::max(descriptor._height, maxHeight);
             }
         }
 
