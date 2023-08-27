@@ -85,6 +85,14 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
                                                inputLayout.getVkFormat(), offset);
             offset += inputLayout._stride;
         }
+
+        vertexInputInfo.vertexAttributeDescriptionCount =
+            static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions =
+            attributeDescriptions.data();
+        vertexInputInfo.vertexBindingDescriptionCount =
+            static_cast<uint32_t>(bindingDescriptions.size());
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
     }
     else
     {
