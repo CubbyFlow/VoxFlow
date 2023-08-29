@@ -55,7 +55,7 @@ bool DescriptorSetAllocator::initialize(
              _setLayoutDesc._descriptorInfos.begin();
          it != _setLayoutDesc._descriptorInfos.end(); ++it)
     {
-        VkDescriptorType descriptorType;
+        VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
         switch (it->_descriptorCategory)
         {
             case DescriptorCategory::CombinedImage:
@@ -74,12 +74,12 @@ bool DescriptorSetAllocator::initialize(
 
         descSetLayoutBindings.push_back(
             { .binding = it->_binding,
-              .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+              .descriptorType = descriptorType,
               .descriptorCount = it->_arraySize,
               .stageFlags = _setLayoutDesc._stageFlags,
               .pImmutableSamplers = nullptr });
-        poolSizes.push_back({ .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                              .descriptorCount = it->_arraySize });
+        poolSizes.push_back(
+            { .type = descriptorType, .descriptorCount = it->_arraySize });
     }
 
     // TODO(snowapril) : sort setLayout descriptorBindings according to binding
