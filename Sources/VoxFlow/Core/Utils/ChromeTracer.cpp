@@ -89,9 +89,11 @@ void ChromeTracer::addTraceEvent(EventType eventType, const char* eventName)
     if (_hasBegun)
     {
         std::lock_guard<std::mutex> scopeLock(_mutex);
-        _eventDescriptors.emplace_back(eventName, eventType,
-                                       std::chrono::system_clock::now(),
-                                       std::this_thread::get_id());
+        _eventDescriptors.push_back(
+            { ._name = eventName,
+              ._eventType = eventType,
+              ._timeStamp = std::chrono::system_clock::now(),
+              ._threadId = std::this_thread::get_id() });
     }
 }
 

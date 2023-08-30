@@ -106,14 +106,15 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     std::unordered_map<std::string, tf::Task> tasks;
 
     // Prepare tasks from registered scene render passes
-    for (const auto& [passName, pass] : _sceneRenderPasses)
+    for (auto iter = _sceneRenderPasses.begin();
+         iter != _sceneRenderPasses.end(); ++iter)
     {
+        SceneRenderPass* pass = iter->second.get();
         tf::Task fgTask =
-            taskflow
-                .emplace([this, &pass]() { pass->renderScene(_frameGraph); })
-                .name(passName);
+            taskflow.emplace([this, pass]() { pass->renderScene(_frameGraph); })
+                .name(iter->first);
 
-        tasks.emplace(passName, std::move(fgTask));
+        tasks.emplace(iter->first, std::move(fgTask));
     }
 
     // Resolve dependency between tasks
@@ -138,9 +139,9 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
             .emplace([&]() {
                 _frameGraph->addPresentPass(
                     "PresentPass",
-                    std::move([&](RenderGraph::FrameGraphBuilder& builder) {
+                    [&](RenderGraph::FrameGraphBuilder& builder) {
                         builder.read(backBufferHandle);
-                    }),
+                    },
                     swapChain, _currentFrameContext);
             })
             .name("PresentPass");

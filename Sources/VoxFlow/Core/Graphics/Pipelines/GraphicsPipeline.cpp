@@ -78,11 +78,17 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
         uint32_t offset = 0;
         for (const auto& inputLayout : pipelineLayoutDesc._stageInputs)
         {
-            bindingDescriptions.emplace_back(0, inputLayout._stride,
-                                             VK_VERTEX_INPUT_RATE_VERTEX);
+            bindingDescriptions.push_back(
+                { .binding = 0,
+                  .stride = inputLayout._stride,
+                  .inputRate = VK_VERTEX_INPUT_RATE_VERTEX });
 
-            attributeDescriptions.emplace_back(inputLayout._location, 0,
-                                               inputLayout.getVkFormat(), offset);
+            attributeDescriptions.push_back(
+                { .location = inputLayout._location,
+                  .binding = 0,
+                  .format = inputLayout.getVkFormat(),
+                  .offset = offset });
+            
             offset += inputLayout._stride;
         }
 

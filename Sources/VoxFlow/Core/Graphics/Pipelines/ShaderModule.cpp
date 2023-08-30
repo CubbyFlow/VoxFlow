@@ -417,8 +417,10 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
             VertexFormatBaseType baseType =
                 convertToBaseType(resourceType.basetype);
 
-            reflectionDataGroup->_vertexInputLayouts.emplace_back(
-                location, (size >> 3), baseType);
+            reflectionDataGroup->_vertexInputLayouts.push_back(
+                { ._location = location,
+                  ._stride = (size >> 3),
+                  ._baseType = baseType });
         }
         std::sort(reflectionDataGroup->_vertexInputLayouts.begin(),
                   reflectionDataGroup->_vertexInputLayouts.end(),
@@ -441,9 +443,8 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
             VkFormat imageFormat =
                 convertSpirvImageFormat(resourceType.image.format);
 
-            reflectionDataGroup->_fragmentOutputLayouts.emplace_back(
-                location,
-                imageFormat);  // TODO(snowapril) : need format query
+            reflectionDataGroup->_fragmentOutputLayouts.push_back(
+                { ._location = location, ._format = imageFormat });
         }
         std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(),
                   reflectionDataGroup->_fragmentOutputLayouts.end(),

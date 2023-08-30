@@ -128,6 +128,8 @@ void VoxEditor::processKeyInput(DeviceKeyInputType key, const bool isReleased)
                     BEGIN_CHROME_TRACING();
                 }
                 break;
+            default:
+                break;
         }
     }
 }

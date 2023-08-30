@@ -144,7 +144,9 @@ bool DescriptorSetAllocator::initialize(
 
         for (VkDescriptorSet set : vkDescSets)
         {
-            _descriptorSetNodes.emplace_back(set, FenceObject::Default());
+            _descriptorSetNodes.push_back(
+                { ._vkDescriptorSet = set,
+                  ._lastAccessedFenceObject = FenceObject::Default() });
         }
     }
 
@@ -214,7 +216,9 @@ VkDescriptorSet PooledDescriptorSetAllocator::getOrCreatePooledDescriptorSet(
         VK_ASSERT(vkAllocateDescriptorSets(_logicalDevice->get(), &allocInfo,
                                            &vkPooledDescriptorSet));
 
-        _descriptorSetNodes.emplace_back(vkPooledDescriptorSet, fenceObject);
+        _descriptorSetNodes.push_back(
+            { ._vkDescriptorSet = vkPooledDescriptorSet,
+              ._lastAccessedFenceObject = fenceObject });
     }
 
     return vkPooledDescriptorSet;
