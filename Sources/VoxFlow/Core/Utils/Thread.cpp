@@ -5,9 +5,11 @@
 
 #include <cstdlib>
 
+#if defined(_WIN32)
 #define NOMINMAX
 #include <processthreadsapi.h>
 #include <windows.h>
+#endif
 
 namespace VoxFlow
 {
