@@ -7,12 +7,24 @@
 
 namespace VoxFlow
 {
-namespace FrameGraph
+namespace RenderGraph
 {
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
+    std::string&& debugName,
     typename ResourceDataType::Descriptor&& resourceArgs)
-    : _descriptor(resourceArgs)
+    : VirtualResource(std::move(debugName)), _descriptor(resourceArgs)
+{
+}
+
+template <ResourceConcept ResourceDataType>
+Resource<ResourceDataType>::Resource(
+    std::string&& debugName,
+    typename ResourceDataType::Descriptor&& resourceArgs,
+    const ResourceDataType& resource)
+    : VirtualResource(std::move(debugName)),
+      _descriptor(resourceArgs),
+      _resource(resource)
 {
 }
 
@@ -23,9 +35,11 @@ Resource<ResourceDataType>::~Resource()
 
 template <ResourceConcept ResourceDataType>
 ImportedResource<ResourceDataType>::ImportedResource(
-    const ResourceDataType& resource,
-    typename ResourceDataType::Descriptor&& resourceArgs)
-    : Resource<ResourceDataType>(std::move(resourceArgs)), _resource(resource)
+    std::string&& debugName,
+    typename ResourceDataType::Descriptor&& resourceArgs,
+    const ResourceDataType& resource)
+    : Resource<ResourceDataType>(std::move(debugName), std::move(resourceArgs),
+                                 resource)
 {
 }
 
@@ -34,7 +48,7 @@ ImportedResource<ResourceDataType>::~ImportedResource()
 {
 }
 
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

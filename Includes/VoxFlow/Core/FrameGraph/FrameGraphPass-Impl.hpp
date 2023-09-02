@@ -7,7 +7,7 @@
 
 namespace VoxFlow
 {
-namespace FrameGraph
+namespace RenderGraph
 {
 template <typename PassDataType, typename ExecutePhase>
 FrameGraphPass<PassDataType, ExecutePhase>::FrameGraphPass(
@@ -19,7 +19,7 @@ template <typename PassDataType, typename ExecutePhase>
 FrameGraphPass<PassDataType, ExecutePhase>::~FrameGraphPass()
 {
 }
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

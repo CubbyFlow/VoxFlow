@@ -1,5 +1,5 @@
-#ifndef VOX_FLOW_HPP
-#define VOX_FLOW_HPP
+#ifndef VOXEL_FLOW_HPP
+#define VOXEL_FLOW_HPP
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Devices/Context.hpp>

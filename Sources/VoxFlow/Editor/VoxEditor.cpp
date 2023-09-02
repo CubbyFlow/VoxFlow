@@ -2,14 +2,19 @@
 
 #include <chrono>
 #include <VoxFlow/Editor/VoxEditor.hpp>
-#include <VoxFlow/Core/RenderDevice.hpp>
+#include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
+#include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
+#include <VoxFlow/Core/Devices/RenderDevice.hpp>
+#include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <GLFW/glfw3.h>
 
 namespace VoxFlow
 {
 
-VoxEditor::VoxEditor()
+VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
 {
     if (glfwInit() == GLFW_FALSE)
     {
@@ -33,7 +38,7 @@ VoxEditor::VoxEditor()
         return;
     }
 
-    constexpr bool enableDebugLayer = true;
+    const bool enableDebugLayer = arguments["debug"].as<bool>();
 
     Context context(enableDebugLayer);
     context.setVersion(1, 3);
@@ -49,9 +54,30 @@ VoxEditor::VoxEditor()
         }
         context.addDeviceExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
-    context.addDeviceExtension(VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME);
 
     _renderDevice = new RenderDevice(context);
+
+    LogicalDevice* mainLogicalDevice =
+        _renderDevice->getLogicalDevice(LogicalDeviceType::MainDevice);
+
+    _inputRegistrator.addObserveTargetWindow(
+        mainLogicalDevice->getSwapChain(0)->getGlfwWindow());
+
+    using namespace std::placeholders;
+    auto processKeyCallback = std::mem_fn(&VoxEditor::processKeyInput);
+    _inputRegistrator.registerDeviceKeyCallback(
+        uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
+
+    SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
+    _sceneObjectPass =
+        sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>(
+            "SceneObjectPass", mainLogicalDevice);
+    _postProcessPass =
+        sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>(
+            "PostProcessPass", mainLogicalDevice);
+    _postProcessPass->addDependency("SceneObjectPass");
+
+    sceneRenderer->initializePasses();
 }
 
 VoxEditor::~VoxEditor()
@@ -66,46 +92,46 @@ VoxEditor::~VoxEditor()
 
 void VoxEditor::runEditorLoop()
 {
-    using namespace std::chrono;
-    bool exit = false;
+    auto previousTime = std::chrono::system_clock::now();
 
-    // system_clock::time_point previousTime = system_clock::now();
-
-    while (exit == false)
+    while (_shouldCloseEditor == false)
     {
-        // system_clock::time_point currentTime = system_clock::now();
-        // const uint64_t elapsed =
-        //     duration_cast<milliseconds>(currentTime - previousTime).count();
-        // previousTime = currentTime;
+        const auto currentTime = std::chrono::system_clock::now();
+        const double elapsed =
+            std::chrono::duration<double>(currentTime - previousTime).count();
+        previousTime = currentTime;
 
-        processInput();
+        glfwPollEvents();
 
-        preUpdateFrame();
-        updateFrame();
-        renderFrame();
-        postRenderFrame();
+        _renderDevice->updateRender(elapsed);
+
+        _renderDevice->renderScene();
     }
 }
 
-void VoxEditor::processInput()
+void VoxEditor::processKeyInput(DeviceKeyInputType key, const bool isReleased)
 {
-    glfwPollEvents();
-}
-
-void VoxEditor::preUpdateFrame()
-{
-}
-
-void VoxEditor::updateFrame()
-{
-}
-
-void VoxEditor::renderFrame()
-{
-   }
-
-void VoxEditor::postRenderFrame()
-{
+    if (isReleased == false)
+    {
+        switch (key)
+        {
+            case DeviceKeyInputType::Escape:
+                _shouldCloseEditor = true;
+                break;
+            case DeviceKeyInputType::KeyC:
+                if (HAS_TRACING_BEGIN())
+                {
+                    END_CHROME_TRACING("editor_tracing.json");
+                }
+                else
+                {
+                    BEGIN_CHROME_TRACING();
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 }  // namespace VoxFlow

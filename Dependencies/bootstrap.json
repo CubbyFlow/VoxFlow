@@ -158,5 +158,13 @@
       "url": "https://github.com/nlohmann/json",
       "revision": "v3.11.2"
     }
+  },
+  {
+    "name": "cxxopts",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/jarro2783/cxxopts",
+      "revision": "v3.1.1"
+    }
   }
 ]

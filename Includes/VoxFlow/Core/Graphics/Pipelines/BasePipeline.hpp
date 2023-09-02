@@ -7,6 +7,8 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
+#include <initializer_list>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -17,9 +19,8 @@ class PipelineLayout;
 class BasePipeline : NonCopyable
 {
  public:
-    explicit BasePipeline(
-        LogicalDevice* logicalDevice,
-        std::vector<const char*>&& shaderFilePaths);
+    explicit BasePipeline(LogicalDevice* logicalDevice,
+                          std::initializer_list<const char*>&& shaderFilePaths);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;
@@ -27,9 +28,17 @@ class BasePipeline : NonCopyable
     /**
      * @return vulkan pipeline handle created with given shader paths
      */
-    [[nodiscard]] VkPipeline get() const noexcept
+    [[nodiscard]] inline VkPipeline get() const noexcept
     {
         return _pipeline;
+    }
+
+    /**
+     * @return whether pipeline was created or not
+     */
+    [[nodiscard]] inline bool validatePipeline() const noexcept
+    {
+        return _pipeline != VK_NULL_HANDLE;
     }
 
     /**

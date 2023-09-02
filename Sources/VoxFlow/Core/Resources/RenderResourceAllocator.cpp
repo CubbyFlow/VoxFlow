@@ -7,16 +7,15 @@
 
 namespace VoxFlow
 {
-RenderResourceAllocator::RenderResourceAllocator(Instance* instance,
-                                                 PhysicalDevice* physicalDevice,
-                                                 LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+RenderResourceAllocator::RenderResourceAllocator(
+    LogicalDevice* logicalDevice,
+    RenderResourceMemoryPool* renderResourceMemoryPool)
+    : _logicalDevice(logicalDevice),
+      _renderResourceMemoryPool(renderResourceMemoryPool)
 {
-    _renderResourceMemoryPool =
-        new RenderResourceMemoryPool(logicalDevice, physicalDevice, instance);
 }
 
-RenderResourceAllocator ::~RenderResourceAllocator()
+RenderResourceAllocator::~RenderResourceAllocator()
 {
     if (_renderResourceMemoryPool != nullptr)
     {

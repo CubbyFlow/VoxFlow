@@ -64,7 +64,8 @@ TEST_CASE("Glslang Test Shader Compile")
     VoxFlow::Instance instance(gVulkanContext);
     VoxFlow::PhysicalDevice physicalDevice(&instance);
     const auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
     (void)logicalDevice;
 
     constexpr std::array<std::pair<glslang_stage_t, const char*>, 3>

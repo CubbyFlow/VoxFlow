@@ -59,4 +59,12 @@ std::vector<VkQueueFamilyProperties> PhysicalDevice::getQueueFamilyProperties()
     return queueFamilyProperties;
 }
 
+VkPhysicalDeviceProperties PhysicalDevice::getPhysicalDeviceProperties() const
+{
+    VkPhysicalDeviceProperties physicalDeviceProperties; 
+    vkGetPhysicalDeviceProperties(_physicalDevice, &physicalDeviceProperties);
+
+    return physicalDeviceProperties;
+}
+
 }  // namespace VoxFlow

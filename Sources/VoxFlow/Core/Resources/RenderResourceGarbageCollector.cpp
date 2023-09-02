@@ -1,16 +1,12 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
+#include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <algorithm>
 
 namespace VoxFlow
 {
-
-RenderResourceGarbageCollector& RenderResourceGarbageCollector::Get()
-{
-    static RenderResourceGarbageCollector sGarbageCollectorInstance;
-    return sGarbageCollectorInstance;
-}
 
 void RenderResourceGarbageCollector::pushRenderResourceGarbage(
     RenderResourceGarbage&& garbage)
@@ -19,8 +15,16 @@ void RenderResourceGarbageCollector::pushRenderResourceGarbage(
     _garbageCollection.emplace_back(std::move(garbage));
 }
 
+RenderResourceGarbageCollector& RenderResourceGarbageCollector::Get()
+{
+    static RenderResourceGarbageCollector sRenderResourceGarbageCollector;
+    return sRenderResourceGarbageCollector;
+}
+
 void RenderResourceGarbageCollector::processRenderResourceGarbage()
 {
+    SCOPED_CHROME_TRACING("RenderResourceGarbageCollector::processRenderResourceGarbage");
+
     static std::vector<RenderResourceGarbage> sTmpGarbageCollection;
 
     {
@@ -49,7 +53,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
             }
         }
 
-        if (isUsingResource == false)
+       if (isUsingResource == false)
         {
             std::invoke(resourceGarbage._deletionDelegate);
             std::swap(resourceGarbage, sTmpGarbageCollection[numGarbages - 1]);
@@ -78,6 +82,14 @@ void RenderResourceGarbageCollector::threadConstruct()
 void RenderResourceGarbageCollector::threadProcess()
 {
     using namespace std::chrono_literals;
+
+    static bool sIsThreadNameInitialized = false; // TODO(snowapril)
+    if (sIsThreadNameInitialized == false)
+    {
+        Thread::SetThreadName("RenderResourceGarbageCollector");
+        sIsThreadNameInitialized = true;
+    }
+
     while (true)
     {
         processRenderResourceGarbage();

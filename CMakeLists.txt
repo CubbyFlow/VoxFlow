@@ -36,6 +36,8 @@ endif()
 # Build Options
 option(BUILD_COVERAGE "Build code coverage" OFF)
 option(GPU_RESOURCE_DEBUG_NAME "Enable vulkan object debug name" ON)
+option(CHROME_TRACING "Enable Chrome Tracing for CPU profiling" ON)
+option(TASKFLOW_PROFILER, "Enable Taskflow Profiler" ON)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX AND BUILD_COVERAGE)
     include(CodeCoverage)
@@ -44,6 +46,15 @@ endif()
 
 if (GPU_RESOURCE_DEBUG_NAME)
     add_definitions(-DVK_DEBUG_NAME_ENABLED)
+endif()
+
+if (CHROME_TRACING)
+    add_definitions(-DENABLE_CHROME_TRACING)
+endif()
+
+if (TASKFLOW_PROFILER)
+    # You can visualize profiled json file at https://taskflow.github.io/tfprof/ 
+    add_definitions(-DTF_ENABLE_PROFILER=taskflow_profile.json)
 endif()
 
 # Overrides

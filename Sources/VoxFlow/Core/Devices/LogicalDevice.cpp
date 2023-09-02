@@ -4,10 +4,12 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/DecisionMaker.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -17,8 +19,11 @@
 namespace VoxFlow
 {
 LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
-                             Instance* instance)
-    : _physicalDevice(physicalDevice), _instance(instance)
+                             Instance* instance,
+                             const LogicalDeviceType deviceType)
+    : _physicalDevice(physicalDevice),
+      _instance(instance),
+      _deviceType(deviceType)
 {
     const std::vector<VkLayerProperties> layerProperties =
         physicalDevice->getPossibleLayers();
@@ -94,14 +99,21 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     }
 
     // TODO(snowapril) : expose feature control
+    void* pNextChain = nullptr;
     VkPhysicalDeviceVulkan12Features features12 = {};
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-    features12.pNext = VK_NULL_HANDLE;
+    features12.pNext = pNextChain;
     features12.timelineSemaphore = VK_TRUE;
+    features12.descriptorIndexing = VK_TRUE;
+    features12.descriptorBindingPartiallyBound = VK_TRUE;
+    features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+    pNextChain = &features12;
 
     [[maybe_unused]] const VkDeviceCreateInfo deviceInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &features12,
+        .pNext = pNextChain,
         .flags = 0,
         .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
         .pQueueCreateInfos = queueInfos.data(),
@@ -159,8 +171,17 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     volkLoadDevice(_device);
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
+    _deviceDefaultResourceMemoryPool =
+        new RenderResourceMemoryPool(this, _physicalDevice, _instance); 
+
+    VOX_ASSERT(
+        _deviceDefaultResourceMemoryPool->initialize(),
+        "Failed to initialize device-default render resource memory pool");
+
     _renderPassCollector = new RenderPassCollector(this);
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
+
+    initializeCommandStreams();
 }
 
 LogicalDevice::~LogicalDevice()
@@ -206,13 +227,40 @@ std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
     return swapChain;
 }
 
+void LogicalDevice::initializeCommandStreams()
+{
+    _commandJobSystem = std::make_unique<CommandJobSystem>(this);
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Graphics },
+        getQueuePtr("MainGraphics"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Compute },
+        getQueuePtr("AsyncCompute"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
+        getQueuePtr("AsyncUpload"));
+
+    _commandJobSystem->createCommandStream(
+        CommandStreamKey{ ._cmdStreamName = IMMEDIATE_UPLOAD_STREAM_NAME,
+                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
+        getQueuePtr("ImmediateUpload"));
+}
+
 void LogicalDevice::releaseDedicatedResources()
 {
     vkDeviceWaitIdle(_device);
 
-    if (_renderResourceMemoryPool != nullptr)
+    _swapChains.clear();
+
+    if (_deviceDefaultResourceMemoryPool != nullptr)
     {
-        delete _renderResourceMemoryPool;
+        delete _deviceDefaultResourceMemoryPool;
     }
 
     if (_renderPassCollector != nullptr)
@@ -224,8 +272,6 @@ void LogicalDevice::releaseDedicatedResources()
     {
         delete _descriptorSetAllocatorPool;
     }
-
-    _swapChains.clear();
 
     std::for_each(
         _queueMap.begin(), _queueMap.end(),

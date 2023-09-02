@@ -12,17 +12,16 @@ TEST_CASE("Vulkan RenderPass Initialization")
     VoxFlow::PhysicalDevice physicalDevice(&instance);
 
     auto logicalDevice = std::make_shared<VoxFlow::LogicalDevice>(
-        gVulkanContext, &physicalDevice, &instance);
+        gVulkanContext, &physicalDevice, &instance,
+        VoxFlow::LogicalDeviceType::MainDevice);
 
     const auto renderPass =
         std::make_shared<VoxFlow::RenderPass>(logicalDevice.get());
 
     VoxFlow::RenderTargetLayoutKey dummyRTKey = {
-        "DummyRenderPass",
-        { VoxFlow::ColorPassDescription{ glm::ivec3(100, 100, 1),
-                                         VK_FORMAT_R8G8B8A8_UNORM, false,
-                                         glm::vec4(1.0f) } },
-        std::nullopt
+        ._debugName = "DummyRenderPass",
+        ._colorFormats = { VK_FORMAT_R8G8B8A8_UNORM },
+        ._depthStencilFormat = std::nullopt,
     };
 
     CHECK_EQ(renderPass->initialize(dummyRTKey), true);

@@ -20,38 +20,36 @@ namespace VoxFlow
 class TextureView;
 
 constexpr uint32_t BACK_BUFFER_COUNT = 3;
-constexpr uint32_t FRAME_BUFFER_COUNT = 2;
+constexpr uint32_t FRAME_BUFFER_COUNT = 3;
 constexpr uint32_t MAX_RENDER_TARGET_COUNTS = 8;
+constexpr uint32_t MAX_ATTACHMENTS_COUNTS = MAX_RENDER_TARGET_COUNTS + 1;
 
-enum class SetSlotCategory : uint8_t
+enum class LogicalDeviceType : uint8_t
 {
-    Bindless = 0,
-    PerFrame = 1,
-    PerRenderPass = 2,
-    PerDraw = 3,
-    Count = 4,
+    MainDevice = 0,
+    // SecondaryDevice = 1, TODO(snowapril) : support secondary device
+    Undefined = 1,
+    Count = Undefined
 };
-constexpr uint32_t MAX_NUM_SET_SLOTS =
-    static_cast<uint32_t>(SetSlotCategory::Count);
 
-enum class CommandBufferUsage : uint8_t 
+struct FrameContext
 {
-    Graphics = 0,
-    Compute = 1,
-    Transfer = 2,
-    Count = 4,
-    Undefined = 5,
+    uint32_t _swapChainIndex = UINT32_MAX;
+    uint32_t _frameIndex = UINT32_MAX;
+    uint32_t _backBufferIndex = UINT32_MAX;
 };
 
 enum class BufferUsage : uint32_t
 {
     ConstantBuffer      = 0x00000001,
-    RwStructuredBuffer  = 0x00000010,
-    VertexBuffer        = 0x00000100,
-    IndexBuffer         = 0x00001000,
-    IndirectCommand     = 0x00010000,
-    CopyDst             = 0x00100000,
-    CopySrc             = 0x01000000,
+    RwStructuredBuffer  = 0x00000002,
+    VertexBuffer        = 0x00000004,
+    IndexBuffer         = 0x00000008,
+    IndirectCommand     = 0x00000010,
+    CopyDst             = 0x00000020,
+    CopySrc             = 0x00000040,
+    Readback            = 0x00000080,
+    Upload              = 0x00000100,
     Unknown             = 0,
 };
 IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);
@@ -70,6 +68,8 @@ enum class ResourceLayout : uint32_t
     StencilReadOnly     = 0x00000200,
     ShaderReadOnly      = 0x00000400,
     General             = 0x00000800,
+    StorageBuffer       = 0x00001000,
+    UniformBuffer       = 0x00002000,
 };
 IMPL_BITWISE_OPERATORS(ResourceLayout, uint32_t);
 
@@ -117,63 +117,6 @@ struct TextureViewInfo
     uint32_t _layerCount = 1;
 };
 
-struct ColorPassDescription
-{
-    glm::ivec3 _resolution;
-    VkFormat _format = VK_FORMAT_UNDEFINED;
-    bool _clearColor = false;
-    glm::vec4 _clearColorValues;
-
-    inline bool operator==(const ColorPassDescription& other) const
-    {
-        return (_resolution == other._resolution) &&
-               (_format == other._format) &&
-               (_clearColor == other._clearColor) &&
-               (_clearColorValues == other._clearColorValues);
-    }
-};
-
-struct DepthStencilPassDescription
-{
-    glm::ivec3 _resolution;
-    VkFormat _format = VK_FORMAT_UNDEFINED;
-    bool _clearDepth = false;
-    bool _clearStencil = false;
-    float _clearDepthValue = 0.0f;
-    uint32_t _clearStencilValue = 0;
-
-    inline bool operator==(
-        const DepthStencilPassDescription& other) const
-    {
-        return (_resolution == other._resolution) &&
-               (_format == other._format) &&
-               (_clearDepth == other._clearDepth) &&
-               (_clearStencil == other._clearStencil) &&
-               (_clearDepthValue == other._clearDepthValue) &&
-               (_clearStencilValue == other._clearStencilValue);
-    }
-};
-
-struct RenderTargetLayoutKey
-{
-    std::string _debugName;
-    std::vector<ColorPassDescription> _colorAttachmentDescs;
-    std::optional<DepthStencilPassDescription> _depthStencilAttachment;
-
-    bool operator==(const RenderTargetLayoutKey& other) const;
-};
-
-struct RenderTargetsInfo
-{
-    std::string _debugName;
-    RenderTargetLayoutKey _layoutKey;
-    std::vector<std::shared_ptr<TextureView>> _colorRenderTarget;
-    std::optional<std::shared_ptr<TextureView>> _depthStencilImage;
-    glm::uvec2 _resolution;
-
-    bool operator==(const RenderTargetsInfo& other) const;
-};
-
 // Below helper types from
 // https://en.cppreference.com/w/cpp/utility/variant/visit
 template <class... Ts>
@@ -186,19 +129,5 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
 }  // namespace VoxFlow
-
-template <>
-struct std::hash<VoxFlow::RenderTargetLayoutKey>
-{
-    std::size_t operator()(
-        VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept;
-};
-
-template <>
-struct std::hash<VoxFlow::RenderTargetsInfo>
-{
-    std::size_t operator()(
-        VoxFlow::RenderTargetsInfo const& rtInfo) const noexcept;
-};
 
 #endif

@@ -3,9 +3,9 @@
 #ifndef VOXEL_FLOW_FRAME_GRAPH_TEXTURE_HPP
 #define VOXEL_FLOW_FRAME_GRAPH_TEXTURE_HPP
 
-#include <VoxFlow/Core/Utils/Handle.hpp>
+#include <VoxFlow/Core/Resources/Handle.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <string>
+#include <string_view>
 
 namespace VoxFlow
 {
@@ -13,7 +13,7 @@ namespace VoxFlow
 class RenderResourceAllocator;
 class Texture;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 struct FrameGraphTexture
 {
@@ -32,11 +32,12 @@ struct FrameGraphTexture
     bool create(RenderResourceAllocator* resourceAllocator,
                 std::string&& debugName, Descriptor descriptor, Usage usage);
 
-    void release(RenderResourceAllocator* resourceAllocator);
+    void destroy(RenderResourceAllocator* resourceAllocator);
 
-    Handle<Texture> _texture;
+    std::shared_ptr<Texture> _texture;
+    TextureView* _textureView = nullptr;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

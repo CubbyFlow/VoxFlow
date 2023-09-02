@@ -11,8 +11,6 @@
 namespace VoxFlow
 {
 class LogicalDevice;
-class PhysicalDevice;
-class Instance;
 class RenderResourceMemoryPool;
 class Texture;
 class Buffer;
@@ -20,9 +18,9 @@ class Buffer;
 class RenderResourceAllocator : private NonCopyable
 {
  public:
-    explicit RenderResourceAllocator(Instance* instance,
-                                     PhysicalDevice* physicalDevice,
-                                     LogicalDevice* logicalDevice);
+    explicit RenderResourceAllocator(
+        LogicalDevice* logicalDevice,
+        RenderResourceMemoryPool* renderResourceMemoryPool);
     ~RenderResourceAllocator();
 
  public:

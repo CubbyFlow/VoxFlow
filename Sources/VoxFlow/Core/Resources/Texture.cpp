@@ -14,25 +14,24 @@ static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
 {
     VkImageUsageFlags resultUsage = 0;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::RenderTarget) > 0)
-        resultUsage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::DepthStencil) > 0)
-        resultUsage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::Sampled) > 0)
-        resultUsage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::Storage) > 0)
-        resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::CopySrc) > 0)
-        resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        resultUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     if (static_cast<uint32_t>(textureUsage & TextureUsage::CopyDst) > 0)
-        resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        resultUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     return resultUsage;
 }
 
-Texture::Texture(std::string&& debugName, LogicalDevice* logicalDevice,
+Texture::Texture(std::string_view&& debugName, LogicalDevice* logicalDevice,
                  RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _debugName(std::move(debugName)),
-      _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+    : RenderResource(std::move(debugName), logicalDevice,
+                     renderResourceMemoryPool)
 {
 }
 Texture::~Texture()
@@ -47,6 +46,7 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
     VOX_ASSERT(textureInfo._usage != TextureUsage::Unknown,
                "TextureUsage must be specified");
 
+    // TODO(snowapril) : sample count, mipLevels, arrayLayers
     _textureInfo = textureInfo;
     VkImageCreateInfo imageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -57,14 +57,14 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
         .extent = VkExtent3D{ textureInfo._extent.x, textureInfo._extent.y,
                               textureInfo._extent.z },
         .mipLevels = 1,
-        .arrayLayers = 0,
+        .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = convertToImageUsage(textureInfo._usage),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-        .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
     VmaAllocationCreateInfo vmaInfo = {
@@ -80,7 +80,7 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
     };
 
     VK_ASSERT(vmaCreateImage(_renderResourceMemoryPool->get(), &imageCreateInfo,
-                             &vmaInfo, &_vkImage, &_textureAllocation,
+                             &vmaInfo, &_vkImage, &_allocation,
                              nullptr));
 
     if (_vkImage == VK_NULL_HANDLE)
@@ -120,9 +120,9 @@ std::optional<uint32_t> Texture::createTextureView(
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedTextureViews.size());
     std::shared_ptr<TextureView> textureView = std::make_shared<TextureView>(
         fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-        weak_from_this());
+        this);
 
-    if (textureView->initialize(viewInfo) == false)
+    if (textureView->initialize(_textureInfo, viewInfo) == false)
     {
         return {};
     }
@@ -136,15 +136,24 @@ void Texture::release()
     _ownedTextureViews.clear();
     if ((_isSwapChainBackBuffer == false) && (_vkImage != VK_NULL_HANDLE))
     {
-        vmaDestroyImage(_renderResourceMemoryPool->get(), _vkImage,
-                        _textureAllocation);
+        VmaAllocator vmaAllocator = _renderResourceMemoryPool->get();
+        VkImage vkImage = _vkImage;
+        VmaAllocation vmaAllocation = _allocation;
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
+            RenderResourceGarbage(std::move(_accessedFences),
+                                  [vmaAllocator, vkImage, vmaAllocation]() {
+                                      vmaDestroyImage(vmaAllocator, vkImage,
+                                                      vmaAllocation);
+                                  }));
+
+        _vkImage = VK_NULL_HANDLE;
+        _allocation = VK_NULL_HANDLE;
     }
 }
 
 TextureView::TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
-                         std::weak_ptr<Texture>&& ownerTexture)
-    : BindableResourceView(std::move(debugName), logicalDevice),
-      _ownerTexture(std::move(ownerTexture))
+                         RenderResource* ownerResource)
+    : BindableResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }
 
@@ -153,19 +162,17 @@ TextureView::~TextureView()
     release();
 }
 
-bool TextureView::initialize(const TextureViewInfo& viewInfo)
+bool TextureView::initialize(const TextureInfo& ownerTextureInfo,
+                             const TextureViewInfo& viewInfo)
 {
-    std::shared_ptr<Texture> ownerTexture = _ownerTexture.lock();
-    if (ownerTexture == nullptr)
-        return false;
-
+    _ownerTextureInfo = ownerTextureInfo;
     _textureViewInfo = viewInfo;
 
     VkImageViewCreateInfo viewCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .image = ownerTexture->get(),
+        .image = static_cast<Texture*>(_ownerResource)->get(),
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = viewInfo._format,
         .components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G,
@@ -186,6 +193,10 @@ bool TextureView::initialize(const TextureViewInfo& viewInfo)
         return false;
     }
 
+#if defined(VK_DEBUG_NAME_ENABLED)
+    DebugUtil::setObjectName(_logicalDevice, _vkImageView, _debugName.c_str());
+#endif
+
     return true;
 }
 
@@ -193,11 +204,15 @@ void TextureView::release()
 {
     if (_vkImageView != VK_NULL_HANDLE)
     {
+        VkDevice vkDevice = _logicalDevice->get();
+        VkImageView vkImageView = _vkImageView;
         RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences), [this]() {
-                vkDestroyImageView(_logicalDevice->get(), _vkImageView,
-                                   nullptr);
-            }));
+            RenderResourceGarbage(
+                std::move(_accessedFences), [vkDevice, vkImageView]() {
+                    vkDestroyImageView(vkDevice, vkImageView, nullptr);
+                }));
+
+        _vkImageView = VK_NULL_HANDLE;
     }
 }
 

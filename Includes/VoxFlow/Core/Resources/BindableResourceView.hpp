@@ -7,10 +7,12 @@
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
+#include <memory>
 
 namespace VoxFlow
 {
 class LogicalDevice;
+class RenderResource;
 
 enum class ResourceViewType : uint8_t
 {
@@ -21,17 +23,24 @@ enum class ResourceViewType : uint8_t
 class BindableResourceView : private NonCopyable
 {
  public:
-    explicit BindableResourceView(std::string&& debugName,
-                                  LogicalDevice* logicalDevice);
+    explicit BindableResourceView(
+        std::string&& debugName, LogicalDevice* logicalDevice,
+                                  RenderResource* ownerResource);
     virtual ~BindableResourceView();
 
     virtual ResourceViewType getResourceViewType() const = 0;
+
+    [[nodiscard]] inline RenderResource* getOwnerResource()
+    {
+        return _ownerResource;
+    }
 
  protected:
     std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
     ResourceLayout _lastLayout = ResourceLayout::Undefined;
     std::vector<FenceObject> _accessedFences;
+    RenderResource* _ownerResource = nullptr;
 };
 }  // namespace VoxFlow
 

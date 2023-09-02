@@ -3,9 +3,12 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <algorithm>
+#include <unordered_set>
 
 namespace VoxFlow
 {
@@ -32,60 +35,101 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
         _logicalDevice = std::move(other._logicalDevice);
         _vkPipelineLayout = other._vkPipelineLayout;
         _setAllocators.swap(other._setAllocators);
-        _combinedSetLayouts.swap(other._combinedSetLayouts);
+        _combinedPipelineLayoutDesc =
+            std::move(other._combinedPipelineLayoutDesc);
     }
     return *this;
 }
 
 static void organizeCombinedDescSetLayouts(
-    std::vector<ShaderLayoutBinding>&& setLayoutBindings,
-    DescriptorSetLayoutDesc* pSetLayouts)
+    std::vector<const ShaderReflectionDataGroup*>&& combinedReflectionGroups,
+    PipelineLayoutDescriptor* combinedPipelineLayoutDesc)
 {
-    for (const ShaderLayoutBinding& shaderBinding : setLayoutBindings)
+    // TODO(snowapril) : As each descriptor set layout desc might have same
+    // bindings, collision handling must be needed.
+
+    std::unordered_set<uint32_t> collisionCheckSet;
+    for (const ShaderReflectionDataGroup* reflectionDataGroup :
+         combinedReflectionGroups)
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
-            std::for_each(
-                shaderBinding._sets[set]._bindingMap.begin(),
-                shaderBinding._sets[set]._bindingMap.end(),
-                [&pSetLayouts,
-                 set](const DescriptorSetLayoutDesc::ContainerType::value_type&
-                          bindingPair) {
-                    DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-                        pSetLayouts[set]._bindingMap.find(bindingPair.first);
-                    if (it != pSetLayouts[set]._bindingMap.end())
+            for (const auto& [name, shaderVariable] :
+                 reflectionDataGroup->_descriptors)
+            {
+                if (set ==
+                    static_cast<uint32_t>(shaderVariable._info._setCategory))
+                {
+                    const uint32_t key =
+                        (static_cast<uint32_t>(
+                             shaderVariable._info._descriptorCategory)
+                         << 24) |
+                        shaderVariable._info._binding;
+                    if (collisionCheckSet.find(key) == collisionCheckSet.end())
                     {
-                        // TODO(snowapril) : Check given resource is collided
-                        // with already collected one.
+                        collisionCheckSet.emplace(key);
+
+                        combinedPipelineLayoutDesc->_sets[set]
+                            ._descriptorInfos.emplace_back(
+                                shaderVariable._info);
+
+                        combinedPipelineLayoutDesc->_shaderVariablesMap.emplace(
+                            name, shaderVariable);
                     }
                     else
                     {
-                        pSetLayouts[set]._bindingMap.emplace(bindingPair);
+                        // TODO(snowapril) : handling collision. It may not exist at now.
                     }
-                });
+                }
+            }
 
-            pSetLayouts[set]._stageFlags |=
-                shaderBinding._sets[set]._stageFlags;
+            combinedPipelineLayoutDesc->_sets[set]._stageFlags |=
+                reflectionDataGroup->_stageFlagBit;
+
+            if (combinedPipelineLayoutDesc->_stageInputs.empty() &&
+                (reflectionDataGroup->_vertexInputLayouts.empty() == false))
+            {
+                std::move(reflectionDataGroup->_vertexInputLayouts.begin(),
+                          reflectionDataGroup->_vertexInputLayouts.end(),
+                          std::back_inserter(
+                              combinedPipelineLayoutDesc->_stageInputs));
+            }
+
+            if (combinedPipelineLayoutDesc->_stageOutputs.empty() &&
+                (reflectionDataGroup->_fragmentOutputLayouts.empty() == false))
+            {
+                std::move(reflectionDataGroup->_fragmentOutputLayouts.begin(),
+                          reflectionDataGroup->_fragmentOutputLayouts.end(),
+                          std::back_inserter(
+                              combinedPipelineLayoutDesc->_stageOutputs));
+            }
         }
     }
 }
 
-bool PipelineLayout::initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings)
+bool PipelineLayout::initialize(std::vector<const ShaderReflectionDataGroup*>&&
+                                    combinedReflectionDataGroups)
 {
-    organizeCombinedDescSetLayouts(std::move(setLayoutBindings),
-                                   _combinedSetLayouts.data());
+    organizeCombinedDescSetLayouts(std::move(combinedReflectionDataGroups),
+                                   &_combinedPipelineLayoutDesc);
 
     DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
         _logicalDevice->getDescriptorSetAllocatorPool();
 
     std::vector<VkDescriptorSetLayout> vkSetLayouts;
-    for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
+
+    // Set index 0 is always bindless descriptor set.
+    _setAllocators[0] =
+        descriptorSetAllocatorPool->getBindlessDescriptorSetAllocator();
+    vkSetLayouts.push_back(_setAllocators[0]->getVkDescriptorSetLayout());
+
+    for (uint32_t set = 1; set < MAX_NUM_SET_SLOTS; ++set)
     {
-        if (_combinedSetLayouts[set]._stageFlags != 0)
+        if (_combinedPipelineLayoutDesc._sets[set]._stageFlags != 0)
         {
             _setAllocators[set] =
                 descriptorSetAllocatorPool->getOrCreateDescriptorSetAllocator(
-                    _combinedSetLayouts[set]);
+                    _combinedPipelineLayoutDesc._sets[set]);
             vkSetLayouts.push_back(
                 _setAllocators[set]->getVkDescriptorSetLayout());
         }

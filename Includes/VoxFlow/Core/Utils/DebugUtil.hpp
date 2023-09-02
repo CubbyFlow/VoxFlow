@@ -96,6 +96,12 @@ class DebugUtil
         setObjectName(logicalDevice, reinterpret_cast<uint64_t>(imageView),
                       name, VK_OBJECT_TYPE_IMAGE_VIEW);
     }
+    static void setObjectName(LogicalDevice* logicalDevice,
+                              VkQueryPool queryPool, const char* name)
+    {
+        setObjectName(logicalDevice, reinterpret_cast<uint64_t>(queryPool),
+                      name, VK_OBJECT_TYPE_QUERY_POOL);
+    }
     static void setObjectName(LogicalDevice* logicalDevice, VkSampler sampler,
                               const char* name)
     {

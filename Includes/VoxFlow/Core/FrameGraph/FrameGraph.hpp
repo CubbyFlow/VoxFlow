@@ -5,8 +5,12 @@
 
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -17,11 +21,11 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class RenderResourceMemoryPool;
-class CommandExecutorBase;
+class CommandStream;
 class RenderResourceAllocator;
 class DependencyGraph;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 
 class FrameGraph;
@@ -47,15 +51,19 @@ class FrameGraphBuilder
  public:
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle allocate(
-        std::string_view&& resourceName,
+        std::string&& resourceName,
         typename ResourceDataType::Descriptor&& initArgs);
     ResourceHandle read(ResourceHandle id);
     ResourceHandle write(ResourceHandle id);
 
-    template <RenderPassConcept RenderPassType>
-    [[nodiscard]] ResourceHandle declareRenderPass(
+    [[nodiscard]] uint32_t declareRenderPass(
         std::string_view&& passName,
-        typename RenderPassType::Descriptor&& initArgs);
+        typename FrameGraphRenderPass::Descriptor&& initArgs);
+
+    inline void setSideEffectPass()
+    {
+        _currentPassNode->setSideEffectPass();
+    }
 
  protected:
  private:
@@ -86,14 +94,22 @@ class FrameGraph : private NonCopyable
                                         SetupPhase&& setup,
                                         ExecutePhase&& execute);
 
+    template <typename SetupPhase, typename ExecutePhase>
+    void addCallbackPass(std::string_view&& passName, SetupPhase&& setup,
+                         ExecutePhase&& execute);
+
+    template <typename SetupPhase>
+    void addPresentPass(std::string_view&& passName, SetupPhase&& setup,
+                        SwapChain* swapChain, const FrameContext& frameContext);
+
     template <ResourceConcept ResourceDataType>
     [[nodiscard]] ResourceHandle create(
-        std::string_view&& resourceName,
+        std::string&& resourceName,
         typename ResourceDataType::Descriptor&& resourceDescArgs);
 
     [[nodiscard]] ResourceHandle importRenderTarget(
-        std::string_view&& resourceName,
-        FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture);
+        std::string&& resourceName,
+        FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView);
 
     // Compile given frame graph
     bool compile();
@@ -105,7 +121,7 @@ class FrameGraph : private NonCopyable
     void clear();
 
     //
-    void reset(CommandExecutorBase* commandExecutor,
+    void reset(CommandStream* cmdStream,
                RenderResourceAllocator* renderResourceAllocator);
 
     /**
@@ -113,6 +129,15 @@ class FrameGraph : private NonCopyable
      * @param isstr output string stream where compiled graph dumped at
      */
     void dumpGraphViz(std::ostringstream& osstr);
+
+    inline void setLastSubmitFence(const FenceObject& fenceObject)
+    {
+        _lastSubmitFence = fenceObject;
+    }
+    inline FenceObject getLastSubmitFence() const
+    {
+        return _lastSubmitFence;
+    }
 
  public:
     inline DependencyGraph* getDependencyGraph()
@@ -130,15 +155,30 @@ class FrameGraph : private NonCopyable
         return _blackBoard;
     }
 
+    inline RenderResourceAllocator* getRenderResourceAllocator()
+    {
+        return _renderResourceAllocator;
+    }
+
+    VirtualResource* getVirtualResource(ResourceHandle resourceHandle)
+    {
+        const ResourceSlot& resourceSlot = getResourceSlot(resourceHandle);
+        return _resources[resourceSlot._resourceIndex];
+    }
+
+    template <ResourceConcept ResourceDataType>
+    const typename ResourceDataType::Descriptor getResourceDescriptor(
+        ResourceHandle id) const;
+
 private:
     const ResourceSlot& getResourceSlot(ResourceHandle id) const
     {
-        return _resourceSlots[id];
+        return _resourceSlots[id.get()];
     }
 
     ResourceSlot& getResourceSlot(ResourceHandle id)
     {
-        return _resourceSlots[id];
+        return _resourceSlots[id.get()];
     }
 
     void buildAdjacencyLists(const uint32_t numPassNodes);
@@ -153,7 +193,6 @@ private:
 
     ResourceHandle readInternal(ResourceHandle id, PassNode* passNode);
     ResourceHandle writeInternal(ResourceHandle id, PassNode* passNode);
-
 
  private:
     std::vector<ResourceSlot> _resourceSlots;
@@ -170,8 +209,9 @@ private:
 
  private:
     DependencyGraph _dependencyGraph;
-    CommandExecutorBase* _commandExecutor = nullptr;
+    CommandStream* _cmdStream = nullptr;
     RenderResourceAllocator* _renderResourceAllocator = nullptr;
+    FenceObject _lastSubmitFence = FenceObject::Default();
 };
 }
 }  // namespace VoxFlow

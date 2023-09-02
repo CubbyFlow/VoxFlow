@@ -7,14 +7,20 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandPool.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBuffer.hpp>
+#include <VoxFlow/Core/Resources/ResourceTracker.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Resources/Sampler.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
@@ -23,17 +29,23 @@ CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
                              VkCommandBuffer vkCommandBuffer)
     : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer)
 {
+    // TODO(snowapril) : temporal sampler
+    _sampler = new Sampler("TempSampler", logicalDevice);
+    _sampler->initialize();
 }
+
 CommandBuffer::~CommandBuffer()
 {
     // Do nothing
+    if (_sampler)
+    {
+        delete _sampler;
+    }
 }
 
-void CommandBuffer::beginCommandBuffer(const FrameContext& frameContext,
-                                       const FenceObject& fenceToSignal,
+void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
                                        const std::string& debugName)
 {
-    _frameContext = frameContext;
     _debugName = debugName;
 
     // Every resources and synchronization with this command buffer
@@ -54,12 +66,8 @@ void CommandBuffer::beginCommandBuffer(const FrameContext& frameContext,
     _hasBegun = true;
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    const std::string cmdDebugName =
-        fmt::format("{}_SwapChainIndex({})_FrameIndex({})_BackBufferIndex({})",
-                    _debugName, _frameContext._swapChainIndex,
-                    _frameContext._frameIndex, _frameContext._backBufferIndex);
     DebugUtil::setObjectName(_logicalDevice, _vkCommandBuffer,
-                             cmdDebugName.c_str());
+                             _debugName.c_str());
 #endif
 }
 
@@ -69,37 +77,67 @@ void CommandBuffer::endCommandBuffer()
     _hasBegun = false;
 }
 
-void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
+void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
+                                    const RenderPassParams& passParams)
 {
     RenderPassCollector* renderPassCollector =
         _logicalDevice->getRenderPassCollector();
 
-    _boundRenderPass =
-        renderPassCollector->getOrCreateRenderPass(rtInfo._layoutKey);
+    const uint32_t numColorAttachments =
+        attachmentGroup.getNumColorAttachments();
+    const bool hasDepthStencil = attachmentGroup.hasDepthStencil();
 
-    auto frameBuffer =
-        renderPassCollector->getOrCreateFrameBuffer(_boundRenderPass, rtInfo);
+    RenderTargetLayoutKey rtLayoutKey = {};
+    RenderTargetsInfo rtInfo = {};
 
-    std::vector<VkClearValue> clearValues;
-    for (const ColorPassDescription& colorPass :
-         rtInfo._layoutKey._colorAttachmentDescs)
+    for (uint32_t i = 0; i < numColorAttachments; ++i)
     {
-        clearValues.push_back(
-            VkClearValue{ .color = VkClearColorValue{
-                              .float32 = { colorPass._clearColorValues.x,
-                                           colorPass._clearColorValues.y,
-                                           colorPass._clearColorValues.z,
-                                           colorPass._clearColorValues.w } } });
+        TextureView* textureView = attachmentGroup.getColor(i).getView();
+        const TextureViewInfo& viewInfo = textureView->getViewInfo();
+        rtLayoutKey._colorFormats.emplace_back(viewInfo._format);
+
+        rtInfo._colorRenderTarget.emplace_back(textureView);
     }
 
-    if (rtInfo._layoutKey._depthStencilAttachment.has_value())
+    if (hasDepthStencil)
     {
-        const DepthStencilPassDescription& depthPass =
-            rtInfo._layoutKey._depthStencilAttachment.value();
+        TextureView* textureView = attachmentGroup.getDepthStencil().getView();
+        const TextureViewInfo& viewInfo = textureView->getViewInfo();
+        rtLayoutKey._depthStencilFormat = viewInfo._format;
+
+        rtInfo._depthStencilImage = textureView;
+    }
+
+    rtLayoutKey._renderPassFlags = passParams._attachmentFlags;
+
+    _boundRenderPass = renderPassCollector->getOrCreateRenderPass(rtLayoutKey);
+    rtInfo._vkRenderPass = _boundRenderPass->get();
+    rtInfo._resolution = passParams._viewportSize;
+
+    // rtInfo._resolution = 0;
+    // rtInfo._layers = 0;
+    // rtInfo._numSamples = 0;
+
+    auto frameBuffer = renderPassCollector->getOrCreateFrameBuffer(rtInfo);
+
+    std::vector<VkClearValue> clearValues;
+    for (uint32_t i = 0; i < numColorAttachments; ++i)
+    {
+        const glm::vec4& clearColorValue = passParams._clearColors[i];
+        clearValues.push_back(
+            VkClearValue{ .color = VkClearColorValue{
+                              .float32 = { clearColorValue.x,
+                                           clearColorValue.y,
+                                           clearColorValue.z,
+                                           clearColorValue.w } } });
+    }
+
+    if (hasDepthStencil)
+    {
         clearValues.push_back(
             VkClearValue{ .depthStencil = VkClearDepthStencilValue{
-                              .depth = depthPass._clearDepthValue,
-                              .stencil = depthPass._clearStencilValue } });
+                              .depth = passParams._clearDepth,
+                              .stencil = passParams._clearStencil } });
     }
 
     VkRenderPassBeginInfo renderPassInfo = {
@@ -113,6 +151,7 @@ void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
         .clearValueCount = static_cast<uint32_t>(clearValues.size()),
         .pClearValues = clearValues.data()
     };
+
     vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
 }
@@ -120,15 +159,54 @@ void CommandBuffer::beginRenderPass(const RenderTargetsInfo& rtInfo)
 void CommandBuffer::endRenderPass()
 {
     vkCmdEndRenderPass(_vkCommandBuffer);
-    _boundRenderPass.reset();
+    _boundRenderPass = nullptr;
 }
 
-void CommandBuffer::bindPipeline(const std::shared_ptr<BasePipeline>& pipeline)
+void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
+{
+    // TODO(snowapril) : must implement details
+    VkBuffer vkVertexBuffer = vertexBuffer->get();
+    const VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(_vkCommandBuffer, 0, 1, &vkVertexBuffer, offsets);
+}
+
+void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
+{
+    // TODO(snowapril) : must implement details
+    VkBuffer vkIndexBuffer = indexBuffer->get();
+    vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0,
+                         VK_INDEX_TYPE_UINT32);
+}
+
+void CommandBuffer::bindPipeline(BasePipeline* pipeline)
 {
     _boundPipeline = pipeline;
 
+    if (_boundPipeline->validatePipeline() == false)
+    {
+        VkPipelineBindPoint bindPoint = _boundPipeline->getBindPoint();
+        switch (bindPoint)
+        {
+            case VK_PIPELINE_BIND_POINT_GRAPHICS:
+                static_cast<GraphicsPipeline*>(_boundPipeline)->initialize(_boundRenderPass);
+                break;
+
+            case VK_PIPELINE_BIND_POINT_COMPUTE:
+                static_cast<ComputePipeline*>(_boundPipeline)->initialize();
+                break;
+
+            default:
+                VOX_ASSERT(false, "Failed to find valid bind point");
+        }
+    }
+
     vkCmdBindPipeline(_vkCommandBuffer, _boundPipeline->getBindPoint(),
                       _boundPipeline->get());
+}
+
+void CommandBuffer::unbindPipeline()
+{
+    _boundPipeline = nullptr;
 }
 
 void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
@@ -147,20 +225,18 @@ void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
     vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
 }
 
-void CommandBuffer::makeSwapChainFinalLayout(
-    const std::shared_ptr<SwapChain>& swapChain)
+void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_t backBufferIndex)
 {
     VkImageMemoryBarrier imageMemoryBarrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = 0,
         .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image =
-            swapChain->getSwapChainImage(_frameContext._backBufferIndex)->get(),
+        .image = swapChain->getSwapChainImage(backBufferIndex)->get(),
         .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                               .baseMipLevel = 0,
                               .levelCount = 1,
@@ -176,113 +252,131 @@ void CommandBuffer::makeSwapChainFinalLayout(
 
 void CommandBuffer::bindResourceGroup(
     SetSlotCategory setSlotCategory,
-    std::vector<std::pair<std::string_view, BindableResourceView*>>&& bindGroup)
+    std::vector<ShaderVariableBinding>&& shaderVariables)
 {
-    std::vector<std::pair<std::string_view, BindableResourceView*>>&
-        dstBindingResources =
-            _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
+    std::vector<ShaderVariableBinding>& dstBindingResources =
+        _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
 
     if (dstBindingResources.empty())
     {
-        dstBindingResources = std::move(bindGroup);
+        dstBindingResources = std::move(shaderVariables);
     }
     else
     {
         dstBindingResources.reserve(dstBindingResources.size() +
-                                    bindGroup.size());
-        std::move(std::make_move_iterator(bindGroup.begin()),
-                  std::make_move_iterator(bindGroup.end()),
+                                    shaderVariables.size());
+        std::move(std::make_move_iterator(shaderVariables.begin()),
+                  std::make_move_iterator(shaderVariables.end()),
                   std::back_inserter(dstBindingResources));
     }
 }
 
 void CommandBuffer::commitPendingResourceBindings()
 {
-    for (uint32_t setIndex = 0; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
+    // TODO(snowapril) : split update descriptor sets according to set frequency
+    PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    const auto& shaderVariablesMap = pipelineLayout->getPipelineLayoutDescriptor()._shaderVariablesMap;
+
+    for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
         const SetSlotCategory setSlotCategory =
             static_cast<SetSlotCategory>(setIndex);
-        std::vector<std::pair<std::string_view, BindableResourceView*>>&
-            bindGroup = _pendingResourceBindings[setIndex];
-        PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+
+        std::vector<ShaderVariableBinding>& bindGroup =
+            _pendingResourceBindings[setIndex];
+
         DescriptorSetAllocator* setAllocator =
             pipelineLayout->getDescSetAllocator(setSlotCategory);
         const DescriptorSetLayoutDesc& setLayoutDesc =
             setAllocator->getDescriptorSetLayoutDesc();
+        const size_t numDescriptors = setLayoutDesc._descriptorInfos.size();
+
+        if (numDescriptors == 0ULL)
+        {
+            continue;
+        }
 
         VkDescriptorSet pooledDescriptorSet =
-            setAllocator->getOrCreatePooledDescriptorSet(_fenceToSignal);
+            static_cast<PooledDescriptorSetAllocator*>(setAllocator)
+                ->getOrCreatePooledDescriptorSet(_fenceToSignal);
 
         std::vector<VkWriteDescriptorSet> vkWrites;
         vkWrites.reserve(bindGroup.size());
 
-        static VkDescriptorImageInfo sTmpImageInfo = {};
-        static VkDescriptorBufferInfo sTmpBufferInfo = {};
+        static thread_local std::vector<VkDescriptorImageInfo> sTmpImageInfos;
+        static thread_local std::vector<VkDescriptorBufferInfo> sTmpBufferInfos;
+        sTmpImageInfos.clear();
+        sTmpImageInfos.resize(numDescriptors);
+        sTmpBufferInfos.clear();
+        sTmpBufferInfos.resize(numDescriptors);
+        size_t currentDescriptorInfoIndex = 0;
 
-        for (const std::pair<std::string_view, BindableResourceView*>&
-                 resourceBinding : bindGroup)
+        for (const ShaderVariableBinding& resourceBinding : bindGroup)
         {
-            const std::string_view& resourceBindingName = resourceBinding.first;
-            BindableResourceView* bindingResourceView = resourceBinding.second;
+            const std::string_view& resourceBindingName =
+                resourceBinding._variableName;
+
+            auto shaderVariableIter = shaderVariablesMap.find(resourceBindingName);
+            if (shaderVariableIter == shaderVariablesMap.end())
+            {
+                VOX_ASSERT(false,
+                           "Given shader variable name ({}) does not exist in "
+                           "the current pipeline.",
+                           resourceBindingName);
+                continue;
+            }
+
+            const ShaderVariable& shaderVariable = shaderVariableIter->second;
+
+            BindableResourceView* bindingResourceView = resourceBinding._view;
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
-            DescriptorSetLayoutDesc::ContainerType::const_iterator it =
-                setLayoutDesc._bindingMap.find(
-                    std::string(resourceBindingName));
-
-            VOX_ASSERT(it != setLayoutDesc._bindingMap.end(),
-                       "Unknown binding name ({})", resourceBindingName);
-
-            uint32_t binding = 0;
-            uint32_t arraySize = 0;
-
+            uint32_t binding = shaderVariable._info._binding;
+            uint32_t arraySize = shaderVariable._info._arraySize;
             VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-
-            std::visit(
-                overloaded{
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::CombinedImage setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    },
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::UniformBuffer setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                    },
-                    [&binding, &arraySize, &vkDescriptorType](
-                        DescriptorSetLayoutDesc::StorageBuffer setBinding) {
-                        binding = setBinding._binding;
-                        arraySize = setBinding._arraySize;
-                        vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                    },
-                },
-                it->second);
-
-            VOX_ASSERT(vkDescriptorType != VK_DESCRIPTOR_TYPE_MAX_ENUM,
-                       "Unknown descriptor type {}", vkDescriptorType);
+            switch (shaderVariable._info._descriptorCategory)
+            {
+                case DescriptorCategory::CombinedImage:
+                    vkDescriptorType =
+                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    break;
+                case DescriptorCategory::UniformBuffer:
+                    vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    break;
+                case DescriptorCategory::StorageBuffer:
+                    vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                    break;
+                default:
+                    VOX_ASSERT(false,
+                               "Unknown descriptor category must not be exist");
+                    break;
+            }
 
             switch (bindingResourceView->getResourceViewType())
             {
                 case ResourceViewType::BufferView:
-                    sTmpBufferInfo =
+                    sTmpBufferInfos[currentDescriptorInfoIndex] =
                         static_cast<BufferView*>(bindingResourceView)
                             ->getDescriptorBufferInfo();
-                    bufferInfo = &sTmpBufferInfo;
+                    bufferInfo = &sTmpBufferInfos[currentDescriptorInfoIndex++];
                     break;
                 case ResourceViewType::ImageView:
-                    sTmpImageInfo =
+                    sTmpImageInfos[currentDescriptorInfoIndex] =
                         static_cast<TextureView*>(bindingResourceView)
                             ->getDescriptorImageInfo();
 
                     // TODO(snowapril) : set image layout
-                    // sTmpImageInfo.imageLayout = ;
+                    // sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-                    imageInfo = &sTmpImageInfo;
+                    if (shaderVariable._info._descriptorCategory == DescriptorCategory::CombinedImage)
+                    {
+                        sTmpImageInfos[currentDescriptorInfoIndex].sampler =
+                            _sampler->get();
+                    }
+
+                    imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
             }
 
@@ -292,8 +386,8 @@ void CommandBuffer::commitPendingResourceBindings()
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .pNext = nullptr,
                 .dstSet = pooledDescriptorSet,
-                .dstBinding = static_cast<uint32_t>(setSlotCategory),
-                .dstArrayElement = binding,
+                .dstBinding = static_cast<uint32_t>(binding),
+                .dstArrayElement = 0,
                 .descriptorCount = arraySize,
                 .descriptorType = vkDescriptorType,
                 .pImageInfo = imageInfo,
@@ -317,6 +411,40 @@ void CommandBuffer::commitPendingResourceBindings()
     }
 }
 
+void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
+    const uint32_t dstOffset, const uint32_t srcOffset,
+    const uint32_t size)
+{
+    const VkBufferCopy bufferCopy = { .srcOffset = srcOffset,
+                                      .dstOffset = dstOffset,
+                                      .size = size };
+
+    VkBuffer srcVkBuffer = srcBuffer->get();
+    VkBuffer dstVkBuffer = dstBuffer->get();
+
+    vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
+}
+
+void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
+    const uint32_t dstOffset, const uint32_t srcOffset,
+    const uint32_t size)
+{
+    (void)dstTexture;
+    (void)srcBuffer;
+    (void)dstOffset;
+    (void)srcOffset;
+    (void)size;
+}
+
+void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount,
+                         uint32_t firstVertex, uint32_t firstInstance)
+{
+    commitPendingResourceBindings();
+
+    vkCmdDraw(_vkCommandBuffer, vertexCount, instanceCount, firstVertex,
+              firstInstance);
+}
+
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                                 uint32_t firstIndex, int32_t vertexOffset,
                                 uint32_t firstInstance)
@@ -327,12 +455,11 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                      vertexOffset, firstInstance);
 }
 
-void CommandBuffer::makeResourceLayout(
-    BindableResourceView* resourceView,
-    const DescriptorSetLayoutDesc::DescriptorType& descriptorDesc)
+void CommandBuffer::makeResourceLayout(BindableResourceView* resourceView,
+                                       const DescriptorInfo& descInfo)
 {
     (void)resourceView;
-    (void)descriptorDesc;
+    (void)descInfo;
 }
 
 }  // namespace VoxFlow

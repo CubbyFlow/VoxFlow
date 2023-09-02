@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,14 +57,14 @@ class Queue : private NonCopyable
     // waiting submission completed
     FenceObject submitCommandBuffer(
         const std::shared_ptr<CommandBuffer>& commandBuffer,
-        const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
+        SwapChain* swapChain, const FrameContext* frameContext,
         const bool waitCompletion);
 
     // Submit given command buffers to queue and returns FenceObject for waiting
     // submission completed
     FenceObject submitCommandBufferBatch(
         std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
-        const std::shared_ptr<SwapChain>& swapChain, const uint32_t frameIndex,
+        SwapChain* swapChain, const FrameContext* frameContext,
         const bool waitAllCompletion);
 
     // Returns Timeline semaphore which synchronized with queue submission

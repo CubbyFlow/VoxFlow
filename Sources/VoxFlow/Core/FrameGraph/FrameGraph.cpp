@@ -1,6 +1,7 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <stack>
@@ -9,7 +10,7 @@
 namespace VoxFlow
 {
 
-namespace FrameGraph
+namespace RenderGraph
 {
 ResourceHandle FrameGraphBuilder::read(ResourceHandle id)
 {
@@ -21,6 +22,15 @@ ResourceHandle FrameGraphBuilder::write(ResourceHandle id)
     return _frameGraph->writeInternal(id, _currentPassNode);
 }
 
+uint32_t FrameGraphBuilder::declareRenderPass(
+    std::string_view&& passName,
+    typename FrameGraphRenderPass::Descriptor&& initArgs)
+{
+    return static_cast<RenderPassNode*>(_currentPassNode)
+        ->declareRenderPass(_frameGraph, this, std::move(passName),
+                              std::move(initArgs));
+}
+
 FrameGraph::FrameGraph()
 {
 }
@@ -29,24 +39,23 @@ FrameGraph::~FrameGraph()
 {
 }
 
-void FrameGraph::reset(CommandExecutorBase* commandExecutor,
+void FrameGraph::reset(CommandStream* cmdStream,
                        RenderResourceAllocator* renderResourceAllocator)
 {
     clear();
 
-    _commandExecutor = commandExecutor;
+    _cmdStream = cmdStream;
     _renderResourceAllocator = renderResourceAllocator;
 }
 
 ResourceHandle FrameGraph::importRenderTarget(
-    std::string_view&& resourceName,
-    FrameGraphTexture::Descriptor&& resourceDescArgs, Texture* texture)
+    std::string&& resourceName,
+    FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView)
 {
-    VirtualResource* virtualResource =
-        new ImportedRenderTarget({}, std::move(resourceDescArgs), texture);
+    VirtualResource* virtualResource = new ImportedRenderTarget(
+        std::move(resourceName), std::move(resourceDescArgs), {}, textureView);
 
-    ResourceHandle resourceHandle =
-        static_cast<ResourceHandle>(_resources.size());
+    ResourceHandle resourceHandle(_resources.size());
 
     _resourceSlots.push_back(
         { ._resourceIndex =
@@ -56,7 +65,7 @@ ResourceHandle FrameGraph::importRenderTarget(
     _resources.push_back(virtualResource);
 
     ResourceNode* resourceNode = new ResourceNode(
-        &_dependencyGraph, std::move(resourceName), resourceHandle);
+        &_dependencyGraph, resourceHandle);
     resourceNode->_refCount = UINT32_MAX;
 
     _resourceNodes.push_back(resourceNode);
@@ -98,7 +107,47 @@ bool FrameGraph::compile()
         _passNodes.begin(), _passNodes.end(),
         [](PassNode* node) { return node->isCulled() == false; });
 
+    for (auto it = _passNodes.begin(); it != _passNodeLast; ++it)
+    {
+        PassNode* passNode = *it;
 
+        VOX_ASSERT(passNode->isCulled() == false,
+                   "There must not be culled nodes after culling");
+
+        DependencyGraph::EdgeContainer reads =
+            _dependencyGraph.getIncomingEdges(passNode->getNodeID());
+        for (const DependencyGraph::Edge* edge : reads)
+        {
+            DependencyGraph::Node* node =
+                _dependencyGraph.getNode(edge->_fromNodeID);
+            passNode->registerResource(
+                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+        }
+
+        DependencyGraph::EdgeContainer writes =
+            _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
+        for (const DependencyGraph::Edge* edge : writes)
+        {
+            DependencyGraph::Node* node =
+                _dependencyGraph.getNode(edge->_toNodeID);
+            passNode->registerResource(
+                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+        }
+
+        passNode->resolve(this);
+    }
+
+    for (VirtualResource* resource : _resources)
+    {
+        if (resource->isCulled() == false)
+        {
+            PassNode* firstPass = resource->getFirstReferencedPassNode();
+            PassNode* lastPass = resource->getLastReferencedPassNode();
+
+            firstPass->addDevirtualize(resource);
+            lastPass->addDestroy(resource);
+        }
+    }
 
 #else
 
@@ -111,8 +160,7 @@ bool FrameGraph::compile()
 ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given",
-               static_cast<uint32_t>(id));
+               "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
@@ -128,8 +176,7 @@ ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
 ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given",
-               static_cast<uint32_t>(id));
+               "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     VirtualResource* resource = _resources[resourceSlot._resourceIndex];
@@ -319,7 +366,21 @@ void FrameGraph::execute()
     for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
          iter != _passNodeLast; ++iter)
     {
-        (*iter)->execute(this, _commandExecutor);
+        PassNode* passNode = *iter;
+
+        for (VirtualResource* resource : passNode->getDevirtualizes())
+        {
+            resource->devirtualize(_renderResourceAllocator);
+        }
+
+        FrameGraphResources resources(this, passNode);
+
+        passNode->execute(&resources, _cmdStream);
+
+        for (VirtualResource* resource : passNode->getDestroyes())
+        {
+            resource->destroy(_renderResourceAllocator);
+        }
     }
 }
 
@@ -353,16 +414,23 @@ class AlphabetPermutator
     std::string getNextAlphabetPermutation()
     {
         std::string alphabetPermutation;
+        bool needToIncrementAlphabet = true;
         for (uint8_t& permutationIndex : _permutationIndices)
         {
             alphabetPermutation += 'a' + permutationIndex;
-            if (permutationIndex == ('z' - 'a' + 1))
+
+            if (needToIncrementAlphabet)
             {
-                permutationIndex = 0;
-            }
-            else
-            {
-                permutationIndex++;
+                if (permutationIndex == ('z' - 'a' + 1))
+                {
+                    permutationIndex = 0;
+                    needToIncrementAlphabet = true;
+                }
+                else
+                {
+                    permutationIndex++;
+                    needToIncrementAlphabet = false;
+                }    
             }
         }
         return alphabetPermutation;
@@ -396,10 +464,14 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
 
     for (ResourceNode* resourceNode : _resourceNodes)
     {
+        VirtualResource* vresource =
+            _resources[getResourceSlot(resourceNode->getResourceHandle())
+                           ._resourceIndex];
+
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[resourceNode->getNodeID()] = nodeLabel;
         osstr << "\t" << nodeLabel << "[ label=\""
-              << resourceNode->getResourceName() << "\" shape=label "
+              << vresource->getResourceName() << "\" shape=label "
               << (resourceNode->isCulled() ? "style=dashed" : "") << "];\n";
     }
     osstr << '\n';
@@ -411,6 +483,6 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
     }
     osstr << '}';
 }
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow

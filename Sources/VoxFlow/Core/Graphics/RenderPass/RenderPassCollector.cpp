@@ -34,16 +34,15 @@ RenderPassCollector& RenderPassCollector::operator=(
     return *this;
 }
 
-std::shared_ptr<RenderPass> RenderPassCollector::getOrCreateRenderPass(
+RenderPass* RenderPassCollector::getOrCreateRenderPass(
     RenderTargetLayoutKey layoutKey)
 {
     auto it = _renderPassCollection.find(layoutKey);
 
     if (it == _renderPassCollection.end())
     {
-        auto renderPassCreated =
-            std::make_shared<RenderPass>(_logicalDevice);
-        
+        auto renderPassCreated = std::make_shared<RenderPass>(_logicalDevice);
+
         if (renderPassCreated->initialize(layoutKey) == false)
         {
             renderPassCreated.reset();
@@ -51,14 +50,14 @@ std::shared_ptr<RenderPass> RenderPassCollector::getOrCreateRenderPass(
         }
 
         _renderPassCollection.emplace(layoutKey, renderPassCreated);
-        return renderPassCreated;
+        return renderPassCreated.get();
     }
 
-    return it->second;
+    return it->second.get();
 }
 
-std::shared_ptr<FrameBuffer> RenderPassCollector::getOrCreateFrameBuffer(
-    const std::shared_ptr<RenderPass>& renderPass, RenderTargetsInfo rtInfo)
+FrameBuffer* RenderPassCollector::getOrCreateFrameBuffer(
+    RenderTargetsInfo rtInfo)
 {
     auto it = _frameBufferCollection.find(rtInfo);
 
@@ -66,17 +65,17 @@ std::shared_ptr<FrameBuffer> RenderPassCollector::getOrCreateFrameBuffer(
     {
         auto frameBufferCreated = std::make_shared<FrameBuffer>(_logicalDevice);
 
-        if (frameBufferCreated->initialize(renderPass, rtInfo) == false)
+        if (frameBufferCreated->initialize(rtInfo) == false)
         {
             frameBufferCreated.reset();
             return nullptr;
         }
 
         _frameBufferCollection.emplace(rtInfo, frameBufferCreated);
-        return frameBufferCreated;
+        return frameBufferCreated.get();
     }
 
-    return it->second;
+    return it->second.get();
 }
 
 void RenderPassCollector::release()

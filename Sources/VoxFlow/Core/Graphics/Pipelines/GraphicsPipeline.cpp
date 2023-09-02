@@ -10,8 +10,9 @@
 
 namespace VoxFlow
 {
-GraphicsPipeline::GraphicsPipeline(LogicalDevice* logicalDevice,
-                                   std::vector<const char*>&& shaderPaths)
+GraphicsPipeline::GraphicsPipeline(
+    LogicalDevice* logicalDevice,
+    std::initializer_list<const char*>&& shaderPaths)
     : BasePipeline(logicalDevice, std::move(shaderPaths))
 {
 }
@@ -36,7 +37,7 @@ GraphicsPipeline& GraphicsPipeline::operator=(GraphicsPipeline&& other) noexcept
     return *this;
 }
 
-bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
+bool GraphicsPipeline::initialize(RenderPass* renderPass)
 {
     if (initializePipelineLayout() == false)
     {
@@ -62,13 +63,50 @@ bool GraphicsPipeline::initialize(const std::shared_ptr<RenderPass>& renderPass)
             shaderStageInfos.push_back(stageCreateInfo);
         });
 
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.pNext = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
+
+    // TODO(snowapril) : support instancing with given input layout
+    const PipelineLayoutDescriptor& pipelineLayoutDesc =
+        _pipelineLayout->getPipelineLayoutDescriptor();
+    const bool hasStageInputs = pipelineLayoutDesc._stageInputs.size() > 0;
+    if (hasStageInputs)
+    {
+        uint32_t offset = 0;
+        for (const auto& inputLayout : pipelineLayoutDesc._stageInputs)
+        {
+            bindingDescriptions.push_back(
+                { .binding = 0,
+                  .stride = inputLayout._stride,
+                  .inputRate = VK_VERTEX_INPUT_RATE_VERTEX });
+
+            attributeDescriptions.push_back(
+                { .location = inputLayout._location,
+                  .binding = 0,
+                  .format = inputLayout.getVkFormat(),
+                  .offset = offset });
+            
+            offset += inputLayout._stride;
+        }
+
+        vertexInputInfo.vertexAttributeDescriptionCount =
+            static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions =
+            attributeDescriptions.data();
+        vertexInputInfo.vertexBindingDescriptionCount =
+            static_cast<uint32_t>(bindingDescriptions.size());
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+    }
+    else
+    {
+        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+        vertexInputInfo.vertexBindingDescriptionCount = 0;
+        vertexInputInfo.pVertexBindingDescriptions = nullptr;
+    }
 
     VkPipelineInputAssemblyStateCreateInfo
         inputAssemblyInfo = {};

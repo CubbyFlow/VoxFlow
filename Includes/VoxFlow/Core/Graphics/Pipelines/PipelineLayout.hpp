@@ -5,7 +5,8 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
+#include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <memory>
 #include <vector>
 #include <array>
@@ -14,6 +15,7 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class DescriptorSetAllocator;
+struct ShaderReflectionDataGroup;
 
 class PipelineLayout : NonCopyable
 {
@@ -41,6 +43,14 @@ class PipelineLayout : NonCopyable
     {
         return _setAllocators[static_cast<uint32_t>(category)].get();
     }
+  
+    /**
+     * @return pipeline layout descriptor combined with all shader modules inserted
+     */
+    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor() const
+    {
+        return _combinedPipelineLayoutDesc;
+    }
 
  public:
     /**
@@ -51,7 +61,8 @@ class PipelineLayout : NonCopyable
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(std::vector<ShaderLayoutBinding>&& setLayoutBindings);
+    bool initialize(std::vector<const ShaderReflectionDataGroup*>&&
+                        combinedReflectionDataGroups);
 
  protected:
     /**
@@ -63,7 +74,7 @@ class PipelineLayout : NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     VkPipelineLayout _vkPipelineLayout{ VK_NULL_HANDLE };
     std::array<std::shared_ptr<DescriptorSetAllocator>, MAX_NUM_SET_SLOTS> _setAllocators;
-    std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _combinedSetLayouts;
+    PipelineLayoutDescriptor _combinedPipelineLayoutDesc;
 };
 }  // namespace VoxFlow
 

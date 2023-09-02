@@ -5,12 +5,14 @@
 
 #include <volk/volk.h>
 #include <vma/include/vk_mem_alloc.h>
+#include <VoxFlow/Core/Resources/RenderResource.hpp>
 #include <VoxFlow/Core/Resources/BindableResourceView.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <string>
+#include <string_view>
 
 namespace VoxFlow
 {
@@ -18,12 +20,12 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class BufferView;
 
-class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
+class Buffer final : public RenderResource
 {
  public:
-    explicit Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
+    explicit Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
                     RenderResourceMemoryPool* renderResourceMemoryPool);
-    ~Buffer();
+    ~Buffer() override;
 
  public:
     [[nodiscard]] inline VkBuffer get() const
@@ -40,7 +42,12 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
         return _ownedBufferViews[viewIndex];
     }
 
-    inline BufferInfo getBufferInfo() const
+    [[nodiscard]] inline RenderResourceType getResourceType() const override
+    {
+        return RenderResourceType::Buffer;
+    }
+
+    [[nodiscard]] inline BufferInfo getBufferInfo() const
     {
         return _bufferInfo;
     }
@@ -54,24 +61,28 @@ class Buffer : private NonCopyable, public std::enable_shared_from_this<Buffer>
     // Release buffer object to fence resource manager
     void release();
 
+    /**
+     * @return buffer memory mapped address
+     */
+    [[nodiscard]] uint8_t* map();
+
+    /**
+     * unmap permanently mapped address. At now, it just ignore for performance consideration.
+     */
+    void unmap();
+
  protected:
  private:
-    std::string _debugName;
-    LogicalDevice* _logicalDevice = nullptr;
-    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
     VkBuffer _vkBuffer = VK_NULL_HANDLE;
-    VmaAllocation _bufferAllocation = nullptr;
     BufferInfo _bufferInfo;
-
     std::vector<std::shared_ptr<BufferView>> _ownedBufferViews;
-    std::vector<FenceObject> _accessedFences;
 };
 
 class BufferView : public BindableResourceView
 {
  public:
     explicit BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                        std::weak_ptr<Buffer>&& ownerBuffer);
+                        RenderResource* ownerResource);
     ~BufferView();
 
  public:
@@ -94,7 +105,6 @@ class BufferView : public BindableResourceView
 
  protected:
  private:
-    std::weak_ptr<Buffer> _ownerBuffer;
     BufferViewInfo _bufferViewInfo;
 };
 }  // namespace VoxFlow

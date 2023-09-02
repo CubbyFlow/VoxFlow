@@ -12,7 +12,7 @@
 namespace VoxFlow
 {
 BasePipeline::BasePipeline(LogicalDevice* logicalDevice,
-                           std::vector<const char*>&& shaderFilePaths)
+                           std::initializer_list<const char*>&& shaderFilePaths)
     : _logicalDevice(logicalDevice)
 {
     for (const char* shaderPath : shaderFilePaths)
@@ -49,18 +49,18 @@ bool BasePipeline::initializePipelineLayout()
 {
     _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
 
-    std::vector<ShaderLayoutBinding> combinedLayoutBindings;
+    std::vector<const ShaderReflectionDataGroup*> combinedReflectionDataGroups;
 
     const size_t numShaderModules = _shaderModules.size();
-    combinedLayoutBindings.reserve(numShaderModules);
+    combinedReflectionDataGroups.reserve(numShaderModules);
 
     for (size_t i = 0; i < numShaderModules; ++i)
     {
-        combinedLayoutBindings.push_back(
-            _shaderModules[i]->getShaderLayoutBinding());
+        combinedReflectionDataGroups.push_back(
+            _shaderModules[i]->getShaderReflectionDataGroup());
     }
 
-    return _pipelineLayout->initialize(std::move(combinedLayoutBindings));
+    return _pipelineLayout->initialize(std::move(combinedReflectionDataGroups));
 }
 
 void BasePipeline::release()

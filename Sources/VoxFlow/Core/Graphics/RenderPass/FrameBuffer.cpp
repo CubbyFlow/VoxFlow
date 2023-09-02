@@ -27,7 +27,6 @@ FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
     if (&other != this)
     {
         _logicalDevice = other._logicalDevice;
-        _renderPass.swap(other._renderPass);
         _renderTargetsInfo = other._renderTargetsInfo;
         _vkFrameBuffer = other._vkFrameBuffer;
         other._vkFrameBuffer = VK_NULL_HANDLE;
@@ -35,8 +34,7 @@ FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
     return *this;
 }
 
-bool FrameBuffer::initialize(const std::shared_ptr<RenderPass>& renderPass,
-                             const RenderTargetsInfo& rtInfo)
+bool FrameBuffer::initialize(const RenderTargetsInfo& rtInfo)
 {
     _renderTargetsInfo = rtInfo;
 
@@ -58,7 +56,7 @@ bool FrameBuffer::initialize(const std::shared_ptr<RenderPass>& renderPass,
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .renderPass = renderPass->get(),
+        .renderPass = rtInfo._vkRenderPass,
         .attachmentCount = static_cast<uint32_t>(attachments.size()),
         .pAttachments = attachments.data(),
         .width = _renderTargetsInfo._resolution.x,

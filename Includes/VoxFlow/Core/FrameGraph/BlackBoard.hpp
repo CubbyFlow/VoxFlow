@@ -4,13 +4,14 @@
 #define VOXEL_FLOW_BLACK_BOARD_HPP
 
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <string_view>
 #include <unordered_map>
 
 namespace VoxFlow
 {
-namespace FrameGraph
+namespace RenderGraph
 {
 class BlackBoard : private NonCopyable
 {
@@ -43,12 +44,12 @@ class BlackBoard : private NonCopyable
         {
             return it->second;
         }
-        return InvalidFrameGraphResource;
+        return INVALID_RESOURCE_HANDLE;
     }
     ResourceHandle& operator[](std::string_view name)
     {
         auto [iter, _] =
-            _handleContainer.insert_or_assign(name, InvalidFrameGraphResource);
+            _handleContainer.insert_or_assign(name, INVALID_RESOURCE_HANDLE);
         return iter->second;
     }
 
@@ -66,7 +67,7 @@ class BlackBoard : private NonCopyable
  private:
     ContainerType _handleContainer;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

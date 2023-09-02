@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 namespace VoxFlow
 {
@@ -35,9 +36,14 @@ class DescriptorSetAllocatorPool : private NonCopyable
     std::shared_ptr<DescriptorSetAllocator> getOrCreateDescriptorSetAllocator(
         const DescriptorSetLayoutDesc& descSetLayout);
 
+    // Get bindless descriptor set allocator
+    std::shared_ptr<DescriptorSetAllocator> getBindlessDescriptorSetAllocator();
+
  private:
     LogicalDevice* _logicalDevice = nullptr;
     ContainerType _descriptorSetAllocators;
+    std::shared_ptr<DescriptorSetAllocator> _bindlessSetAllocator;
+    std::mutex _mutex;
 };
 
 }  // namespace VoxFlow

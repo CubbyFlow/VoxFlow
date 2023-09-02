@@ -3,12 +3,13 @@
 
 int main(int argc, char* argv[])
 {
-    (void)argc;
-    (void)argv;
+    cxxopts::Options options(
+        "VoxEditor", "CubbyFlow(Voxel-based fluid simulation engine) editor");
 
-    std::cout << "Hello VoxFlow Editor" << std::endl;
+    options.add_options()("d,debug", "Enable vulkan validation layer",
+                          cxxopts::value<bool>()->default_value("true"));
 
-    VoxFlow::VoxEditor editor;
+    VoxFlow::VoxEditor editor(options.parse(argc, argv));
 
     editor.runEditorLoop();
 

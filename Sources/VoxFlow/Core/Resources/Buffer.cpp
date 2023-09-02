@@ -2,6 +2,7 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
@@ -22,22 +23,23 @@ static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
         resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::IndirectCommand) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    if (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0)
+    if ((static_cast<uint32_t>(usage & BufferUsage::Readback) > 0) ||
+        (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0))
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::CopySrc) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     return resultUsage;
 }
 
-Buffer::Buffer(std::string&& debugName, LogicalDevice* logicalDevice,
+Buffer::Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
                RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _debugName(std::move(debugName)),
-      _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+    : RenderResource(std::move(debugName), logicalDevice, renderResourceMemoryPool)
 {
 }
+
 Buffer::~Buffer()
 {
+    release();
 }
 
 bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
@@ -71,7 +73,7 @@ bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 
     VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(),
                               &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer,
-                              &_bufferAllocation, nullptr));
+                              &_allocation, nullptr));
 
     if (_vkBuffer == VK_NULL_HANDLE)
     {
@@ -90,7 +92,7 @@ std::optional<uint32_t> Buffer::createBufferView(const BufferViewInfo& viewInfo)
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
     std::shared_ptr<BufferView> bufferView = std::make_shared<BufferView>(
         fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-        weak_from_this());
+        this);
 
     if (bufferView->initialize(viewInfo) == false)
     {
@@ -105,20 +107,57 @@ void Buffer::release()
 {
     _ownedBufferViews.clear();
 
+    if (_permanentMappedAddress != nullptr)
+    {
+        vmaUnmapMemory(_renderResourceMemoryPool->get(), _allocation);
+        _permanentMappedAddress = nullptr;
+    }
+
     if (_vkBuffer != VK_NULL_HANDLE)
     {
+        VmaAllocator vmaAllocator =
+            _renderResourceMemoryPool->get();
+        VkBuffer vkBuffer = _vkBuffer;
+        VmaAllocation vmaAllocation = _allocation;
+        
         RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences), [this]() {
-                vmaDestroyBuffer(_renderResourceMemoryPool->get(), _vkBuffer,
-                                 _bufferAllocation);
-            }));
+            RenderResourceGarbage(std::move(_accessedFences),
+                                  [vmaAllocator, vkBuffer, vmaAllocation]() {
+                                      vmaDestroyBuffer(vmaAllocator, vkBuffer,
+                                                       vmaAllocation);
+                                  }));
+
+        _vkBuffer = VK_NULL_HANDLE;
+        _allocation = VK_NULL_HANDLE;
     }
 }
 
+uint8_t* Buffer::map()
+{
+    VOX_ASSERT(
+        static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
+                                                    BufferUsage::Upload)) > 0,
+        "Buffer without Readback flag must not be mapped");
+
+    if (_permanentMappedAddress == nullptr)
+    {
+        void* memoryAddress = nullptr;
+        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(),
+                               _allocation, &memoryAddress));
+        _permanentMappedAddress = memoryAddress;
+    }
+
+    return static_cast<uint8_t*>(_permanentMappedAddress);
+}
+
+void Buffer::unmap()
+{
+    // TODO(snowapril) : consider unmap or not
+}
+
 BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                       std::weak_ptr<Buffer>&& ownerBuffer)
-    : BindableResourceView(std::move(debugName), logicalDevice),
-      _ownerBuffer(std::move(ownerBuffer))
+                       RenderResource* ownerResource)
+    : BindableResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }
 
@@ -141,10 +180,10 @@ void BufferView::release()
 
 VkDescriptorBufferInfo BufferView::getDescriptorBufferInfo() const
 {
-    std::shared_ptr<Buffer> ownerBuffer = _ownerBuffer.lock();
+    VkBuffer vkBuffer = static_cast<Buffer*>(_ownerResource)->get();
 
     return VkDescriptorBufferInfo{
-        .buffer = ownerBuffer == nullptr ? VK_NULL_HANDLE : ownerBuffer->get(),
+        .buffer = vkBuffer,
         .offset = _bufferViewInfo._offset,
         .range = _bufferViewInfo._range,
     };

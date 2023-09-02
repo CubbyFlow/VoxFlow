@@ -6,9 +6,10 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderLayoutBinding.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <array>
+#include <unordered_map>
 #include <memory>
 
 namespace VoxFlow
@@ -40,10 +41,10 @@ class ShaderModule : private NonCopyable
     /**
      * @return reflected shader layout binding of thie module
      */
-    [[nodiscard]] inline const ShaderLayoutBinding& getShaderLayoutBinding()
-        const
+    [[nodiscard]] inline const ShaderReflectionDataGroup*
+    getShaderReflectionDataGroup() const
     {
-        return _shaderLayoutBinding;
+        return &_reflectionDataGroup;
     }
 
     /**
@@ -59,13 +60,13 @@ class ShaderModule : private NonCopyable
      * @return whether reflection is successful or not
      */
     static bool reflectShaderLayoutBindings(
-        ShaderLayoutBinding* shaderLayoutBinding,
+        ShaderReflectionDataGroup* reflectionDataGroup,
         std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);
 
  protected:
     LogicalDevice* _logicalDevice;
     VkShaderModule _shaderModule = VK_NULL_HANDLE;
-    ShaderLayoutBinding _shaderLayoutBinding;
+    ShaderReflectionDataGroup _reflectionDataGroup;
     const char* _shaderFilePath = nullptr;
     VkShaderStageFlagBits _stageFlagBits;
 };

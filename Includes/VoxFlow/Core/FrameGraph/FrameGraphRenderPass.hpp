@@ -4,8 +4,11 @@
 #define VOXEL_FLOW_FRAME_GRAPH_RENDER_PASS_HPP
 
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
-#include <VoxFlow/Core/Utils/Handle.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
+#include <VoxFlow/Core/Resources/Handle.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <array>
 #include <string>
 
 namespace VoxFlow
@@ -14,24 +17,28 @@ namespace VoxFlow
 class RenderResourceAllocator;
 class Texture;
 
-namespace FrameGraph
+namespace RenderGraph
 {
 struct FrameGraphRenderPass
 {
-    struct Attachment
-    {
-        std::array<ResourceHandle, MAX_RENDER_TARGET_COUNTS> _colors;
-        ResourceHandle _depth;
-        ResourceHandle _stencil;
-    };
-
     struct Descriptor
     {
-        std::vector<Attachment> _attachments;
-        // TODO(snowapril) : fill below needed for render pass creation
+        std::array<ResourceHandle, MAX_RENDER_TARGET_COUNTS + 1>
+            _attachments = {
+                INVALID_RESOURCE_HANDLE,
+            };
+        glm::uvec2 _viewportSize = glm::uvec2(0U, 0U);
+        std::array<glm::vec4, MAX_RENDER_TARGET_COUNTS> _clearColors;
+        float _clearDepth = 0.0f;
+        uint8_t _clearStencil = 0;
+        AttachmentMaskFlags _clearFlags = AttachmentMaskFlags::None;
+        AttachmentMaskFlags _writableAttachment = AttachmentMaskFlags::All;
+        uint8_t _numSamples = 1;
     };
+
+    uint32_t _id = 0;
 };
-}  // namespace FrameGraph
+}  // namespace RenderGraph
 
 }  // namespace VoxFlow
 

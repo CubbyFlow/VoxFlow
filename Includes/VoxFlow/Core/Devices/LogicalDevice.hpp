@@ -24,12 +24,15 @@ class Instance;
 class RenderPassCollector;
 class FrameBufferCollector;
 class DescriptorSetAllocatorPool;
+class StagingBufferContext;
+class ResourceUploadContext;
+class CommandJobSystem;
 
 class LogicalDevice : NonCopyable
 {
  public:
     LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
-                  Instance* instance);
+                  Instance* instance, const LogicalDeviceType deviceType);
     ~LogicalDevice() override;
     LogicalDevice(LogicalDevice&& other) noexcept;
     LogicalDevice& operator=(LogicalDevice&& other) noexcept;
@@ -42,11 +45,24 @@ class LogicalDevice : NonCopyable
         return _device;
     }
 
+    [[nodiscard]] inline LogicalDeviceType getDeviceType() const noexcept
+    {
+        return _deviceType;
+    }
+
     /**
      * @param queueName queue name specified when created
      * @return vulkan queue wrapping class created
      */
     [[nodiscard]] Queue* getQueuePtr(const std::string& queueName);
+
+    /**
+     * @return device default generated render resource memory pool
+     */
+    [[nodiscard]] RenderResourceMemoryPool* getDeviceDefaultResourceMemoryPool()
+    {
+        return _deviceDefaultResourceMemoryPool;
+    }
 
     /**
      * @return render pass and framebuffer manager
@@ -88,7 +104,19 @@ class LogicalDevice : NonCopyable
         return _swapChains[swapChainIndex];
     }
 
+    inline const PhysicalDevice* getPhysicalDevice() const
+    {
+        return _physicalDevice;
+    }
+
+    inline CommandJobSystem* getCommandJobSystem() const
+    {
+        return _commandJobSystem.get();
+    }
+
  public:
+    void initializeCommandStreams();
+
     /**
      * release resources which derived from this logical device
      */
@@ -103,13 +131,17 @@ class LogicalDevice : NonCopyable
  private:
     PhysicalDevice* _physicalDevice = nullptr;
     Instance* _instance = nullptr;
+    LogicalDeviceType _deviceType = LogicalDeviceType::Count;
     VkDevice _device{ VK_NULL_HANDLE };
     std::unordered_map<std::string, Queue*> _queueMap{};
     Queue* _mainQueue = nullptr;
     std::vector<std::shared_ptr<SwapChain>> _swapChains;
-    RenderResourceMemoryPool* _renderResourceMemoryPool = nullptr;
+
+    // TODO(snowapril) : manage per-logical-device managing instances
+    RenderResourceMemoryPool* _deviceDefaultResourceMemoryPool = nullptr;
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
+    std::unique_ptr<CommandJobSystem> _commandJobSystem;
 };
 }  // namespace VoxFlow
 

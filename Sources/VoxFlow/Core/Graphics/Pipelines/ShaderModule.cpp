@@ -3,6 +3,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Utils/VertexFormat.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <spirv-cross/spirv_common.hpp>
 #include <spirv-cross/spirv_cross.hpp>
@@ -39,7 +40,7 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
                                    &_shaderModule));
 
     const bool reflectionResult = reflectShaderLayoutBindings(
-        &_shaderLayoutBinding, std::move(spirvBinary), _stageFlagBits);
+        &_reflectionDataGroup, std::move(spirvBinary), _stageFlagBits);
     VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}", _shaderFilePath);
 }
 
@@ -59,7 +60,7 @@ ShaderModule& ShaderModule::operator=(ShaderModule&& other) noexcept
     {
         _logicalDevice = other._logicalDevice;
         _shaderModule = other._shaderModule;
-        _shaderLayoutBinding = other._shaderLayoutBinding;
+        _reflectionDataGroup = std::move(other._reflectionDataGroup);
         _shaderFilePath = other._shaderFilePath;
         _stageFlagBits = other._stageFlagBits;
 
@@ -205,7 +206,38 @@ static VkFormat convertSpirvImageFormat(spv::ImageFormat imageFormat)
     }
 }
 
-bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayoutBinding,
+VertexFormatBaseType convertToBaseType(
+    const spirv_cross::SPIRType::BaseType& spirBaseType)
+{
+    using namespace spirv_cross;
+    VertexFormatBaseType baseType = VertexFormatBaseType::Unknown;
+    switch (spirBaseType)
+    {
+        case SPIRType::BaseType::Float:
+            baseType = VertexFormatBaseType::Float32;
+            break;
+        case SPIRType::BaseType::Double:
+            baseType = VertexFormatBaseType::Float64;
+            break;
+        case SPIRType::BaseType::Int:
+            baseType = VertexFormatBaseType::Int32;
+            break;
+        case SPIRType::BaseType::Int64:
+            baseType = VertexFormatBaseType::Int64;
+            break;
+        case SPIRType::BaseType::UInt:
+            baseType = VertexFormatBaseType::Uint32;
+            break;
+        case SPIRType::BaseType::UInt64:
+            baseType = VertexFormatBaseType::Uint64;
+            break;
+        default:
+            break;
+    }
+    return baseType;
+}
+
+bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflectionDataGroup,
     std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits shaderStageBits)
 {
     // Note(snowapril) : sample codes from Khronos/SPIRV-Cross Wiki.
@@ -255,9 +287,14 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         {
             VkFormat imageFormat =
                 convertSpirvImageFormat(resourceType.image.format);
-            shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-                resource.name, DescriptorSetLayoutDesc::CombinedImage{
-                                   imageFormat, count, binding });
+            (void)imageFormat;
+            reflectionDataGroup->_descriptors.emplace(
+                resource.name,
+                ShaderVariable{
+                    ._variableName = resource.name,
+                    ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                             DescriptorCategory::CombinedImage,
+                                             count, binding } });
         }
     }
 
@@ -302,9 +339,13 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-            blockName, DescriptorSetLayoutDesc::UniformBuffer{ totalSize, count,
-                                                               binding });
+        reflectionDataGroup->_descriptors.emplace(
+            resource.name,
+            ShaderVariable{
+                ._variableName = resource.name,
+                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                         DescriptorCategory::UniformBuffer,
+                                         count, binding } });
     }
 
     for (const spirv_cross::Resource& resource :
@@ -348,36 +389,78 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderLayoutBinding* shaderLayout
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        shaderLayoutBinding->_sets[set]._bindingMap.emplace(
-            blockName, DescriptorSetLayoutDesc::StorageBuffer{ totalSize, count,
-                                                               binding });
+        reflectionDataGroup->_descriptors.emplace(
+            resource.name,
+            ShaderVariable{
+                ._variableName = resource.name,
+                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                         DescriptorCategory::StorageBuffer,
+                                         count, binding } });
     }
 
-    // TODO(snowapril) : debug its member variables and fill implementation
-    // for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
-    // {
-    //     // auto location =
-    //     //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
-    //     // shaderLayout
-    // }
-    //for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
-    //{
-    //    // auto location =
-    //    //     compiler.get_decoration(attribute.id, spv::DecorationLocation);
-    //    // shaderLayout
-    //}
+    if (shaderStageBits == VK_SHADER_STAGE_VERTEX_BIT)
+    {
+        for (const spirv_cross::Resource& attribute :
+             shaderResources.stage_inputs)
+        {
+            auto location =
+                compiler.get_decoration(attribute.id, spv::DecorationLocation);
+
+            const spirv_cross::SPIRType& resourceType =
+                compiler.get_type(attribute.type_id);
+
+            const uint32_t size = static_cast<uint32_t>(resourceType.width *
+                                                        resourceType.vecsize);
+            VOX_ASSERT(resourceType.columns == 1,
+                       "Matrix should not be used in stage input/output");
+
+            VertexFormatBaseType baseType =
+                convertToBaseType(resourceType.basetype);
+
+            reflectionDataGroup->_vertexInputLayouts.push_back(
+                { ._location = location,
+                  ._stride = (size >> 3),
+                  ._baseType = baseType });
+        }
+        std::sort(reflectionDataGroup->_vertexInputLayouts.begin(),
+                  reflectionDataGroup->_vertexInputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs._location <= rhs._location;
+                  });
+    }
+    
+    if (shaderStageBits == VK_SHADER_STAGE_FRAGMENT_BIT)
+    {
+        for (const spirv_cross::Resource& attribute :
+             shaderResources.stage_outputs)
+        {
+            auto location =
+                compiler.get_decoration(attribute.id, spv::DecorationLocation);
+
+            const spirv_cross::SPIRType& resourceType =
+                compiler.get_type(attribute.type_id);
+
+            VkFormat imageFormat =
+                convertSpirvImageFormat(resourceType.image.format);
+
+            reflectionDataGroup->_fragmentOutputLayouts.push_back(
+                { ._location = location, ._format = imageFormat });
+        }
+        std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(),
+                  reflectionDataGroup->_fragmentOutputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs._location <= rhs._location;
+                  });
+    }
 
     if (!shaderResources.push_constant_buffers.empty())
     {
-        shaderLayoutBinding->_pushConstantSize = static_cast<uint32_t>(
+        reflectionDataGroup->_pushConstantSize = static_cast<uint32_t>(
             compiler.get_declared_struct_size(compiler.get_type(
                 shaderResources.push_constant_buffers.front().base_type_id)));
     }
 
-    for (std::size_t i = 0; i < shaderLayoutBinding->_sets.size(); ++i)
-    {
-        shaderLayoutBinding->_sets[i]._stageFlags |= shaderStageBits;
-    }
+    reflectionDataGroup->_stageFlagBit = shaderStageBits;
 
     return true;
 }

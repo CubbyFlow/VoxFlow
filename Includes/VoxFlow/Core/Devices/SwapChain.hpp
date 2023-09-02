@@ -38,8 +38,9 @@ class SwapChain : private NonCopyable
     [[nodiscard]] uint32_t getFrameIndex() const noexcept;
     [[nodiscard]] std::shared_ptr<Texture> getSwapChainImage(const uint32_t index) const;
     [[nodiscard]] glm::uvec2 getResolution() const noexcept;
+    [[nodiscard]] GLFWwindow* getGlfwWindow() const noexcept;
 
-public:
+ public:
     // Create new SwapChain and resources and discard old one.
     bool create(const bool vsync = false);
 
@@ -146,6 +147,11 @@ inline glm::uvec2 SwapChain::getResolution() const noexcept
 {
     return _resolution;
 }
+inline GLFWwindow* SwapChain::getGlfwWindow() const noexcept
+{
+    return _window;
+}
+
 }  // namespace VoxFlow
 
 #endif
