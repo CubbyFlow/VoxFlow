@@ -11,7 +11,6 @@
 
 namespace VoxFlow
 {
-class LogicalDevice;
 struct RenderResourceGarbage
 {
     std::vector<FenceObject> _accessedFences;
@@ -57,13 +56,13 @@ struct RenderResourceGarbage
 class RenderResourceGarbageCollector : private Thread
 {
  public:
-    RenderResourceGarbageCollector(LogicalDevice* logicalDevice);
-    ~RenderResourceGarbageCollector() = default;
-
- public:
     // Push render resource garbage (buffer, texture, or etc..) to the queue
     void pushRenderResourceGarbage(RenderResourceGarbage&& garbage);
 
+    // Get global instance of render resource garbage collector
+    static RenderResourceGarbageCollector& Get();
+
+ private:
     // Process collected garbages deletion if possible
     void processRenderResourceGarbage();
 
@@ -75,7 +74,6 @@ class RenderResourceGarbageCollector : private Thread
  private:
     std::mutex _garbageCollectionLock;
     std::vector<RenderResourceGarbage> _garbageCollection;
-    LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow
 

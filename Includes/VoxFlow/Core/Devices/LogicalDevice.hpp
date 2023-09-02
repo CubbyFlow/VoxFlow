@@ -24,7 +24,6 @@ class Instance;
 class RenderPassCollector;
 class FrameBufferCollector;
 class DescriptorSetAllocatorPool;
-class RenderResourceGarbageCollector;
 class StagingBufferContext;
 class ResourceUploadContext;
 class CommandJobSystem;
@@ -81,16 +80,6 @@ class LogicalDevice : NonCopyable
         const
     {
         return _descriptorSetAllocatorPool;
-    }
-
-    /**
-     * @return render resource garbage collector that is dedicated to logical
-     * device
-     */
-    [[nodiscard]] RenderResourceGarbageCollector*
-    getRenderResourceGarbageCollector()
-    {
-        return _garbageCollector;
     }
 
  public:
@@ -153,7 +142,6 @@ class LogicalDevice : NonCopyable
     RenderResourceMemoryPool* _deviceDefaultResourceMemoryPool = nullptr;
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
-    RenderResourceGarbageCollector* _garbageCollector = nullptr;
     std::unique_ptr<CommandJobSystem> _commandJobSystem;
 };
 }  // namespace VoxFlow

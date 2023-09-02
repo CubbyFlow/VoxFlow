@@ -40,6 +40,9 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
         deviceSetupCtx, _physicalDevice, _instance,
         LogicalDeviceType::MainDevice));
 
+    
+    RenderResourceGarbageCollector::Get().threadConstruct();
+
     LogicalDevice* mainLogicalDevice =
         getLogicalDevice(LogicalDeviceType::MainDevice);
     _mainSwapChain = mainLogicalDevice->addSwapChain("VoxFlow Editor",
@@ -57,11 +60,7 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
 
 RenderDevice::~RenderDevice()
 {
-    _logicalDevices.clear();
-
-    delete _physicalDevice;
-    delete _instance;
-    delete _deviceSetupCtx;
+    release();
 }
 
 void RenderDevice::initializePasses()
@@ -136,6 +135,17 @@ void RenderDevice::renderScene()
     {
         // TODO(snowapril) : recreate swapchain
     }
+}
+
+void RenderDevice::release()
+{
+    RenderResourceGarbageCollector::Get().threadTerminate();
+
+    _logicalDevices.clear();
+
+    delete _physicalDevice;
+    delete _instance;
+    delete _deviceSetupCtx;
 }
 
 void RenderDevice::waitForRenderReady(const uint32_t frameIndex)

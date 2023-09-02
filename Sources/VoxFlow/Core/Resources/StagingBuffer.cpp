@@ -81,12 +81,12 @@ void StagingBuffer::release()
         VkBuffer vkBuffer = _vkBuffer;
         VmaAllocation vmaAllocation = _allocation;
 
-        _logicalDevice->getRenderResourceGarbageCollector()
-            ->pushRenderResourceGarbage(RenderResourceGarbage(
-                std::move(_accessedFences),
-                [vmaAllocator, vkBuffer, vmaAllocation]() {
-                    vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation);
-                }));
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
+            RenderResourceGarbage(std::move(_accessedFences),
+                                  [vmaAllocator, vkBuffer, vmaAllocation]() {
+                                      vmaDestroyBuffer(vmaAllocator, vkBuffer,
+                                                       vmaAllocation);
+                                  }));
 
         _vkBuffer = VK_NULL_HANDLE;
         _allocation = VK_NULL_HANDLE;

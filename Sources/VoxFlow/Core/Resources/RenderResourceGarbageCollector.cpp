@@ -2,23 +2,23 @@
 
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
-#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <algorithm>
 
 namespace VoxFlow
 {
-RenderResourceGarbageCollector::RenderResourceGarbageCollector(
-    LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
-{
-}
 
 void RenderResourceGarbageCollector::pushRenderResourceGarbage(
     RenderResourceGarbage&& garbage)
 {
     std::lock_guard<std::mutex> scopedLock(_garbageCollectionLock);
     _garbageCollection.emplace_back(std::move(garbage));
+}
+
+RenderResourceGarbageCollector& RenderResourceGarbageCollector::Get()
+{
+    static RenderResourceGarbageCollector sRenderResourceGarbageCollector;
+    return sRenderResourceGarbageCollector;
 }
 
 void RenderResourceGarbageCollector::processRenderResourceGarbage()
