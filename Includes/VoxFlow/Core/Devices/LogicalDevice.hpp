@@ -115,7 +115,6 @@ class LogicalDevice : NonCopyable
     }
 
  public:
-
     void initializeCommandStreams();
 
     /**

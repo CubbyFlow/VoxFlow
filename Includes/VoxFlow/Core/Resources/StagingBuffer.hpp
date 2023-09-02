@@ -36,7 +36,7 @@ class StagingBuffer : public RenderResource
         return _size;
     }
 
-    [[nodiscard]] inline RenderResourceType getResourceType() const override final
+    [[nodiscard]] inline RenderResourceType getResourceType() const final
     {
         return RenderResourceType::StagingBuffer;
     }

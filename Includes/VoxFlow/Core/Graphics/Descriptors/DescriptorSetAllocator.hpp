@@ -23,7 +23,7 @@ class DescriptorSetAllocator : private NonCopyable
                                     const bool isBindless);
 
  public:
-    virtual ~DescriptorSetAllocator() override;
+    ~DescriptorSetAllocator() override;
     DescriptorSetAllocator(DescriptorSetAllocator&& other) noexcept;
     DescriptorSetAllocator& operator=(DescriptorSetAllocator&& other) noexcept;
 

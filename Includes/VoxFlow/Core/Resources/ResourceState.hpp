@@ -8,11 +8,8 @@
 
 namespace VoxFlow
 {
-class LogicalDevice;
-
 struct ResourceState
 {
-    
 };
 }  // namespace VoxFlow
 

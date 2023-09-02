@@ -27,8 +27,6 @@ enum class AttachmentMaskFlags : uint32_t
     Stencil = 0x00000200,
     DepthStencil = Depth | Stencil,
     All = DepthStencil | 0x000000ff,
-
-    
 };
 IMPL_BITWISE_OPERATORS(AttachmentMaskFlags, uint32_t);
 

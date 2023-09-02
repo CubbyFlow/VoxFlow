@@ -74,7 +74,6 @@ class BasePipeline : NonCopyable
     std::unique_ptr<PipelineLayout> _pipelineLayout;
     std::vector<std::unique_ptr<ShaderModule>> _shaderModules;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
-
 };
 }  // namespace VoxFlow
 

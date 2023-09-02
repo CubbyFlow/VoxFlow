@@ -59,8 +59,8 @@ class ResourceUploadContext : private NonCopyable
                         CommandStream* cmdStream);
 
     void release();
- private:
 
+private:
     RenderDevice* _renderDevice = nullptr;
     std::vector<std::unique_ptr<StagingBufferContext>> _stagingBufferContexts;
     std::array<std::vector<PendingUploadInfo>,

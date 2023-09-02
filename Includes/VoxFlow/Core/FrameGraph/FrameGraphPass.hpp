@@ -57,7 +57,7 @@ class FrameGraphPass : public FrameGraphPassBase
     }
 
     void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) override final
+                 CommandStream* cmdStream) final
     {
         std::invoke(_executionPhaseLambda, resources, _resourceData, cmdStream);
     }
@@ -140,7 +140,7 @@ class RenderPassNode final : public PassNode
     RenderPassNode& operator=(RenderPassNode&& passNode);
 
     void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) override;
+                 CommandStream* cmdStream) final;
 
     /**
      * @param frameGraph owner frameGraph of this node
@@ -166,7 +166,7 @@ class RenderPassNode final : public PassNode
     /**
      * 
      */
-    void resolve(FrameGraph* frameGraph) override final;
+    void resolve(FrameGraph* frameGraph) final;
 
  protected:
  private:
@@ -186,9 +186,9 @@ class PresentPassNode final : public PassNode
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
     void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) override;
+                 CommandStream* cmdStream) final;
 
-    void resolve(FrameGraph* frameGraph) override final
+    void resolve(FrameGraph* frameGraph) final
     {
         (void)frameGraph;
     }
