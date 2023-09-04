@@ -28,7 +28,7 @@ class SceneObjectPass : public SceneRenderPass
 
  public:
     bool initialize() override;
-    void updateRender(ResourceUploadContext* uploadContext);
+    void updateRender(ResourceUploadContext* uploadContext) override;
     void renderScene(RenderGraph::FrameGraph* frameGraph) override;
 
  protected:

@@ -69,7 +69,7 @@ LinearBlockAllocator::LinearBlockAllocator(const uint64_t totalSize,
                                            const bool isThreadSafe)
     : BlockAllocator(isThreadSafe), _totalSize(totalSize)
 {
-    _blockList.emplace(_blockList.end(), 0, _totalSize);
+    _blockList.push_back({ ._offset = 0, ._size = _totalSize });
 } 
 
 LinearBlockAllocator::~LinearBlockAllocator()
