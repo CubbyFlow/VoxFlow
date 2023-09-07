@@ -288,13 +288,12 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
             VkFormat imageFormat =
                 convertSpirvImageFormat(resourceType.image.format);
             (void)imageFormat;
+
             reflectionDataGroup->_descriptors.emplace(
-                resource.name,
-                ShaderVariable{
-                    ._variableName = resource.name,
-                    ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                             DescriptorCategory::CombinedImage,
-                                             count, binding } });
+                DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                                DescriptorCategory::CombinedImage, count,
+                                binding },
+                resource.name);
         }
     }
 
@@ -340,12 +339,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
         reflectionDataGroup->_descriptors.emplace(
-            resource.name,
-            ShaderVariable{
-                ._variableName = resource.name,
-                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                         DescriptorCategory::UniformBuffer,
-                                         count, binding } });
+            DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                            DescriptorCategory::UniformBuffer, count, binding },
+            resource.name);
     }
 
     for (const spirv_cross::Resource& resource :
@@ -390,12 +386,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
         reflectionDataGroup->_descriptors.emplace(
-            resource.name,
-            ShaderVariable{
-                ._variableName = resource.name,
-                ._info = DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                         DescriptorCategory::StorageBuffer,
-                                         count, binding } });
+            DescriptorInfo{ static_cast<SetSlotCategory>(set),
+                            DescriptorCategory::StorageBuffer, count, binding },
+            resource.name);
     }
 
     if (shaderStageBits == VK_SHADER_STAGE_VERTEX_BIT)

@@ -61,7 +61,7 @@ class PipelineLayout : NonCopyable
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(std::vector<const ShaderReflectionDataGroup*>&&
+    bool initialize(const std::vector<const ShaderReflectionDataGroup*>&
                         combinedReflectionDataGroups);
 
  protected:

@@ -149,18 +149,6 @@ std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(
         VoxFlow::hash_combine(seed, desc);
     }
 
-    for (const VoxFlow::VertexInputLayout& inputLayout :
-         shaderLayout._stageInputs)
-    {
-        VoxFlow::hash_combine(seed, inputLayout);
-    }
-
-    for (const VoxFlow::FragmentOutputLayout& outputLayout :
-         shaderLayout._stageOutputs)
-    {
-        VoxFlow::hash_combine(seed, outputLayout);
-    }
-
     VoxFlow::hash_combine(seed, shaderLayout._pushConstantSize);
     return seed;
 }

@@ -36,7 +36,20 @@ ComputePipeline& ComputePipeline::operator=(ComputePipeline&& other) noexcept
 
 bool ComputePipeline::initialize()
 {
-    if (initializePipelineLayout() == false)
+    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
+
+    std::vector<const ShaderReflectionDataGroup*> combinedReflectionDataGroups;
+
+    const size_t numShaderModules = _shaderModules.size();
+    combinedReflectionDataGroups.reserve(numShaderModules);
+
+    for (size_t i = 0; i < numShaderModules; ++i)
+    {
+        combinedReflectionDataGroups.push_back(
+            _shaderModules[i]->getShaderReflectionDataGroup());
+    }
+
+    if (_pipelineLayout->initialize(combinedReflectionDataGroups) == false)
     {
         VOX_ASSERT(false, "Failed to create pipeline layout");
         return false;
