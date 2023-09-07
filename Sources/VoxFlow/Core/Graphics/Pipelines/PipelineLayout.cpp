@@ -37,6 +37,8 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
         _setAllocators.swap(other._setAllocators);
         _combinedPipelineLayoutDesc =
             std::move(other._combinedPipelineLayoutDesc);
+        _shaderVariableMap =
+            std::move(other._shaderVariableMap);
     }
     return *this;
 }
@@ -45,6 +47,7 @@ static void organizeCombinedDescSetLayouts(
     const std::vector<const ShaderReflectionDataGroup*>&
         combinedReflectionGroups,
     PipelineLayoutDescriptor* combinedPipelineLayoutDesc,
+    PipelineLayout::ShaderVariableMap* combinedShaderVariables)
 {
     // TODO(snowapril) : As each descriptor set layout desc might have same
     // bindings, collision handling must be needed.
@@ -72,8 +75,8 @@ static void organizeCombinedDescSetLayouts(
                         combinedPipelineLayoutDesc->_sets[set]
                             ._descriptorInfos.emplace_back(descriptor);
 
-                        combinedPipelineLayoutDesc->_shaderVariablesMap.emplace(
-                            name, shaderVariable);
+                        combinedShaderVariables->emplace(variableName,
+                                                         descriptor);
                     }
                     else
                     {
@@ -90,10 +93,11 @@ static void organizeCombinedDescSetLayouts(
 
 bool PipelineLayout::initialize(
     const std::vector<const ShaderReflectionDataGroup*>&
-                                    combinedReflectionDataGroups)
+        combinedReflectionDataGroups)
 {
     organizeCombinedDescSetLayouts(combinedReflectionDataGroups,
                                    &_combinedPipelineLayoutDesc,
+                                   &_shaderVariableMap);
 
     DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
         _logicalDevice->getDescriptorSetAllocatorPool();

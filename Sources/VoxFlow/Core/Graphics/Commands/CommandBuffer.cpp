@@ -275,7 +275,8 @@ void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
     PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
-    const auto& shaderVariablesMap = pipelineLayout->getPipelineLayoutDescriptor()._shaderVariablesMap;
+    const PipelineLayout::ShaderVariableMap& shaderVariableMap =
+        pipelineLayout->getShaderVariableMap();
 
     for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
@@ -313,11 +314,12 @@ void CommandBuffer::commitPendingResourceBindings()
 
         for (const ShaderVariableBinding& resourceBinding : bindGroup)
         {
-            const std::string_view& resourceBindingName =
+            const std::string& resourceBindingName =
                 resourceBinding._variableName;
 
-            auto shaderVariableIter = shaderVariablesMap.find(resourceBindingName);
-            if (shaderVariableIter == shaderVariablesMap.end())
+            auto shaderVariableIter =
+                shaderVariableMap.find(resourceBindingName);
+            if (shaderVariableIter == shaderVariableMap.end())
             {
                 VOX_ASSERT(false,
                            "Given shader variable name ({}) does not exist in "
@@ -326,17 +328,17 @@ void CommandBuffer::commitPendingResourceBindings()
                 continue;
             }
 
-            const ShaderVariable& shaderVariable = shaderVariableIter->second;
+            const DescriptorInfo& descriptorInfo = shaderVariableIter->second;
 
             BindableResourceView* bindingResourceView = resourceBinding._view;
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
-            uint32_t binding = shaderVariable._info._binding;
-            uint32_t arraySize = shaderVariable._info._arraySize;
+            uint32_t binding = descriptorInfo._binding;
+            uint32_t arraySize = descriptorInfo._arraySize;
             VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-            switch (shaderVariable._info._descriptorCategory)
+            switch (descriptorInfo._descriptorCategory)
             {
                 case DescriptorCategory::CombinedImage:
                     vkDescriptorType =
@@ -370,7 +372,8 @@ void CommandBuffer::commitPendingResourceBindings()
                     // TODO(snowapril) : set image layout
                     // sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-                    if (shaderVariable._info._descriptorCategory == DescriptorCategory::CombinedImage)
+                    if (descriptorInfo._descriptorCategory ==
+                        DescriptorCategory::CombinedImage)
                     {
                         sTmpImageInfos[currentDescriptorInfoIndex].sampler =
                             _sampler->get();
