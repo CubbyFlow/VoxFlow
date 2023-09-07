@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
         "VoxEditor", "CubbyFlow(Voxel-based fluid simulation engine) editor");
 
     options.add_options()("d,debug", "Enable vulkan validation layer",
-                          cxxopts::value<bool>()->default_value("true"));
+                          cxxopts::value<bool>()->default_value("false"));
 
     VoxFlow::VoxEditor editor(options.parse(argc, argv));
 
