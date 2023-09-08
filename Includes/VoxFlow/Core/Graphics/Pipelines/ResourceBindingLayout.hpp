@@ -15,7 +15,7 @@ struct ShaderVariableBinding
 {
     std::string _variableName;
     BindableResourceView* _view = nullptr;
-    ResourceLayout _usage = ResourceLayout::Undefined;
+    ResourceAccessMask _usage = ResourceAccessMask::Undefined;
 };
 
 }  // namespace VoxFlow

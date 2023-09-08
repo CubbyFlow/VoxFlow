@@ -38,7 +38,7 @@ class BindableResourceView : private NonCopyable
  protected:
     std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
-    ResourceLayout _lastLayout = ResourceLayout::Undefined;
+    ResourceAccessMask _lastAccessMask = ResourceAccessMask::Undefined;
     std::vector<FenceObject> _accessedFences;
     RenderResource* _ownerResource = nullptr;
 };

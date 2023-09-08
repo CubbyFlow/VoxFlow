@@ -93,7 +93,7 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                 std::vector<ShaderVariableBinding>{ ShaderVariableBinding{
                     ._variableName = "g_sceneColor",
                     ._view = sceneColorView,
-                    ._usage = ResourceLayout::ShaderReadOnly } });
+                    ._usage = ResourceAccessMask::ShaderReadOnly } });
 
             const auto& sceneColorDesc =
                 fgResources
