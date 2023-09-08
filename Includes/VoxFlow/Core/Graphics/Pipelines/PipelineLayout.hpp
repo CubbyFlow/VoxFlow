@@ -45,14 +45,6 @@ class PipelineLayout : NonCopyable
     {
         return _setAllocators[static_cast<uint32_t>(category)].get();
     }
-  
-    /**
-     * @return pipeline layout descriptor combined with all shader modules inserted
-     */
-    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor() const
-    {
-        return _combinedPipelineLayoutDesc;
-    }
 
     /**
      * @return shader variables used from this pipeline layout

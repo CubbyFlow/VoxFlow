@@ -106,8 +106,6 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     vertexInputInfo.pNext = nullptr;
 
     // TODO(snowapril) : support instancing with given input layout
-    const PipelineLayoutDescriptor& pipelineLayoutDesc =
-        _pipelineLayout->getPipelineLayoutDescriptor();
     const bool hasStageInputs = vertexInputLayouts.size() > 0;
     if (hasStageInputs)
     {
