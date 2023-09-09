@@ -55,6 +55,16 @@ class PipelineLayout : NonCopyable
         return _shaderVariableMap;
     }
 
+    /**
+     * @return pipeline layout descriptor combined with all shader modules
+     * inserted
+     */
+    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor()
+        const
+    {
+        return _combinedPipelineLayoutDesc;
+    }
+
  public:
     /**
      * Combine given shader layout bindings into descriptor set layouts with conflict resolved.

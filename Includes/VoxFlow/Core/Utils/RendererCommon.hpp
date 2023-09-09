@@ -81,7 +81,6 @@ struct BufferInfo
 
 struct BufferViewInfo
 {
-    VkFormat _format = VK_FORMAT_UNDEFINED;
     uint64_t _offset = 0;
     uint64_t _range = 0;
 };

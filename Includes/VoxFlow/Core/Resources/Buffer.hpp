@@ -58,6 +58,12 @@ class Buffer final : public RenderResource
     // Create buffer view and return its index for given buffer view info
     std::optional<uint32_t> createBufferView(const BufferViewInfo& viewInfo);
 
+    // Get default created view that is pointing whole buffer
+    [[nodiscard]] inline BufferView* getDefaultView() const
+    {
+        return _defaultView;
+    }
+
     // Release buffer object to fence resource manager
     void release();
 
@@ -76,6 +82,7 @@ class Buffer final : public RenderResource
     VkBuffer _vkBuffer = VK_NULL_HANDLE;
     BufferInfo _bufferInfo;
     std::vector<std::shared_ptr<BufferView>> _ownedBufferViews;
+    BufferView* _defaultView = nullptr;
 };
 
 class BufferView : public BindableResourceView

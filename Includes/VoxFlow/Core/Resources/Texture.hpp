@@ -51,6 +51,12 @@ class Texture final : public RenderResource
         return RenderResourceType::Texture;
     }
 
+    // Get default created view that is pointing whole texture
+    [[nodiscard]] inline TextureView* getDefaultView() const
+    {
+        return _defaultView;
+    }
+
     // Make the image allocation resident if evicted
     bool makeAllocationResident(const TextureInfo& textureInfo);
 
@@ -71,6 +77,7 @@ class Texture final : public RenderResource
     TextureInfo _textureInfo;
     bool _isSwapChainBackBuffer = false;
     std::vector<std::shared_ptr<TextureView>> _ownedTextureViews;
+    TextureView* _defaultView = nullptr;
 };
 
 class TextureView : public BindableResourceView

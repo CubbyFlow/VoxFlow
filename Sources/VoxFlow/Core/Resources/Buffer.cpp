@@ -84,6 +84,18 @@ bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 #if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
+
+    std::optional<uint32_t> defaultViewIndex = createBufferView(
+        BufferViewInfo{ ._offset = 0, ._size = bufferInfo._size });
+
+    VOX_ASSERT(defaultViewIndex.has_value(),
+               "Failed to create default buffer view for buffer({})",
+               _debugName);
+    if (defaultViewIndex.has_value())
+    {
+        _defaultView = getView(defaultViewIndex.value()).get();
+    }
+    
     return true;
 }
 
