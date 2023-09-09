@@ -18,7 +18,8 @@ enum class ResourceViewType : uint8_t
 {
     BufferView = 0,
     ImageView = 1,
-    Undefined = 2,
+    StagingBufferView = 2,
+    Undefined = 3,
     Count = Undefined
 };
 
