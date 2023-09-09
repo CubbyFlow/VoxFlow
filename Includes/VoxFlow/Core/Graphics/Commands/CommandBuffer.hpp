@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
+#include <VoxFlow/Core/Graphics/Commands/ResourceBarrierManager.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
@@ -20,12 +21,14 @@ namespace VoxFlow
 class Queue;
 class Buffer;
 class Texture;
+class BufferView;
+class TextureView;
 class StagingBuffer;
 class CommandPool;
 class RenderPass;
 class SwapChain;
 class BasePipeline;
-class BindableResourceView;
+class ResourceView;
 class LogicalDevice;
 
 class CommandBuffer : private NonCopyable
@@ -105,10 +108,15 @@ class CommandBuffer : private NonCopyable
                      uint32_t firstIndex, int32_t vertexOffset,
                      uint32_t firstInstance);
 
- private:
-    // Set pipeline barrier or transition for given resource to desired layout
-    void makeResourceLayout(BindableResourceView* resourceView,
-                            const DescriptorInfo& descInfo);
+    void addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
+                                ResourceAccessMask nextAccessMasks);
+
+    void addMemoryBarrier(
+        ResourceView* view, ResourceAccessMask accessMask,
+        VkShaderStageFlags nextStages = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
+
+    void addExecutionBarrier(VkShaderStageFlags prevStages,
+                             VkShaderStageFlags nextStages);
 
  private:
     LogicalDevice* _logicalDevice = nullptr;
@@ -124,6 +132,9 @@ class CommandBuffer : private NonCopyable
 
     // TODO(snowapril) : temporary member variable
     class Sampler* _sampler = nullptr;
+
+    ResourceBarrierManager _resourceBarrierManager;
+    bool _isInRenderPassScope = false;
 };
 }  // namespace VoxFlow
 

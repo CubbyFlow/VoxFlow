@@ -9,50 +9,57 @@
 
 namespace VoxFlow
 {
-class BindableResourceView;
+class CommandBuffer;
+class TextureView;
+class StagingBufferView;
+class BufferView;
 
 class ResourceBarrierManager : private NonCopyable
 {
  public:
-    ResourceBarrierManager() = default;
+    ResourceBarrierManager(CommandBuffer* commandBuffer)
+        : _commandBuffer(commandBuffer)
+    {
+    }
     ~ResourceBarrierManager() = default;
 
  public:
     void addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
                                 ResourceAccessMask nextAccessMasks);
 
-    void addMemoryBarrier(BindableResourceView* view,
-                          ResourceAccessMask accessMask);
+    void addTextureMemoryBarrier(TextureView* textureView,
+                                 ResourceAccessMask accessMask,
+                                 VkShaderStageFlags nextStageFlags);
 
-    void addExecutionBarrier(VkShaderStageFlagBits prevStageBits,
-                             VkShaderStageFlagBits nextStageBits);
+    void addBufferMemoryBarrier(BufferView* bufferView,
+                                ResourceAccessMask accessMask,
+                                VkShaderStageFlags nextStageFlags);
 
-    void commitPendingBarriers(VkCommandBuffer commandBuffer, const bool inRenderPassScope);
+    void addStagingBufferMemoryBarrier(StagingBufferView* stagingBufferView,
+                                       ResourceAccessMask accessMask,
+                                       VkShaderStageFlags nextStageFlags);
+
+    void addExecutionBarrier(VkShaderStageFlags prevStageFlags,
+                             VkShaderStageFlags nextStageFlags);
+
+    void commitPendingBarriers(const bool inRenderPassScope);
 
  private:
     struct GlobalMemoryBarrier
     {
         VkAccessFlags _srcAccessFlags = VK_ACCESS_NONE;
         VkAccessFlags _dstAccessFlags = VK_ACCESS_NONE;
-        VkShaderStageFlagBits _srcStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        VkShaderStageFlagBits _dstStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 
         inline bool isValid() const
         {
             return (_srcAccessFlags != VK_ACCESS_NONE) &&
-                   (_dstAccessFlags != VK_ACCESS_NONE) &&
-                   (_srcStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM) &&
-                   (_dstStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
+                   (_dstAccessFlags != VK_ACCESS_NONE);
         }
 
         inline void reset()
         {
             _srcAccessFlags = VK_ACCESS_NONE;
             _dstAccessFlags = VK_ACCESS_NONE;
-            _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-            _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         }
     } _globalMemoryBarrier;
 
@@ -60,10 +67,8 @@ class ResourceBarrierManager : private NonCopyable
     {
         std::vector<VkBufferMemoryBarrier> _bufferBarriers;
         std::vector<VkImageMemoryBarrier> _imageBarriers;
-        VkShaderStageFlagBits _srcStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        VkShaderStageFlagBits _dstStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkShaderStageFlags _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkShaderStageFlags _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 
         inline bool isValid() const
         {
@@ -84,10 +89,8 @@ class ResourceBarrierManager : private NonCopyable
 
     struct ExecutionBarrier
     {
-        VkShaderStageFlagBits _srcStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        VkShaderStageFlagBits _dstStageFlags =
-            VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkShaderStageFlags _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkShaderStageFlags _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 
         inline bool isValid() const
         {
@@ -101,6 +104,8 @@ class ResourceBarrierManager : private NonCopyable
             _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         }
     } _executionBarrier;
+
+    CommandBuffer* _commandBuffer = nullptr;
 };
 }  // namespace VoxFlow
 

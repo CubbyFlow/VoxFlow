@@ -15,7 +15,7 @@
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/StagingBuffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceTracker.hpp>
@@ -27,7 +27,9 @@ namespace VoxFlow
 {
 CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
                              VkCommandBuffer vkCommandBuffer)
-    : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer)
+    : _logicalDevice(logicalDevice),
+      _vkCommandBuffer(vkCommandBuffer),
+      _resourceBarrierManager(this)
 {
     // TODO(snowapril) : temporal sampler
     _sampler = new Sampler("TempSampler", logicalDevice);
@@ -154,12 +156,15 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
 
     vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
+
+    _isInRenderPassScope = true;
 }
 
 void CommandBuffer::endRenderPass()
 {
     vkCmdEndRenderPass(_vkCommandBuffer);
     _boundRenderPass = nullptr;
+    _isInRenderPassScope = false;
 }
 
 void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
@@ -274,9 +279,12 @@ void CommandBuffer::bindResourceGroup(
 void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
-    PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    const PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    
     const PipelineLayout::ShaderVariableMap& shaderVariableMap =
         pipelineLayout->getShaderVariableMap();
+    const PipelineLayoutDescriptor& pipelineLayoutDesc =
+        pipelineLayout->getPipelineLayoutDescriptor();
 
     for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
@@ -381,6 +389,11 @@ void CommandBuffer::commitPendingResourceBindings()
 
                     imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
+                case ResourceViewType::StagingBufferView:
+                default:
+                    VOX_ASSERT(false,
+                               "Unhandled resource view type");
+                    break;
             }
 
             // TODO(snowapril) : get below information from descriptor set
@@ -399,6 +412,9 @@ void CommandBuffer::commitPendingResourceBindings()
             };
 
             vkWrites.push_back(vkWrite);
+
+            addMemoryBarrier(bindingResourceView, resourceBinding._usage,
+                             pipelineLayoutDesc._sets[setIndex]._stageFlags);
         }
 
         vkUpdateDescriptorSets(_logicalDevice->get(),
@@ -412,6 +428,8 @@ void CommandBuffer::commitPendingResourceBindings()
 
         bindGroup.clear();
     }
+
+    _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 }
 
 void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
@@ -424,6 +442,12 @@ void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
 
     VkBuffer srcVkBuffer = srcBuffer->get();
     VkBuffer dstVkBuffer = dstBuffer->get();
+
+    addMemoryBarrier(dstBuffer->getDefaultView(),
+                     ResourceAccessMask::TransferDest);
+    addMemoryBarrier(srcBuffer->getDefaultView(),
+                     ResourceAccessMask::TransferSource);
+    _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
     vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
 }
@@ -458,11 +482,40 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                      vertexOffset, firstInstance);
 }
 
-void CommandBuffer::makeResourceLayout(BindableResourceView* resourceView,
-                                       const DescriptorInfo& descInfo)
+void CommandBuffer::addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
+                                           ResourceAccessMask nextAccessMasks)
 {
-    (void)resourceView;
-    (void)descInfo;
+    _resourceBarrierManager.addGlobalMemoryBarrier(prevAccessMasks,
+                                                   nextAccessMasks);
+}
+
+void CommandBuffer::addMemoryBarrier(ResourceView* view,
+                                     ResourceAccessMask accessMask,
+                                     VkShaderStageFlags nextStageFlags)
+{
+    const ResourceViewType viewType = view->getResourceViewType();
+    switch (viewType)
+    {
+        case ResourceViewType::BufferView:
+            _resourceBarrierManager.addBufferMemoryBarrier(
+                static_cast<BufferView*>(view), accessMask, nextStageFlags);
+            break;
+        case ResourceViewType::ImageView:
+            _resourceBarrierManager.addTextureMemoryBarrier(
+                static_cast<TextureView*>(view), accessMask, nextStageFlags);
+            break;
+        case ResourceViewType::StagingBufferView:
+            _resourceBarrierManager.addStagingBufferMemoryBarrier(
+                static_cast<StagingBufferView*>(view), accessMask,
+                nextStageFlags);
+            break;
+    }
+}
+
+void CommandBuffer::addExecutionBarrier(VkShaderStageFlags prevStageFlags,
+                                        VkShaderStageFlags nextStageFlags)
+{
+    _resourceBarrierManager.addExecutionBarrier(prevStageFlags, nextStageFlags);
 }
 
 }  // namespace VoxFlow

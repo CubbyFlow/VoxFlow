@@ -40,6 +40,11 @@ class RenderResource : private NonCopyable
         return _deviceType;
     }
 
+    [[nodiscard]] inline uint32_t getCurrentQueueFamilyIndex() const
+    {
+        return _currentQueueFamilyIndex;
+    }
+
  public:
     virtual RenderResourceType getResourceType() const = 0;
 
@@ -51,6 +56,7 @@ class RenderResource : private NonCopyable
     std::vector<FenceObject> _accessedFences;
     void* _permanentMappedAddress = nullptr;
     LogicalDeviceType _deviceType = LogicalDeviceType::Undefined;
+    uint32_t _currentQueueFamilyIndex = 0;
 };
 
 }  // namespace VoxFlow
