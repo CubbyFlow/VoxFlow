@@ -6,7 +6,7 @@
 #include <volk/volk.h>
 #include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
@@ -85,7 +85,7 @@ class Buffer final : public RenderResource
     BufferView* _defaultView = nullptr;
 };
 
-class BufferView : public BindableResourceView
+class BufferView : public ResourceView
 {
  public:
     explicit BufferView(std::string&& debugName, LogicalDevice* logicalDevice,

@@ -9,12 +9,12 @@
 
 namespace VoxFlow
 {
-class BindableResourceView;
+class ResourceView;
 
 struct ShaderVariableBinding
 {
     std::string _variableName;
-    BindableResourceView* _view = nullptr;
+    ResourceView* _view = nullptr;
     ResourceAccessMask _usage = ResourceAccessMask::Undefined;
 };
 

@@ -6,7 +6,7 @@
 #include <vma/include/vk_mem_alloc.h>
 #include <volk/volk.h>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -80,7 +80,7 @@ class Texture final : public RenderResource
     TextureView* _defaultView = nullptr;
 };
 
-class TextureView : public BindableResourceView
+class TextureView : public ResourceView
 {
  public:
     explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice,

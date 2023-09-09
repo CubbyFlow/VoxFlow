@@ -330,7 +330,7 @@ void CommandBuffer::commitPendingResourceBindings()
 
             const DescriptorInfo& descriptorInfo = shaderVariableIter->second;
 
-            BindableResourceView* bindingResourceView = resourceBinding._view;
+            ResourceView* bindingResourceView = resourceBinding._view;
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;

@@ -169,7 +169,7 @@ void Buffer::unmap()
 
 BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
                        RenderResource* ownerResource)
-    : BindableResourceView(std::move(debugName), logicalDevice, ownerResource)
+    : ResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }
 
