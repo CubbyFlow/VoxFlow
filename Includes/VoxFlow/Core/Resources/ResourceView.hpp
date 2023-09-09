@@ -38,12 +38,12 @@ class ResourceView : private NonCopyable
         return _ownerResource;
     }
 
-    inline void getLastAccessMask(ResourceAccessMask accessMask)
+    inline void setLastAccessMask(ResourceAccessMask accessMask)
     {
         _lastAccessMask = accessMask;
     }
 
-    inline void getLastusedShaderStageFlags(
+    inline void setLastusedShaderStageFlags(
         VkShaderStageFlagBits shaderStageFlags)
 
     {

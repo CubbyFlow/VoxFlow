@@ -17,6 +17,7 @@ namespace VoxFlow
 {
 class LogicalDevice;
 class RenderResourceMemoryPool;
+class StagingBufferView;
 
 class StagingBuffer : public RenderResource
 {
@@ -37,6 +38,15 @@ class StagingBuffer : public RenderResource
         return _size;
     }
 
+    [[nodiscard]] inline std::shared_ptr<StagingBufferView> getView(
+        const uint32_t viewIndex) const
+    {
+        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedBufferViews.size()),
+                   "Given Index ({}), Num Buffer Views ({})", viewIndex,
+                   _ownedBufferViews.size());
+        return _ownedBufferViews[viewIndex];
+    }
+
     [[nodiscard]] inline RenderResourceType getResourceType() const final
     {
         return RenderResourceType::StagingBuffer;
@@ -49,10 +59,11 @@ class StagingBuffer : public RenderResource
     void release();
 
     // Create buffer view and return its index for given buffer view info
-    std::optional<uint32_t> createBufferView(const BufferViewInfo& viewInfo);
+    std::optional<uint32_t> createStagingBufferView(
+        const BufferViewInfo& viewInfo);
 
     // Get default created view that is pointing whole buffer
-    [[nodiscard]] inline BufferView* getDefaultView() const
+    [[nodiscard]] inline StagingBufferView* getDefaultView() const
     {
         return _defaultView;
     }

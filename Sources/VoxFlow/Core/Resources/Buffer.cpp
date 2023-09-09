@@ -86,7 +86,7 @@ bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 #endif
 
     std::optional<uint32_t> defaultViewIndex = createBufferView(
-        BufferViewInfo{ ._offset = 0, ._size = bufferInfo._size });
+        BufferViewInfo{ ._offset = 0, ._range = bufferInfo._size });
 
     VOX_ASSERT(defaultViewIndex.has_value(),
                "Failed to create default buffer view for buffer({})",

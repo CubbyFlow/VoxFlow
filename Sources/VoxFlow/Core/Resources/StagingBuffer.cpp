@@ -64,6 +64,18 @@ bool StagingBuffer::makeAllocationResident(const uint32_t size)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
 
+    std::optional<uint32_t> defaultViewIndex = createStagingBufferView(
+        BufferViewInfo{ ._offset = 0, ._range = _size });
+
+    VOX_ASSERT(
+        defaultViewIndex.has_value(),
+        "Failed to create default staging buffer view for staging buffer({})",
+        _debugName);
+    if (defaultViewIndex.has_value())
+    {
+        _defaultView = getView(defaultViewIndex.value()).get();
+    }
+
     return true;
 }
 
@@ -93,7 +105,7 @@ void StagingBuffer::release()
     }
 }
 
-std::optional<uint32_t> StagingBuffer::createBufferView(const BufferViewInfo& viewInfo)
+std::optional<uint32_t> StagingBuffer::createStagingBufferView(const BufferViewInfo& viewInfo)
 {
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
     std::shared_ptr<StagingBufferView> stagingBufferView =

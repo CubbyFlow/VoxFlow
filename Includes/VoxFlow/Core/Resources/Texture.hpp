@@ -117,6 +117,9 @@ class TextureView : public ResourceView
     VkImageView _vkImageView = VK_NULL_HANDLE;
     TextureInfo _ownerTextureInfo;
     TextureViewInfo _textureViewInfo;
+
+    // TODO(snowapril) : image layout with overlapping subresources must be
+    // managed carefully
 };
 }  // namespace VoxFlow
 
