@@ -377,8 +377,9 @@ void CommandBuffer::commitPendingResourceBindings()
                         static_cast<TextureView*>(bindingResourceView)
                             ->getDescriptorImageInfo();
 
-                    // TODO(snowapril) : set image layout
-                    // sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    sTmpImageInfos[currentDescriptorInfoIndex].imageLayout =
+                        static_cast<TextureView*>(bindingResourceView)
+                            ->getCurrentVkImageLayout();
 
                     if (descriptorInfo._descriptorCategory ==
                         DescriptorCategory::CombinedImage)
@@ -396,9 +397,7 @@ void CommandBuffer::commitPendingResourceBindings()
                     break;
             }
 
-            // TODO(snowapril) : get below information from descriptor set
-            // layout desc
-            VkWriteDescriptorSet vkWrite = {
+            vkWrites.push_back(VkWriteDescriptorSet{
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .pNext = nullptr,
                 .dstSet = pooledDescriptorSet,
@@ -408,14 +407,16 @@ void CommandBuffer::commitPendingResourceBindings()
                 .descriptorType = vkDescriptorType,
                 .pImageInfo = imageInfo,
                 .pBufferInfo = bufferInfo,
-                .pTexelBufferView = nullptr
-            };
-
-            vkWrites.push_back(vkWrite);
+                .pTexelBufferView = nullptr });
 
             addMemoryBarrier(bindingResourceView, resourceBinding._usage,
                              pipelineLayoutDesc._sets[setIndex]._stageFlags);
         }
+
+        // Note(snowapril) : As vulkan validation layer require that resource
+        // views have already desired layout before vkUpdateDescriptorSets(not
+        // before issuing draw/dispatch), commit barrier first.
+        _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
         vkUpdateDescriptorSets(_logicalDevice->get(),
                                static_cast<uint32_t>(vkWrites.size()),

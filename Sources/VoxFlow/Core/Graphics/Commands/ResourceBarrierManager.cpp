@@ -84,6 +84,7 @@ void ResourceBarrierManager::addTextureMemoryBarrier(
     // TODO(snowapril) : get dstQueueFamilyIndex from command buffer
 
     const TextureViewInfo& textureViewInfo = textureView->getViewInfo();
+    const VkImageLayout nextImageLayout = estimateImageLayout(accessMask);
 
     _memoryBarrierGroup._srcStageFlags |=
         textureView->getLastusedShaderStageFlags();
@@ -94,7 +95,7 @@ void ResourceBarrierManager::addTextureMemoryBarrier(
         .srcAccessMask = estimateAccessFlags(textureView->getLastAccessMask()),
         .dstAccessMask = estimateAccessFlags(accessMask),
         .oldLayout = estimateImageLayout(textureView->getLastAccessMask()),
-        .newLayout = estimateImageLayout(accessMask),
+        .newLayout = nextImageLayout,
         .srcQueueFamilyIndex = texture->getCurrentQueueFamilyIndex(),
         .dstQueueFamilyIndex = texture->getCurrentQueueFamilyIndex(),
         .image = texture->get(),
@@ -108,6 +109,7 @@ void ResourceBarrierManager::addTextureMemoryBarrier(
     });
 
     textureView->setLastAccessMask(accessMask);
+    textureView->setCurrentVkImageLayout(nextImageLayout);
 }
 
 void ResourceBarrierManager::addBufferMemoryBarrier(

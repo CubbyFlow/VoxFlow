@@ -112,14 +112,23 @@ class TextureView : public ResourceView
         return ResourceViewType::ImageView;
     }
 
+    inline void setCurrentVkImageLayout(VkImageLayout vkImageLayout)
+
+    {
+        _currentImageLayout = vkImageLayout;
+    }
+
+    [[nodiscard]] inline VkImageLayout getCurrentVkImageLayout() const
+    {
+        return _currentImageLayout;
+    }
+
  protected:
  private:
     VkImageView _vkImageView = VK_NULL_HANDLE;
     TextureInfo _ownerTextureInfo;
     TextureViewInfo _textureViewInfo;
-
-    // TODO(snowapril) : image layout with overlapping subresources must be
-    // managed carefully
+    VkImageLayout _currentImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
 }  // namespace VoxFlow
 
