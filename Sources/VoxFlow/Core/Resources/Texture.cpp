@@ -28,7 +28,66 @@ static VkImageUsageFlags convertToImageUsage(TextureUsage textureUsage)
     return resultUsage;
 }
 
-static bool hasDepthAspect(VkFormat vkFormat)
+VkImageAspectFlags convertToImageAspectFlags(VkFormat vkFormat)
+{
+    VkImageAspectFlags aspectFlag = 0;
+    const bool hasDepth = hasDepthAspect(vkFormat);
+    const bool hasStencil = hasStencilAspect(vkFormat);
+    if (hasDepth)
+    {
+        aspectFlag |= VK_IMAGE_ASPECT_DEPTH_BIT;
+    }
+    if (hasStencil)
+    {
+        aspectFlag |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+    if ((hasDepth == false) && (hasStencil == false))
+    {
+        aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+    return aspectFlag;
+}
+
+VkImageType convertToImageType(glm::uvec3 extent)
+{
+    VkImageType imageType = VK_IMAGE_TYPE_MAX_ENUM;
+    if (extent.z > 1)
+    {
+        imageType = VK_IMAGE_TYPE_3D;
+    }
+    else if (extent.y > 1)
+    {
+        imageType = VK_IMAGE_TYPE_2D;
+    }
+    else
+    {
+        imageType = VK_IMAGE_TYPE_1D;
+    }
+    return imageType;
+}
+
+VkImageViewType convertToImageViewType(VkImageType vkImageType, glm::uvec3 extent)
+{
+    // TODO(snowapril) : need to handle cube map
+    VkImageViewType imageViewType = VK_IMAGE_VIEW_TYPE_1D;
+    switch (vkImageType)
+    {
+        case VK_IMAGE_TYPE_1D:
+            imageViewType = extent.y > 1 ? VK_IMAGE_VIEW_TYPE_1D_ARRAY
+                                         : VK_IMAGE_VIEW_TYPE_1D;
+            break;
+        case VK_IMAGE_TYPE_2D:
+            imageViewType = extent.z > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY
+                                         : VK_IMAGE_VIEW_TYPE_2D;
+            break;
+        case VK_IMAGE_TYPE_3D:
+            imageViewType = VK_IMAGE_VIEW_TYPE_3D;
+            break;
+    }
+    return imageViewType;
+}
+
+bool hasDepthAspect(VkFormat vkFormat)
 {
     switch (vkFormat)
     {
@@ -44,7 +103,7 @@ static bool hasDepthAspect(VkFormat vkFormat)
     }
 }
 
-static bool hasStencilAspect(VkFormat vkFormat)
+bool hasStencilAspect(VkFormat vkFormat)
 {
     switch (vkFormat)
     {
@@ -125,49 +184,16 @@ bool Texture::makeAllocationResident(const TextureInfo& textureInfo)
     DebugUtil::setObjectName(_logicalDevice, _vkImage, _debugName.c_str());
 #endif
 
-    VkImageAspectFlags aspectFlag = 0;
-    const bool hasDepth = hasDepthAspect(_textureInfo._format);
-    const bool hasStencil = hasStencilAspect(_textureInfo._format);
-    if (hasDepth)
-    {
-        aspectFlag |= VK_IMAGE_ASPECT_DEPTH_BIT;
-    }
-    if (hasStencil)
-    {
-        aspectFlag |= VK_IMAGE_ASPECT_STENCIL_BIT;
-    }
-    if ((hasDepth == false) && (hasStencil == false))
-    {
-        aspectFlag = VK_IMAGE_ASPECT_COLOR_BIT;
-    }
-
-    // TODO(snowapril) : need to handle cube map
-    VkImageViewType imageViewType = VK_IMAGE_VIEW_TYPE_1D;
-    switch (_textureInfo._imageType)
-    {
-        case VK_IMAGE_TYPE_1D:
-            imageViewType = textureInfo._extent.y > 1
-                                ? VK_IMAGE_VIEW_TYPE_1D_ARRAY
-                                : VK_IMAGE_VIEW_TYPE_1D;
-            break;
-        case VK_IMAGE_TYPE_2D:
-            imageViewType = textureInfo._extent.z > 1
-                                ? VK_IMAGE_VIEW_TYPE_2D_ARRAY
-                                : VK_IMAGE_VIEW_TYPE_2D;
-            break;        
-        case VK_IMAGE_TYPE_3D:
-            imageViewType = VK_IMAGE_VIEW_TYPE_3D;
-            break;
-    }
-
-    std::optional<uint32_t> defaultViewIndex =
-        createTextureView(TextureViewInfo{ ._viewType = imageViewType,
-                                           ._format = _textureInfo._format,
-                                           ._aspectFlags = aspectFlag,
-                                           ._baseMipLevel = 0,
-                                           ._levelCount = 1,
-                                           ._baseArrayLayer = 0,
-                                           ._layerCount = 1 });
+    const std::optional<uint32_t> defaultViewIndex =
+        createTextureView(TextureViewInfo{
+            ._viewType = convertToImageViewType(_textureInfo._imageType,
+                                                _textureInfo._extent),
+            ._format = _textureInfo._format,
+            ._aspectFlags = convertToImageAspectFlags(_textureInfo._format),
+            ._baseMipLevel = 0,
+            ._levelCount = 1,
+            ._baseArrayLayer = 0,
+            ._layerCount = 1 });
 
     VOX_ASSERT(defaultViewIndex.has_value(),
                "Failed to create default texture view for texture({})",
@@ -261,7 +287,7 @@ bool TextureView::initialize(const TextureInfo& ownerTextureInfo,
         .format = viewInfo._format,
         .components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G,
                         VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A },
-        .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .subresourceRange = { .aspectMask = viewInfo._aspectFlags,
                               .baseMipLevel = viewInfo._baseMipLevel,
                               .levelCount = viewInfo._levelCount,
                               .baseArrayLayer = viewInfo._baseArrayLayer,

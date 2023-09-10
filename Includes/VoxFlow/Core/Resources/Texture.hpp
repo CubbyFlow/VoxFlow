@@ -19,6 +19,13 @@ class LogicalDevice;
 class RenderResourceMemoryPool;
 class TextureView;
 
+extern bool hasDepthAspect(VkFormat vkFormat);
+extern bool hasStencilAspect(VkFormat vkFormat);
+extern VkImageAspectFlags convertToImageAspectFlags(VkFormat vkFormat);
+extern VkImageType convertToImageType(glm::uvec3 imageType);
+extern VkImageViewType convertToImageViewType(VkImageType vkImageType,
+                                              glm::uvec3 extent);
+
 class Texture final : public RenderResource
 {
  public:
