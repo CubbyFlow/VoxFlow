@@ -340,6 +340,9 @@ void CommandBuffer::commitPendingResourceBindings()
 
             ResourceView* bindingResourceView = resourceBinding._view;
 
+            addMemoryBarrier(bindingResourceView, resourceBinding._usage,
+                             pipelineLayoutDesc._sets[setIndex]._stageFlags);
+
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
@@ -408,9 +411,6 @@ void CommandBuffer::commitPendingResourceBindings()
                 .pImageInfo = imageInfo,
                 .pBufferInfo = bufferInfo,
                 .pTexelBufferView = nullptr });
-
-            addMemoryBarrier(bindingResourceView, resourceBinding._usage,
-                             pipelineLayoutDesc._sets[setIndex]._stageFlags);
         }
 
         // Note(snowapril) : As vulkan validation layer require that resource
@@ -429,8 +429,6 @@ void CommandBuffer::commitPendingResourceBindings()
 
         bindGroup.clear();
     }
-
-    _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 }
 
 void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,

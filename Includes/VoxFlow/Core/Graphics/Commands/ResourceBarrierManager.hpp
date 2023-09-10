@@ -52,7 +52,7 @@ class ResourceBarrierManager : private NonCopyable
 
         inline bool isValid() const
         {
-            return (_srcAccessFlags != VK_ACCESS_NONE) &&
+            return (_srcAccessFlags != VK_ACCESS_NONE) ||
                    (_dstAccessFlags != VK_ACCESS_NONE);
         }
 
@@ -72,10 +72,8 @@ class ResourceBarrierManager : private NonCopyable
 
         inline bool isValid() const
         {
-            return (_bufferBarriers.size() > 0) &&
-                   (_imageBarriers.size() > 0) &&
-                   (_srcStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM) &&
-                   (_dstStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
+            return (_bufferBarriers.size() > 0) ||
+                   (_imageBarriers.size() > 0);
         }
 
         inline void reset()
@@ -94,7 +92,7 @@ class ResourceBarrierManager : private NonCopyable
 
         inline bool isValid() const
         {
-            return (_srcStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM) &&
+            return (_srcStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM) ||
                    (_dstStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
         }
 
