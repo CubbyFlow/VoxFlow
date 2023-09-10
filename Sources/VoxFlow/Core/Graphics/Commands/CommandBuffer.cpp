@@ -443,9 +443,11 @@ void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
     VkBuffer dstVkBuffer = dstBuffer->get();
 
     addMemoryBarrier(dstBuffer->getDefaultView(),
-                     ResourceAccessMask::TransferDest);
+                     ResourceAccessMask::TransferDest,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT);
     addMemoryBarrier(srcBuffer->getDefaultView(),
-                     ResourceAccessMask::TransferSource);
+                     ResourceAccessMask::TransferSource,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT);
     _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
     vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
@@ -490,7 +492,7 @@ void CommandBuffer::addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
 
 void CommandBuffer::addMemoryBarrier(ResourceView* view,
                                      ResourceAccessMask accessMask,
-                                     VkShaderStageFlags nextStageFlags)
+                                     VkPipelineStageFlags nextStageFlags)
 {
     const ResourceViewType viewType = view->getResourceViewType();
     switch (viewType)
@@ -511,8 +513,8 @@ void CommandBuffer::addMemoryBarrier(ResourceView* view,
     }
 }
 
-void CommandBuffer::addExecutionBarrier(VkShaderStageFlags prevStageFlags,
-                                        VkShaderStageFlags nextStageFlags)
+void CommandBuffer::addExecutionBarrier(VkPipelineStageFlags prevStageFlags,
+                                        VkPipelineStageFlags nextStageFlags)
 {
     _resourceBarrierManager.addExecutionBarrier(prevStageFlags, nextStageFlags);
 }

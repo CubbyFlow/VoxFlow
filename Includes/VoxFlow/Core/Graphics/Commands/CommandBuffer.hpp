@@ -113,10 +113,10 @@ class CommandBuffer : private NonCopyable
 
     void addMemoryBarrier(
         ResourceView* view, ResourceAccessMask accessMask,
-        VkShaderStageFlags nextStages = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
+        VkPipelineStageFlags nextStages = VK_PIPELINE_STAGE_NONE);
 
-    void addExecutionBarrier(VkShaderStageFlags prevStages,
-                             VkShaderStageFlags nextStages);
+    void addExecutionBarrier(VkPipelineStageFlags prevStages,
+                             VkPipelineStageFlags nextStages);
 
  private:
     LogicalDevice* _logicalDevice = nullptr;

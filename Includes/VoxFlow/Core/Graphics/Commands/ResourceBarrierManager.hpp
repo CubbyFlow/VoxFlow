@@ -29,18 +29,18 @@ class ResourceBarrierManager : private NonCopyable
 
     void addTextureMemoryBarrier(TextureView* textureView,
                                  ResourceAccessMask accessMask,
-                                 VkShaderStageFlags nextStageFlags);
+                                 VkPipelineStageFlags nextStageFlags);
 
     void addBufferMemoryBarrier(BufferView* bufferView,
                                 ResourceAccessMask accessMask,
-                                VkShaderStageFlags nextStageFlags);
+                                VkPipelineStageFlags nextStageFlags);
 
     void addStagingBufferMemoryBarrier(StagingBufferView* stagingBufferView,
                                        ResourceAccessMask accessMask,
-                                       VkShaderStageFlags nextStageFlags);
+                                       VkPipelineStageFlags nextStageFlags);
 
-    void addExecutionBarrier(VkShaderStageFlags prevStageFlags,
-                             VkShaderStageFlags nextStageFlags);
+    void addExecutionBarrier(VkPipelineStageFlags prevStageFlags,
+                             VkPipelineStageFlags nextStageFlags);
 
     void commitPendingBarriers(const bool inRenderPassScope);
 
@@ -67,39 +67,38 @@ class ResourceBarrierManager : private NonCopyable
     {
         std::vector<VkBufferMemoryBarrier> _bufferBarriers;
         std::vector<VkImageMemoryBarrier> _imageBarriers;
-        VkShaderStageFlags _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        VkShaderStageFlags _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkPipelineStageFlags _srcStageFlags = VK_PIPELINE_STAGE_NONE;
+        VkPipelineStageFlags _dstStageFlags = VK_PIPELINE_STAGE_NONE;
 
         inline bool isValid() const
         {
-            return (_bufferBarriers.size() > 0) ||
-                   (_imageBarriers.size() > 0);
+            return (_bufferBarriers.size() > 0) || (_imageBarriers.size() > 0);
         }
 
         inline void reset()
         {
             _bufferBarriers.clear();
             _imageBarriers.clear();
-            _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-            _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+            _srcStageFlags = VK_PIPELINE_STAGE_NONE;
+            _dstStageFlags = VK_PIPELINE_STAGE_NONE;
         }
     } _memoryBarrierGroup;
 
     struct ExecutionBarrier
     {
-        VkShaderStageFlags _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-        VkShaderStageFlags _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        VkPipelineStageFlags _srcStageFlags = VK_PIPELINE_STAGE_NONE;
+        VkPipelineStageFlags _dstStageFlags = VK_PIPELINE_STAGE_NONE;
 
         inline bool isValid() const
         {
-            return (_srcStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM) ||
-                   (_dstStageFlags != VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM);
+            return (_srcStageFlags != VK_PIPELINE_STAGE_NONE) ||
+                   (_dstStageFlags != VK_PIPELINE_STAGE_NONE);
         }
 
         inline void reset()
         {
-            _srcStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
-            _dstStageFlags = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+            _srcStageFlags = VK_PIPELINE_STAGE_NONE;
+            _dstStageFlags = VK_PIPELINE_STAGE_NONE;
         }
     } _executionBarrier;
 

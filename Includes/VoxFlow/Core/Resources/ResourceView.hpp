@@ -44,10 +44,10 @@ class ResourceView : private NonCopyable
     }
 
     inline void setLastusedShaderStageFlags(
-        VkShaderStageFlagBits shaderStageFlags)
+        VkPipelineStageFlags stageFlags)
 
     {
-        _lastUsedStageFlags = shaderStageFlags;
+        _lastUsedStageFlags = stageFlags;
     }
 
     [[nodiscard]] inline ResourceAccessMask getLastAccessMask() const
@@ -55,7 +55,7 @@ class ResourceView : private NonCopyable
         return _lastAccessMask;
     }
 
-    [[nodiscard]] inline VkShaderStageFlagBits getLastusedShaderStageFlags() const
+    [[nodiscard]] inline VkPipelineStageFlags getLastusedShaderStageFlags() const
     {
         return _lastUsedStageFlags;
     }
@@ -64,8 +64,7 @@ class ResourceView : private NonCopyable
     std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
     ResourceAccessMask _lastAccessMask = ResourceAccessMask::Undefined;
-    VkShaderStageFlagBits _lastUsedStageFlags =
-        VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+    VkPipelineStageFlags _lastUsedStageFlags = VK_PIPELINE_STAGE_NONE;
     std::vector<FenceObject> _accessedFences;
     RenderResource* _ownerResource = nullptr;
 };
