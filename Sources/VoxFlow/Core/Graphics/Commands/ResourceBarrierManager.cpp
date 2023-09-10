@@ -125,7 +125,7 @@ void ResourceBarrierManager::addBufferMemoryBarrier(
         bufferView->getLastusedShaderStageFlags();
     _memoryBarrierGroup._dstStageFlags |= nextStageFlags;
     _memoryBarrierGroup._bufferBarriers.push_back(VkBufferMemoryBarrier{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask = estimateAccessFlags(bufferView->getLastAccessMask()),
         .dstAccessMask = estimateAccessFlags(accessMask),
@@ -154,7 +154,7 @@ void ResourceBarrierManager::addStagingBufferMemoryBarrier(
         stagingBufferView->getLastusedShaderStageFlags();
     _memoryBarrierGroup._dstStageFlags |= nextStageFlags;
     _memoryBarrierGroup._bufferBarriers.push_back(VkBufferMemoryBarrier{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
         .pNext = nullptr,
         .srcAccessMask =
             estimateAccessFlags(stagingBufferView->getLastAccessMask()),
