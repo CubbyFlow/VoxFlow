@@ -83,6 +83,9 @@ VkImageViewType convertToImageViewType(VkImageType vkImageType, glm::uvec3 exten
         case VK_IMAGE_TYPE_3D:
             imageViewType = VK_IMAGE_VIEW_TYPE_3D;
             break;
+        default:
+            VOX_ASSERT(false, "Unhandled image type");
+            break;
     }
     return imageViewType;
 }

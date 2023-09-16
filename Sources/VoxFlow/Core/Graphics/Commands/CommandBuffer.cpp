@@ -617,6 +617,8 @@ void CommandBuffer::addMemoryBarrier(ResourceView* view,
                 static_cast<StagingBufferView*>(view), accessMask,
                 nextStageFlags);
             break;
+        default:
+            break;
     }
 }
 
