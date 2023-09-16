@@ -70,6 +70,8 @@ enum class ResourceAccessMask : uint32_t
     General             = 0x00000800,
     StorageBuffer       = 0x00001000,
     UniformBuffer       = 0x00002000,
+    Present             = 0x00004000,
+    IndirectBuffer      = 0x00008000,
 };
 IMPL_BITWISE_OPERATORS(ResourceAccessMask, uint32_t);
 

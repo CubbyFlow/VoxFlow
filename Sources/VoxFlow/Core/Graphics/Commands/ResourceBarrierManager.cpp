@@ -41,6 +41,11 @@ VkAccessFlags estimateAccessFlags(ResourceAccessMask accessMask)
             VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
     if (uint32_t(accessMask & ResourceAccessMask::UniformBuffer) > 0)
         finalAccessFlags |= VK_ACCESS_SHADER_READ_BIT;
+    if (uint32_t(accessMask & ResourceAccessMask::Present) > 0)
+        finalAccessFlags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    if (uint32_t(accessMask & ResourceAccessMask::IndirectBuffer) > 0)
+        finalAccessFlags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 
     return finalAccessFlags;
 }
@@ -65,6 +70,8 @@ VkImageLayout estimateImageLayout(ResourceAccessMask accessMask)
         imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     else if (uint32_t(accessMask & ResourceAccessMask::ShaderReadOnly) > 0)
         imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    else if (uint32_t(accessMask & ResourceAccessMask::Present) > 0)
+        imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     return imageLayout;
 }
@@ -78,7 +85,7 @@ void ResourceBarrierManager::addGlobalMemoryBarrier(
 
 void ResourceBarrierManager::addTextureMemoryBarrier(
     TextureView* textureView, ResourceAccessMask accessMask,
-    VkShaderStageFlags nextStageFlags)
+    VkPipelineStageFlags nextStageFlags)
 {
     Texture* texture = static_cast<Texture*>(textureView->getOwnerResource());
     // TODO(snowapril) : get dstQueueFamilyIndex from command buffer
@@ -108,13 +115,14 @@ void ResourceBarrierManager::addTextureMemoryBarrier(
                 .layerCount = textureViewInfo._layerCount },
     });
 
+    textureView->setLastusedShaderStageFlags(nextStageFlags);
     textureView->setLastAccessMask(accessMask);
     textureView->setCurrentVkImageLayout(nextImageLayout);
 }
 
 void ResourceBarrierManager::addBufferMemoryBarrier(
     BufferView* bufferView, ResourceAccessMask accessMask,
-    VkShaderStageFlags nextStageFlags)
+    VkPipelineStageFlags nextStageFlags)
 {
     Buffer* buffer = static_cast<Buffer*>(bufferView->getOwnerResource());
     // TODO(snowapril) : get dstQueueFamilyIndex from command buffer
@@ -136,12 +144,13 @@ void ResourceBarrierManager::addBufferMemoryBarrier(
         .size = bufferViewInfo._range,
     });
 
+    bufferView->setLastusedShaderStageFlags(nextStageFlags);
     bufferView->setLastAccessMask(accessMask);
 }
 
 void ResourceBarrierManager::addStagingBufferMemoryBarrier(
     StagingBufferView* stagingBufferView, ResourceAccessMask accessMask,
-    VkShaderStageFlags nextStageFlags)
+    VkPipelineStageFlags nextStageFlags)
 {
     StagingBuffer* stagingBuffer =
         static_cast<StagingBuffer*>(stagingBufferView->getOwnerResource());
@@ -166,11 +175,12 @@ void ResourceBarrierManager::addStagingBufferMemoryBarrier(
         .size = stagingBufferViewInfo._range,
     });
 
+    stagingBufferView->setLastusedShaderStageFlags(nextStageFlags);
     stagingBufferView->setLastAccessMask(accessMask);
 }
 
 void ResourceBarrierManager::addExecutionBarrier(
-    VkShaderStageFlags prevStageFlags, VkShaderStageFlags nextStageFlags)
+    VkPipelineStageFlags prevStageFlags, VkPipelineStageFlags nextStageFlags)
 {
     _executionBarrier._srcStageFlags = prevStageFlags;
     _executionBarrier._dstStageFlags = nextStageFlags;
