@@ -92,6 +92,9 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
     RenderTargetLayoutKey rtLayoutKey = {};
     RenderTargetsInfo rtInfo = {};
 
+    // TODO(snowapril) : if read color/depth/stencil before fragment output
+    // stages, need additional barrier access, stages
+
     for (uint32_t i = 0; i < numColorAttachments; ++i)
     {
         TextureView* textureView = attachmentGroup.getColor(i).getView();
@@ -99,6 +102,9 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         rtLayoutKey._colorFormats.emplace_back(viewInfo._format);
 
         rtInfo._colorRenderTarget.emplace_back(textureView);
+
+        addMemoryBarrier(textureView, ResourceAccessMask::ColorAttachment,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     }
 
     if (hasDepthStencil)
@@ -108,7 +114,13 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         rtLayoutKey._depthStencilFormat = viewInfo._format;
 
         rtInfo._depthStencilImage = textureView;
+
+        addMemoryBarrier(textureView, ResourceAccessMask::DepthAttachment,
+                         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                             VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
     }
+
+    _resourceBarrierManager.commitPendingBarriers(false);
 
     rtLayoutKey._renderPassFlags = passParams._attachmentFlags;
 
@@ -276,6 +288,98 @@ void CommandBuffer::bindResourceGroup(
     }
 }
 
+static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, ResourceAccessMask accessMask, VkShaderStageFlags usedStages)
+{
+    VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_NONE;
+
+    const ResourceViewType viewType = view->getResourceViewType();
+
+    if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
+    {
+        if ((uint32_t(accessMask & ResourceAccessMask::VertexBuffer) > 0) ||
+            (uint32_t(accessMask & ResourceAccessMask::IndexBuffer) > 0))
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+        }
+
+        if (viewType == ResourceViewType::BufferView)
+        {
+            if (uint32_t(accessMask & ResourceAccessMask::IndirectBuffer) > 0)
+            {
+                pipelineStageFlags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            }
+        }
+    }
+
+    if ((uint32_t(accessMask & ResourceAccessMask::ShaderReadOnly) > 0)     ||
+        (uint32_t(accessMask & ResourceAccessMask::General) > 0)            ||
+        (uint32_t(accessMask & ResourceAccessMask::StorageBuffer) > 0)      ||
+        (uint32_t(accessMask & ResourceAccessMask::UniformBuffer) > 0))
+    {
+        if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) > 0)
+        {
+            pipelineStageFlags |=
+                VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) >
+            0)
+        {
+            pipelineStageFlags |=
+                VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_GEOMETRY_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_FRAGMENT_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_COMPUTE_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        }
+    }
+
+    if ((uint32_t(accessMask & ResourceAccessMask::TransferSource) > 0) ||
+        uint32_t(accessMask & ResourceAccessMask::TransferDest) > 0)
+    {
+        pipelineStageFlags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+
+    if (viewType == ResourceViewType::ImageView)
+    {
+        if (uint32_t(accessMask & ResourceAccessMask::ColorAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::DepthAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::StencilAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::DepthReadOnly) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::StencilReadOnly) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        }
+    }
+
+    return pipelineStageFlags;
+}
+
 void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
@@ -340,8 +444,11 @@ void CommandBuffer::commitPendingResourceBindings()
 
             ResourceView* bindingResourceView = resourceBinding._view;
 
+            const VkPipelineStageFlags stageFlags = evaluatePipelineStageFlags(
+                bindingResourceView, resourceBinding._usage,
+                pipelineLayoutDesc._sets[setIndex]._stageFlags);
             addMemoryBarrier(bindingResourceView, resourceBinding._usage,
-                             pipelineLayoutDesc._sets[setIndex]._stageFlags);
+                             stageFlags);
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
