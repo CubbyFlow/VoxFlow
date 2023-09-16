@@ -15,7 +15,7 @@
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/StagingBuffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceTracker.hpp>
@@ -27,7 +27,9 @@ namespace VoxFlow
 {
 CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
                              VkCommandBuffer vkCommandBuffer)
-    : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer)
+    : _logicalDevice(logicalDevice),
+      _vkCommandBuffer(vkCommandBuffer),
+      _resourceBarrierManager(this)
 {
     // TODO(snowapril) : temporal sampler
     _sampler = new Sampler("TempSampler", logicalDevice);
@@ -90,6 +92,9 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
     RenderTargetLayoutKey rtLayoutKey = {};
     RenderTargetsInfo rtInfo = {};
 
+    // TODO(snowapril) : if read color/depth/stencil before fragment output
+    // stages, need additional barrier access, stages
+
     for (uint32_t i = 0; i < numColorAttachments; ++i)
     {
         TextureView* textureView = attachmentGroup.getColor(i).getView();
@@ -97,6 +102,9 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         rtLayoutKey._colorFormats.emplace_back(viewInfo._format);
 
         rtInfo._colorRenderTarget.emplace_back(textureView);
+
+        addMemoryBarrier(textureView, ResourceAccessMask::ColorAttachment,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     }
 
     if (hasDepthStencil)
@@ -106,7 +114,13 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         rtLayoutKey._depthStencilFormat = viewInfo._format;
 
         rtInfo._depthStencilImage = textureView;
+
+        addMemoryBarrier(textureView, ResourceAccessMask::DepthAttachment,
+                         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                             VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
     }
+
+    _resourceBarrierManager.commitPendingBarriers(false);
 
     rtLayoutKey._renderPassFlags = passParams._attachmentFlags;
 
@@ -154,12 +168,15 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
 
     vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
                          VK_SUBPASS_CONTENTS_INLINE);
+
+    _isInRenderPassScope = true;
 }
 
 void CommandBuffer::endRenderPass()
 {
     vkCmdEndRenderPass(_vkCommandBuffer);
     _boundRenderPass = nullptr;
+    _isInRenderPassScope = false;
 }
 
 void CommandBuffer::bindVertexBuffer(Buffer* vertexBuffer)
@@ -271,11 +288,107 @@ void CommandBuffer::bindResourceGroup(
     }
 }
 
+static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, ResourceAccessMask accessMask, VkShaderStageFlags usedStages)
+{
+    VkPipelineStageFlags pipelineStageFlags = VK_PIPELINE_STAGE_NONE;
+
+    const ResourceViewType viewType = view->getResourceViewType();
+
+    if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
+    {
+        if ((uint32_t(accessMask & ResourceAccessMask::VertexBuffer) > 0) ||
+            (uint32_t(accessMask & ResourceAccessMask::IndexBuffer) > 0))
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+        }
+
+        if (viewType == ResourceViewType::BufferView)
+        {
+            if (uint32_t(accessMask & ResourceAccessMask::IndirectBuffer) > 0)
+            {
+                pipelineStageFlags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+            }
+        }
+    }
+
+    if ((uint32_t(accessMask & ResourceAccessMask::ShaderReadOnly) > 0)     ||
+        (uint32_t(accessMask & ResourceAccessMask::General) > 0)            ||
+        (uint32_t(accessMask & ResourceAccessMask::StorageBuffer) > 0)      ||
+        (uint32_t(accessMask & ResourceAccessMask::UniformBuffer) > 0))
+    {
+        if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) > 0)
+        {
+            pipelineStageFlags |=
+                VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) >
+            0)
+        {
+            pipelineStageFlags |=
+                VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_GEOMETRY_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_FRAGMENT_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        if (uint32_t(usedStages & VK_SHADER_STAGE_COMPUTE_BIT) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        }
+    }
+
+    if ((uint32_t(accessMask & ResourceAccessMask::TransferSource) > 0) ||
+        uint32_t(accessMask & ResourceAccessMask::TransferDest) > 0)
+    {
+        pipelineStageFlags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+    }
+
+    if (viewType == ResourceViewType::ImageView)
+    {
+        if (uint32_t(accessMask & ResourceAccessMask::ColorAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::DepthAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::StencilAttachment) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::DepthReadOnly) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        }
+        if (uint32_t(accessMask & ResourceAccessMask::StencilReadOnly) > 0)
+        {
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        }
+    }
+
+    return pipelineStageFlags;
+}
+
 void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
-    PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
-    const auto& shaderVariablesMap = pipelineLayout->getPipelineLayoutDescriptor()._shaderVariablesMap;
+    const PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
+    
+    const PipelineLayout::ShaderVariableMap& shaderVariableMap =
+        pipelineLayout->getShaderVariableMap();
+    const PipelineLayoutDescriptor& pipelineLayoutDesc =
+        pipelineLayout->getPipelineLayoutDescriptor();
 
     for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
@@ -313,11 +426,12 @@ void CommandBuffer::commitPendingResourceBindings()
 
         for (const ShaderVariableBinding& resourceBinding : bindGroup)
         {
-            const std::string_view& resourceBindingName =
+            const std::string& resourceBindingName =
                 resourceBinding._variableName;
 
-            auto shaderVariableIter = shaderVariablesMap.find(resourceBindingName);
-            if (shaderVariableIter == shaderVariablesMap.end())
+            auto shaderVariableIter =
+                shaderVariableMap.find(resourceBindingName);
+            if (shaderVariableIter == shaderVariableMap.end())
             {
                 VOX_ASSERT(false,
                            "Given shader variable name ({}) does not exist in "
@@ -326,17 +440,23 @@ void CommandBuffer::commitPendingResourceBindings()
                 continue;
             }
 
-            const ShaderVariable& shaderVariable = shaderVariableIter->second;
+            const DescriptorInfo& descriptorInfo = shaderVariableIter->second;
 
-            BindableResourceView* bindingResourceView = resourceBinding._view;
+            ResourceView* bindingResourceView = resourceBinding._view;
+
+            const VkPipelineStageFlags stageFlags = evaluatePipelineStageFlags(
+                bindingResourceView, resourceBinding._usage,
+                pipelineLayoutDesc._sets[setIndex]._stageFlags);
+            addMemoryBarrier(bindingResourceView, resourceBinding._usage,
+                             stageFlags);
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
 
-            uint32_t binding = shaderVariable._info._binding;
-            uint32_t arraySize = shaderVariable._info._arraySize;
+            uint32_t binding = descriptorInfo._binding;
+            uint32_t arraySize = descriptorInfo._arraySize;
             VkDescriptorType vkDescriptorType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-            switch (shaderVariable._info._descriptorCategory)
+            switch (descriptorInfo._descriptorCategory)
             {
                 case DescriptorCategory::CombinedImage:
                     vkDescriptorType =
@@ -367,10 +487,12 @@ void CommandBuffer::commitPendingResourceBindings()
                         static_cast<TextureView*>(bindingResourceView)
                             ->getDescriptorImageInfo();
 
-                    // TODO(snowapril) : set image layout
-                    // sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    sTmpImageInfos[currentDescriptorInfoIndex].imageLayout =
+                        static_cast<TextureView*>(bindingResourceView)
+                            ->getCurrentVkImageLayout();
 
-                    if (shaderVariable._info._descriptorCategory == DescriptorCategory::CombinedImage)
+                    if (descriptorInfo._descriptorCategory ==
+                        DescriptorCategory::CombinedImage)
                     {
                         sTmpImageInfos[currentDescriptorInfoIndex].sampler =
                             _sampler->get();
@@ -378,11 +500,14 @@ void CommandBuffer::commitPendingResourceBindings()
 
                     imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
+                case ResourceViewType::StagingBufferView:
+                default:
+                    VOX_ASSERT(false,
+                               "Unhandled resource view type");
+                    break;
             }
 
-            // TODO(snowapril) : get below information from descriptor set
-            // layout desc
-            VkWriteDescriptorSet vkWrite = {
+            vkWrites.push_back(VkWriteDescriptorSet{
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .pNext = nullptr,
                 .dstSet = pooledDescriptorSet,
@@ -392,11 +517,13 @@ void CommandBuffer::commitPendingResourceBindings()
                 .descriptorType = vkDescriptorType,
                 .pImageInfo = imageInfo,
                 .pBufferInfo = bufferInfo,
-                .pTexelBufferView = nullptr
-            };
-
-            vkWrites.push_back(vkWrite);
+                .pTexelBufferView = nullptr });
         }
+
+        // Note(snowapril) : As vulkan validation layer require that resource
+        // views have already desired layout before vkUpdateDescriptorSets(not
+        // before issuing draw/dispatch), commit barrier first.
+        _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
         vkUpdateDescriptorSets(_logicalDevice->get(),
                                static_cast<uint32_t>(vkWrites.size()),
@@ -421,6 +548,14 @@ void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
 
     VkBuffer srcVkBuffer = srcBuffer->get();
     VkBuffer dstVkBuffer = dstBuffer->get();
+
+    addMemoryBarrier(dstBuffer->getDefaultView(),
+                     ResourceAccessMask::TransferDest,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+    addMemoryBarrier(srcBuffer->getDefaultView(),
+                     ResourceAccessMask::TransferSource,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+    _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
     vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
 }
@@ -455,11 +590,42 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
                      vertexOffset, firstInstance);
 }
 
-void CommandBuffer::makeResourceLayout(BindableResourceView* resourceView,
-                                       const DescriptorInfo& descInfo)
+void CommandBuffer::addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
+                                           ResourceAccessMask nextAccessMasks)
 {
-    (void)resourceView;
-    (void)descInfo;
+    _resourceBarrierManager.addGlobalMemoryBarrier(prevAccessMasks,
+                                                   nextAccessMasks);
+}
+
+void CommandBuffer::addMemoryBarrier(ResourceView* view,
+                                     ResourceAccessMask accessMask,
+                                     VkPipelineStageFlags nextStageFlags)
+{
+    const ResourceViewType viewType = view->getResourceViewType();
+    switch (viewType)
+    {
+        case ResourceViewType::BufferView:
+            _resourceBarrierManager.addBufferMemoryBarrier(
+                static_cast<BufferView*>(view), accessMask, nextStageFlags);
+            break;
+        case ResourceViewType::ImageView:
+            _resourceBarrierManager.addTextureMemoryBarrier(
+                static_cast<TextureView*>(view), accessMask, nextStageFlags);
+            break;
+        case ResourceViewType::StagingBufferView:
+            _resourceBarrierManager.addStagingBufferMemoryBarrier(
+                static_cast<StagingBufferView*>(view), accessMask,
+                nextStageFlags);
+            break;
+        default:
+            break;
+    }
+}
+
+void CommandBuffer::addExecutionBarrier(VkPipelineStageFlags prevStageFlags,
+                                        VkPipelineStageFlags nextStageFlags)
+{
+    _resourceBarrierManager.addExecutionBarrier(prevStageFlags, nextStageFlags);
 }
 
 }  // namespace VoxFlow

@@ -20,6 +20,8 @@ struct ShaderReflectionDataGroup;
 class PipelineLayout : NonCopyable
 {
  public:
+    using ShaderVariableMap = std::unordered_map<std::string, DescriptorInfo>;
+
     explicit PipelineLayout(LogicalDevice* logicalDevice);
     ~PipelineLayout() override;
     PipelineLayout(PipelineLayout&& other) noexcept;
@@ -43,11 +45,22 @@ class PipelineLayout : NonCopyable
     {
         return _setAllocators[static_cast<uint32_t>(category)].get();
     }
-  
+
     /**
-     * @return pipeline layout descriptor combined with all shader modules inserted
+     * @return shader variables used from this pipeline layout
      */
-    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor() const
+    [[nodiscard]] const ShaderVariableMap& getShaderVariableMap()
+        const
+    {
+        return _shaderVariableMap;
+    }
+
+    /**
+     * @return pipeline layout descriptor combined with all shader modules
+     * inserted
+     */
+    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor()
+        const
     {
         return _combinedPipelineLayoutDesc;
     }
@@ -61,7 +74,7 @@ class PipelineLayout : NonCopyable
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(std::vector<const ShaderReflectionDataGroup*>&&
+    bool initialize(const std::vector<const ShaderReflectionDataGroup*>&
                         combinedReflectionDataGroups);
 
  protected:
@@ -75,6 +88,7 @@ class PipelineLayout : NonCopyable
     VkPipelineLayout _vkPipelineLayout{ VK_NULL_HANDLE };
     std::array<std::shared_ptr<DescriptorSetAllocator>, MAX_NUM_SET_SLOTS> _setAllocators;
     PipelineLayoutDescriptor _combinedPipelineLayoutDesc;
+    ShaderVariableMap _shaderVariableMap;
 };
 }  // namespace VoxFlow
 

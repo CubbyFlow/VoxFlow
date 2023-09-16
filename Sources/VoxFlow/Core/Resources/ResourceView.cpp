@@ -1,10 +1,10 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 
 namespace VoxFlow
 {
-BindableResourceView::BindableResourceView(std::string&& debugName,
+ResourceView::ResourceView(std::string&& debugName,
                                            LogicalDevice* logicalDevice,
                                            RenderResource* ownerResource)
     : _debugName(debugName),
@@ -13,7 +13,7 @@ BindableResourceView::BindableResourceView(std::string&& debugName,
 {
 }
 
-BindableResourceView::~BindableResourceView()
+ResourceView::~ResourceView()
 {
 }
 }  // namespace VoxFlow

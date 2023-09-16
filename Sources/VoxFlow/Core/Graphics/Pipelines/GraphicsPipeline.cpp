@@ -39,10 +39,46 @@ GraphicsPipeline& GraphicsPipeline::operator=(GraphicsPipeline&& other) noexcept
 
 bool GraphicsPipeline::initialize(RenderPass* renderPass)
 {
-    if (initializePipelineLayout() == false)
+    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
+
+    std::vector<const ShaderReflectionDataGroup*> combinedReflectionDataGroups;
+
+    const size_t numShaderModules = _shaderModules.size();
+    combinedReflectionDataGroups.reserve(numShaderModules);
+
+    for (size_t i = 0; i < numShaderModules; ++i)
+    {
+        combinedReflectionDataGroups.push_back(
+            _shaderModules[i]->getShaderReflectionDataGroup());
+    }
+
+    if (_pipelineLayout->initialize(combinedReflectionDataGroups) == false)
     {
         VOX_ASSERT(false, "Failed to create pipeline layout");
         return false;
+    }
+
+    std::vector<VertexInputLayout> vertexInputLayouts;
+    std::vector<FragmentOutputLayout> fragmentOutputLayouts;
+
+    for (const ShaderReflectionDataGroup* reflectionDataGroup :
+         combinedReflectionDataGroups)
+    {
+        if (vertexInputLayouts.empty() &&
+            (reflectionDataGroup->_vertexInputLayouts.empty() == false))
+        {
+            std::move(reflectionDataGroup->_vertexInputLayouts.begin(),
+                      reflectionDataGroup->_vertexInputLayouts.end(),
+                      std::back_inserter(vertexInputLayouts));
+        }
+
+        if (fragmentOutputLayouts.empty() &&
+            (reflectionDataGroup->_fragmentOutputLayouts.empty() == false))
+        {
+            std::move(reflectionDataGroup->_fragmentOutputLayouts.begin(),
+                      reflectionDataGroup->_fragmentOutputLayouts.end(),
+                      std::back_inserter(fragmentOutputLayouts));
+        }
     }
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
@@ -70,13 +106,11 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     vertexInputInfo.pNext = nullptr;
 
     // TODO(snowapril) : support instancing with given input layout
-    const PipelineLayoutDescriptor& pipelineLayoutDesc =
-        _pipelineLayout->getPipelineLayoutDescriptor();
-    const bool hasStageInputs = pipelineLayoutDesc._stageInputs.size() > 0;
+    const bool hasStageInputs = vertexInputLayouts.size() > 0;
     if (hasStageInputs)
     {
         uint32_t offset = 0;
-        for (const auto& inputLayout : pipelineLayoutDesc._stageInputs)
+        for (const auto& inputLayout : vertexInputLayouts)
         {
             bindingDescriptions.push_back(
                 { .binding = 0,

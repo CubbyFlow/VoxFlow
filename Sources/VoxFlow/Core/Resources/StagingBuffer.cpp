@@ -64,6 +64,18 @@ bool StagingBuffer::makeAllocationResident(const uint32_t size)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
 
+    std::optional<uint32_t> defaultViewIndex = createStagingBufferView(
+        BufferViewInfo{ ._offset = 0, ._range = _size });
+
+    VOX_ASSERT(
+        defaultViewIndex.has_value(),
+        "Failed to create default staging buffer view for staging buffer({})",
+        _debugName);
+    if (defaultViewIndex.has_value())
+    {
+        _defaultView = getView(defaultViewIndex.value()).get();
+    }
+
     return true;
 }
 
@@ -93,6 +105,23 @@ void StagingBuffer::release()
     }
 }
 
+std::optional<uint32_t> StagingBuffer::createStagingBufferView(const BufferViewInfo& viewInfo)
+{
+    const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
+    std::shared_ptr<StagingBufferView> stagingBufferView =
+        std::make_shared<StagingBufferView>(
+            fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
+            this);
+
+    if (stagingBufferView->initialize(viewInfo) == false)
+    {
+        return {};
+    }
+
+    _ownedBufferViews.push_back(std::move(stagingBufferView));
+    return viewIndex;
+}
+
 uint8_t* StagingBuffer::map()
 {
     if (_permanentMappedAddress == nullptr)
@@ -110,4 +139,39 @@ void StagingBuffer::unmap()
 {
     // TODO(snowapril) : consider unmap or not
 }
+
+StagingBufferView::StagingBufferView(std::string&& debugName, LogicalDevice* logicalDevice,
+                       RenderResource* ownerResource)
+    : ResourceView(std::move(debugName), logicalDevice, ownerResource)
+{
+}
+
+StagingBufferView::~StagingBufferView()
+{
+    release();
+}
+
+bool StagingBufferView::initialize(const BufferViewInfo& viewInfo)
+{
+    _bufferViewInfo = viewInfo;
+    return true;
+}
+
+void StagingBufferView::release()
+{
+    // No need to release buffer view as it is just pointing to subregion of the
+    // owner buffer.
+}
+
+VkDescriptorBufferInfo StagingBufferView::getDescriptorBufferInfo() const
+{
+    VkBuffer vkBuffer = static_cast<StagingBuffer*>(_ownerResource)->get();
+
+    return VkDescriptorBufferInfo{
+        .buffer = vkBuffer,
+        .offset = _bufferViewInfo._offset,
+        .range = _bufferViewInfo._range,
+    };
+}
+
 }  // namespace VoxFlow

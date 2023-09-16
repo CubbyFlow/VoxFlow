@@ -6,7 +6,7 @@
 #include <vma/include/vk_mem_alloc.h>
 #include <volk/volk.h>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
-#include <VoxFlow/Core/Resources/BindableResourceView.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
@@ -18,6 +18,13 @@ namespace VoxFlow
 class LogicalDevice;
 class RenderResourceMemoryPool;
 class TextureView;
+
+extern bool hasDepthAspect(VkFormat vkFormat);
+extern bool hasStencilAspect(VkFormat vkFormat);
+extern VkImageAspectFlags convertToImageAspectFlags(VkFormat vkFormat);
+extern VkImageType convertToImageType(glm::uvec3 imageType);
+extern VkImageViewType convertToImageViewType(VkImageType vkImageType,
+                                              glm::uvec3 extent);
 
 class Texture final : public RenderResource
 {
@@ -51,6 +58,12 @@ class Texture final : public RenderResource
         return RenderResourceType::Texture;
     }
 
+    // Get default created view that is pointing whole texture
+    [[nodiscard]] inline TextureView* getDefaultView() const
+    {
+        return _defaultView;
+    }
+
     // Make the image allocation resident if evicted
     bool makeAllocationResident(const TextureInfo& textureInfo);
 
@@ -71,9 +84,10 @@ class Texture final : public RenderResource
     TextureInfo _textureInfo;
     bool _isSwapChainBackBuffer = false;
     std::vector<std::shared_ptr<TextureView>> _ownedTextureViews;
+    TextureView* _defaultView = nullptr;
 };
 
-class TextureView : public BindableResourceView
+class TextureView : public ResourceView
 {
  public:
     explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
@@ -105,11 +119,23 @@ class TextureView : public BindableResourceView
         return ResourceViewType::ImageView;
     }
 
+    inline void setCurrentVkImageLayout(VkImageLayout vkImageLayout)
+
+    {
+        _currentImageLayout = vkImageLayout;
+    }
+
+    [[nodiscard]] inline VkImageLayout getCurrentVkImageLayout() const
+    {
+        return _currentImageLayout;
+    }
+
  protected:
  private:
     VkImageView _vkImageView = VK_NULL_HANDLE;
     TextureInfo _ownerTextureInfo;
     TextureViewInfo _textureViewInfo;
+    VkImageLayout _currentImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
 }  // namespace VoxFlow
 

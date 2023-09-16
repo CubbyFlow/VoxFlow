@@ -54,7 +54,7 @@ enum class BufferUsage : uint32_t
 };
 IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);
 
-enum class ResourceLayout : uint32_t 
+enum class ResourceAccessMask : uint32_t 
 {
     Undefined           = 0x00000001,
     TransferSource      = 0x00000002,
@@ -70,8 +70,10 @@ enum class ResourceLayout : uint32_t
     General             = 0x00000800,
     StorageBuffer       = 0x00001000,
     UniformBuffer       = 0x00002000,
+    Present             = 0x00004000,
+    IndirectBuffer      = 0x00008000,
 };
-IMPL_BITWISE_OPERATORS(ResourceLayout, uint32_t);
+IMPL_BITWISE_OPERATORS(ResourceAccessMask, uint32_t);
 
 struct BufferInfo
 {
@@ -81,7 +83,6 @@ struct BufferInfo
 
 struct BufferViewInfo
 {
-    VkFormat _format = VK_FORMAT_UNDEFINED;
     uint64_t _offset = 0;
     uint64_t _range = 0;
 };

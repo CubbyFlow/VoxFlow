@@ -4,18 +4,18 @@
 #define VOXEL_FLOW_RESOURCE_BINDING_LAYOUT_HPP
 
 #include <volk/volk.h>
-#include <string_view>
+#include <string>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 
 namespace VoxFlow
 {
-class BindableResourceView;
+class ResourceView;
 
 struct ShaderVariableBinding
 {
-    std::string_view _variableName;
-    BindableResourceView* _view = nullptr;
-    ResourceLayout _usage = ResourceLayout::Undefined;
+    std::string _variableName;
+    ResourceView* _view = nullptr;
+    ResourceAccessMask _usage = ResourceAccessMask::Undefined;
 };
 
 }  // namespace VoxFlow

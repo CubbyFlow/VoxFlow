@@ -58,12 +58,6 @@ class BasePipeline : NonCopyable
 
  protected:
     /**
-     * Initialize pipeline layout with combined shader layout bindings.
-     * @return whether pipeline layout initialization success or not
-     */
-    bool initializePipelineLayout();
-
-    /**
      * release shader modules and pipeline layout which is used to create
      * pipeline and also release vulkan pipeline object
      */

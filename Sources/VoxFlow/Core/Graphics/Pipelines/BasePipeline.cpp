@@ -45,24 +45,6 @@ BasePipeline& BasePipeline::operator=(BasePipeline&& other) noexcept
     return *this;
 }
 
-bool BasePipeline::initializePipelineLayout()
-{
-    _pipelineLayout = std::make_unique<PipelineLayout>(_logicalDevice);
-
-    std::vector<const ShaderReflectionDataGroup*> combinedReflectionDataGroups;
-
-    const size_t numShaderModules = _shaderModules.size();
-    combinedReflectionDataGroups.reserve(numShaderModules);
-
-    for (size_t i = 0; i < numShaderModules; ++i)
-    {
-        combinedReflectionDataGroups.push_back(
-            _shaderModules[i]->getShaderReflectionDataGroup());
-    }
-
-    return _pipelineLayout->initialize(std::move(combinedReflectionDataGroups));
-}
-
 void BasePipeline::release()
 {
     _shaderModules.clear();

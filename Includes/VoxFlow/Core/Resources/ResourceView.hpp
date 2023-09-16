@@ -18,27 +18,53 @@ enum class ResourceViewType : uint8_t
 {
     BufferView = 0,
     ImageView = 1,
+    StagingBufferView = 2,
+    Undefined = 3,
+    Count = Undefined
 };
 
-class BindableResourceView : private NonCopyable
+class ResourceView : private NonCopyable
 {
  public:
-    explicit BindableResourceView(
+    explicit ResourceView(
         std::string&& debugName, LogicalDevice* logicalDevice,
                                   RenderResource* ownerResource);
-    virtual ~BindableResourceView();
+    virtual ~ResourceView();
 
     virtual ResourceViewType getResourceViewType() const = 0;
 
-    [[nodiscard]] inline RenderResource* getOwnerResource()
+    [[nodiscard]] inline RenderResource* getOwnerResource() const
     {
         return _ownerResource;
+    }
+
+    inline void setLastAccessMask(ResourceAccessMask accessMask)
+    {
+        _lastAccessMask = accessMask;
+    }
+
+    inline void setLastusedShaderStageFlags(
+        VkPipelineStageFlags stageFlags)
+
+    {
+        _lastUsedStageFlags = stageFlags;
+    }
+
+    [[nodiscard]] inline ResourceAccessMask getLastAccessMask() const
+    {
+        return _lastAccessMask;
+    }
+
+    [[nodiscard]] inline VkPipelineStageFlags getLastusedShaderStageFlags() const
+    {
+        return _lastUsedStageFlags;
     }
 
  protected:
     std::string _debugName;
     LogicalDevice* _logicalDevice = nullptr;
-    ResourceLayout _lastLayout = ResourceLayout::Undefined;
+    ResourceAccessMask _lastAccessMask = ResourceAccessMask::Undefined;
+    VkPipelineStageFlags _lastUsedStageFlags = VK_PIPELINE_STAGE_NONE;
     std::vector<FenceObject> _accessedFences;
     RenderResource* _ownerResource = nullptr;
 };

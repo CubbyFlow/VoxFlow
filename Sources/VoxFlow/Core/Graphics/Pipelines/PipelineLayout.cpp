@@ -37,13 +37,17 @@ PipelineLayout& PipelineLayout::operator=(PipelineLayout&& other) noexcept
         _setAllocators.swap(other._setAllocators);
         _combinedPipelineLayoutDesc =
             std::move(other._combinedPipelineLayoutDesc);
+        _shaderVariableMap =
+            std::move(other._shaderVariableMap);
     }
     return *this;
 }
 
 static void organizeCombinedDescSetLayouts(
-    std::vector<const ShaderReflectionDataGroup*>&& combinedReflectionGroups,
-    PipelineLayoutDescriptor* combinedPipelineLayoutDesc)
+    const std::vector<const ShaderReflectionDataGroup*>&
+        combinedReflectionGroups,
+    PipelineLayoutDescriptor* combinedPipelineLayoutDesc,
+    PipelineLayout::ShaderVariableMap* combinedShaderVariables)
 {
     // TODO(snowapril) : As each descriptor set layout desc might have same
     // bindings, collision handling must be needed.
@@ -54,27 +58,25 @@ static void organizeCombinedDescSetLayouts(
     {
         for (uint32_t set = 0; set < MAX_NUM_SET_SLOTS; ++set)
         {
-            for (const auto& [name, shaderVariable] :
+            for (const auto& [descriptor, variableName] :
                  reflectionDataGroup->_descriptors)
             {
-                if (set ==
-                    static_cast<uint32_t>(shaderVariable._info._setCategory))
+                if (set == static_cast<uint32_t>(descriptor._setCategory))
                 {
                     const uint32_t key =
-                        (static_cast<uint32_t>(
-                             shaderVariable._info._descriptorCategory)
+                        (static_cast<uint32_t>(descriptor._descriptorCategory)
                          << 24) |
-                        shaderVariable._info._binding;
+                        descriptor._binding;
+
                     if (collisionCheckSet.find(key) == collisionCheckSet.end())
                     {
                         collisionCheckSet.emplace(key);
 
                         combinedPipelineLayoutDesc->_sets[set]
-                            ._descriptorInfos.emplace_back(
-                                shaderVariable._info);
+                            ._descriptorInfos.emplace_back(descriptor);
 
-                        combinedPipelineLayoutDesc->_shaderVariablesMap.emplace(
-                            name, shaderVariable);
+                        combinedShaderVariables->emplace(variableName,
+                                                         descriptor);
                     }
                     else
                     {
@@ -85,33 +87,17 @@ static void organizeCombinedDescSetLayouts(
 
             combinedPipelineLayoutDesc->_sets[set]._stageFlags |=
                 reflectionDataGroup->_stageFlagBit;
-
-            if (combinedPipelineLayoutDesc->_stageInputs.empty() &&
-                (reflectionDataGroup->_vertexInputLayouts.empty() == false))
-            {
-                std::move(reflectionDataGroup->_vertexInputLayouts.begin(),
-                          reflectionDataGroup->_vertexInputLayouts.end(),
-                          std::back_inserter(
-                              combinedPipelineLayoutDesc->_stageInputs));
-            }
-
-            if (combinedPipelineLayoutDesc->_stageOutputs.empty() &&
-                (reflectionDataGroup->_fragmentOutputLayouts.empty() == false))
-            {
-                std::move(reflectionDataGroup->_fragmentOutputLayouts.begin(),
-                          reflectionDataGroup->_fragmentOutputLayouts.end(),
-                          std::back_inserter(
-                              combinedPipelineLayoutDesc->_stageOutputs));
-            }
         }
     }
 }
 
-bool PipelineLayout::initialize(std::vector<const ShaderReflectionDataGroup*>&&
-                                    combinedReflectionDataGroups)
+bool PipelineLayout::initialize(
+    const std::vector<const ShaderReflectionDataGroup*>&
+        combinedReflectionDataGroups)
 {
-    organizeCombinedDescSetLayouts(std::move(combinedReflectionDataGroups),
-                                   &_combinedPipelineLayoutDesc);
+    organizeCombinedDescSetLayouts(combinedReflectionDataGroups,
+                                   &_combinedPipelineLayoutDesc,
+                                   &_shaderVariableMap);
 
     DescriptorSetAllocatorPool* descriptorSetAllocatorPool =
         _logicalDevice->getDescriptorSetAllocatorPool();

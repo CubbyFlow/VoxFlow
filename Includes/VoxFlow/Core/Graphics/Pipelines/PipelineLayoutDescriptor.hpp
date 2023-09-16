@@ -28,18 +28,9 @@ struct FragmentOutputLayout
     VkFormat _format = VK_FORMAT_UNDEFINED;
 };
 
-struct PipelineLayoutDescriptor
-{
-    std::unordered_map<std::string_view, ShaderVariable> _shaderVariablesMap;
-    std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _sets{};
-    std::vector<VertexInputLayout> _stageInputs;
-    std::vector<FragmentOutputLayout> _stageOutputs;
-    uint32_t _pushConstantSize = 0;
-};
-
 struct ShaderReflectionDataGroup
 {
-    std::unordered_map<std::string, ShaderVariable> _descriptors;
+    std::unordered_map<DescriptorInfo, std::string> _descriptors;
     std::vector<VertexInputLayout> _vertexInputLayouts;
     std::vector<FragmentOutputLayout> _fragmentOutputLayouts;
     uint32_t _pushConstantSize = 0;
@@ -52,6 +43,13 @@ struct ShaderReflectionDataGroup
     ShaderReflectionDataGroup& operator=(const ShaderReflectionDataGroup& rhs);
     ShaderReflectionDataGroup& operator=(ShaderReflectionDataGroup&& rhs);
 };
+
+struct PipelineLayoutDescriptor
+{
+    std::array<DescriptorSetLayoutDesc, MAX_NUM_SET_SLOTS> _sets{};
+    uint32_t _pushConstantSize = 0;
+};
+
 }  // namespace VoxFlow
 
 template <>

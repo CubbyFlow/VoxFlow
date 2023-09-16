@@ -136,6 +136,8 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
         .pPreserveAttachments = nullptr
     };
 
+    // TODO(snowapril) : support multi-pass architecture. for now, use only
+    // single pass and self-dependency
     std::vector<VkSubpassDependency> dependencies = {
         /* VkSubpassDependency */ {
             .srcSubpass = VK_SUBPASS_EXTERNAL,
@@ -145,10 +147,10 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
             .srcAccessMask = 0,
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
                              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-            .dependencyFlags = 0 }
+            .dependencyFlags = 0 },
     };
 
-    [[maybe_unused]] const VkRenderPassCreateInfo renderPassInfo = {
+    const VkRenderPassCreateInfo renderPassInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -160,8 +162,10 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
         .pDependencies = dependencies.data()
     };
 
-    VK_ASSERT(vkCreateRenderPass(_logicalDevice->get(), &renderPassInfo,
-                                 nullptr, &_renderPass));
+    [[maybe_unused]] VkResult result = vkCreateRenderPass(
+        _logicalDevice->get(), &renderPassInfo, nullptr, &_renderPass);
+
+    VK_ASSERT(result);
 
     if (_renderPass == VK_NULL_HANDLE)
     {

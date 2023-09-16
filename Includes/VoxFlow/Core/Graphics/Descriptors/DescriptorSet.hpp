@@ -64,12 +64,6 @@ struct DescriptorSetLayoutDesc
     }
 };
 
-struct ShaderVariable
-{
-    std::string_view _variableName;
-    DescriptorInfo _info;
-};
-
 }  // namespace VoxFlow
 
 template <>
