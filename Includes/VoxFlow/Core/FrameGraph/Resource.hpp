@@ -68,9 +68,11 @@ class Resource : public VirtualResource
 {
  public:
     explicit Resource(std::string&& name,
-                      typename ResourceDataType::Descriptor&& resourceArgs);
+                      typename ResourceDataType::Descriptor&& resourceArgs,
+                      typename ResourceDataType::Usage usage);
     explicit Resource(std::string&& name,
                       typename ResourceDataType::Descriptor&& resourceArgs,
+                      typename ResourceDataType::Usage usage,
                       const ResourceDataType& resource);
     ~Resource();
 
@@ -100,6 +102,18 @@ class Resource : public VirtualResource
         _resource.destroy(allocator);
     }
 
+ public:
+    class ResourceEdge : public DependencyGraph::Edge
+    {
+     public:
+        explicit ResourceEdge(DependencyGraph* ownerGraph, Node* from, Node* to,
+                              typename ResourceDataType::Usage usage);
+
+     private:
+        friend class Resource;
+        typename ResourceDataType::Usage _usage;
+    };
+
  protected:
     typename ResourceDataType::Descriptor _descriptor;
     ResourceDataType _resource;
@@ -113,6 +127,7 @@ class ImportedResource : public Resource<ResourceDataType>
  public:
     ImportedResource(std::string&& name,
                      typename ResourceDataType::Descriptor&& resourceArgs,
+                     typename ResourceDataType::Usage usage,
                      const ResourceDataType& resource);
     ~ImportedResource();
 
@@ -132,6 +147,7 @@ class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
  public:
     ImportedRenderTarget(std::string&& name,
                          FrameGraphTexture::Descriptor&& resourceArgs,
+                         FrameGraphTexture::Usage usage,
                          const FrameGraphTexture& resource,
                          TextureView* textureView);
     ~ImportedRenderTarget();

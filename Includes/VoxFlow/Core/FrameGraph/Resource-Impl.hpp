@@ -12,8 +12,11 @@ namespace RenderGraph
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
     std::string&& debugName,
-    typename ResourceDataType::Descriptor&& resourceArgs)
-    : VirtualResource(std::move(debugName)), _descriptor(resourceArgs)
+    typename ResourceDataType::Descriptor&& resourceArgs,
+    typename ResourceDataType::Usage usage)
+    : VirtualResource(std::move(debugName)),
+      _descriptor(resourceArgs),
+      _usage(usage)
 {
 }
 
@@ -21,9 +24,10 @@ template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
     std::string&& debugName,
     typename ResourceDataType::Descriptor&& resourceArgs,
-    const ResourceDataType& resource)
+    typename ResourceDataType::Usage usage, const ResourceDataType& resource)
     : VirtualResource(std::move(debugName)),
       _descriptor(resourceArgs),
+      _usage(usage),
       _resource(resource)
 {
 }
@@ -37,9 +41,9 @@ template <ResourceConcept ResourceDataType>
 ImportedResource<ResourceDataType>::ImportedResource(
     std::string&& debugName,
     typename ResourceDataType::Descriptor&& resourceArgs,
-    const ResourceDataType& resource)
+    typename ResourceDataType::Usage usage, const ResourceDataType& resource)
     : Resource<ResourceDataType>(std::move(debugName), std::move(resourceArgs),
-                                 resource)
+                                 usage, resource)
 {
 }
 
