@@ -24,6 +24,34 @@ ResourceHandle FrameGraphBuilder::allocate(
                                                  std::move(initArgs));
 }
 
+template <ResourceConcept ResourceDataType>
+ResourceHandle FrameGraphBuilder::read(ResourceHandle id,
+                                       typename ResourceDataType::Usage usage)
+{
+    return _frameGraph->readInternal(
+        id, _currentPassNode,
+        [this, usage](ResourceNode* node, VirtualResource* vResource) {
+            Resource<ResourceDataType>* resource =
+                static_cast<Resource<ResourceDataType>*>(vResource);
+            return resource->connect(_frameGraph->getDependencyGraph(), node,
+                                     _currentPassNode, usage);
+        });
+}
+
+template <ResourceConcept ResourceDataType>
+ResourceHandle FrameGraphBuilder::write(ResourceHandle id,
+                                        typename ResourceDataType::Usage usage)
+{
+    return _frameGraph->writeInternal(
+        id, _currentPassNode,
+        [this, usage](ResourceNode* node, VirtualResource* vResource) {
+            Resource<ResourceDataType>* resource =
+                static_cast<Resource<ResourceDataType>*>(vResource);
+            return resource->connect(_frameGraph->getDependencyGraph(),
+                                     _currentPassNode, node, usage);
+        });
+}
+
 template <typename PassDataType, typename SetupPhase, typename ExecutePhase>
 const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
                                                 SetupPhase&& setup,

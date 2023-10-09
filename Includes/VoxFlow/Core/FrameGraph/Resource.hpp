@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
 #include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
@@ -18,6 +19,21 @@ class Texture;
 namespace RenderGraph
 {
 class PassNode;
+
+class ResourceNode : public DependencyGraph::Node
+{
+ public:
+    explicit ResourceNode(DependencyGraph* dependencyGraph,
+                          ResourceHandle resourceHandle);
+
+    inline ResourceHandle getResourceHandle() const
+    {
+        return _resourceHandle;
+    }
+
+ private:
+    ResourceHandle _resourceHandle;
+};
 
 class VirtualResource : private NonCopyable
 {
@@ -68,13 +84,18 @@ class Resource : public VirtualResource
 {
  public:
     explicit Resource(std::string&& name,
+                      typename ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(std::string&& name,
+                      typename ResourceDataType::Descriptor&& resourceArgs,
+                      const ResourceDataType& resource);
+    explicit Resource(std::string&& name,
                       typename ResourceDataType::Descriptor&& resourceArgs,
                       typename ResourceDataType::Usage usage);
     explicit Resource(std::string&& name,
                       typename ResourceDataType::Descriptor&& resourceArgs,
                       typename ResourceDataType::Usage usage,
                       const ResourceDataType& resource);
-    ~Resource();
+    ~Resource() = default;
 
  public:
     [[nodiscard]] inline PassNode* getProducerNode() const
@@ -106,13 +127,50 @@ class Resource : public VirtualResource
     class ResourceEdge : public DependencyGraph::Edge
     {
      public:
-        explicit ResourceEdge(DependencyGraph* ownerGraph, Node* from, Node* to,
-                              typename ResourceDataType::Usage usage);
+        explicit ResourceEdge(DependencyGraph* ownerGraph,
+                              DependencyGraph::Node* from,
+                              DependencyGraph::Node* to,
+                              typename ResourceDataType::Usage usage)
+            : DependencyGraph::Edge(ownerGraph, from, to), _usage(usage)
+        {
+        }
+
+        inline typename ResourceDataType::Usage getUsage() const noexcept
+        {
+            return _usage;
+        }
+
+        ResourceEdge& operator|=(typename ResourceDataType::Usage usage)
+        {
+            _usage |= usage;
+            return *this;
+        }
 
      private:
-        friend class Resource;
         typename ResourceDataType::Usage _usage;
     };
+
+    bool connect(DependencyGraph* dependencyGraph, ResourceNode* node,
+                 PassNode* passNode, typename ResourceDataType::Usage usage)
+    {
+        // TODO(snowapril) : add edges
+        (void)dependencyGraph;
+        (void)passNode;
+        (void)node;
+        (void)usage;
+        return true;
+    }
+
+    bool connect(DependencyGraph* dependencyGraph, PassNode* passNode,
+                 ResourceNode* node, typename ResourceDataType::Usage usage)
+    {
+        // TODO(snowapril) : add edges
+        (void)dependencyGraph;
+        (void)passNode;
+        (void)node;
+        (void)usage;
+        return true;
+    }
 
  protected:
     typename ResourceDataType::Descriptor _descriptor;
@@ -128,8 +186,14 @@ class ImportedResource : public Resource<ResourceDataType>
     ImportedResource(std::string&& name,
                      typename ResourceDataType::Descriptor&& resourceArgs,
                      typename ResourceDataType::Usage usage,
-                     const ResourceDataType& resource);
-    ~ImportedResource();
+                     const ResourceDataType& resource)
+        : Resource<ResourceDataType>(std::move(name),
+                                     std::move(resourceArgs), usage, resource)
+    {
+    }
+    ~ImportedResource()
+    {
+    }
 
  public:
     inline bool isImported() const final
@@ -147,7 +211,7 @@ class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
  public:
     ImportedRenderTarget(std::string&& name,
                          FrameGraphTexture::Descriptor&& resourceArgs,
-                         FrameGraphTexture::Usage usage,
+                         FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
                          const FrameGraphTexture& resource,
                          TextureView* textureView);
     ~ImportedRenderTarget();
@@ -160,21 +224,6 @@ class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
  protected:
  private:
     TextureView* _textureViewHandle = nullptr;
-};
-
-class ResourceNode : public DependencyGraph::Node
-{
- public:
-    explicit ResourceNode(DependencyGraph* dependencyGraph,
-                          ResourceHandle resourceHandle);
-
-    inline ResourceHandle getResourceHandle() const
-    {
-        return _resourceHandle;
-    }
-
- private:
-    ResourceHandle _resourceHandle;
 };
 }  // namespace RenderGraph
 }  // namespace VoxFlow

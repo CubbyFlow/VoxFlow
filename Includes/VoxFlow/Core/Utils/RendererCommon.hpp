@@ -95,6 +95,7 @@ enum class TextureUsage : uint32_t
     Storage         = 0x00001000,
     CopySrc         = 0x00010000,
     CopyDst         = 0x00100000,
+    BackBuffer      = 0x01000000,
     Unknown         = 0,
 };
 IMPL_BITWISE_OPERATORS(TextureUsage, uint32_t);

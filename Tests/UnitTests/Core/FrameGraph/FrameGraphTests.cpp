@@ -25,6 +25,15 @@ TEST_CASE("FrameGraph")
                 ._level = 1,
                 ._sampleCounts = 1,
                 ._format = VK_FORMAT_R8G8B8A8_UNORM },
+
+            RenderGraph::FrameGraphRenderPass::ImportedDescriptor{
+                ._attachmentSlot = AttachmentMaskFlags::All,
+                ._viewportSize = glm::uvec2(1200, 900),
+                ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+                ._clearFlags = AttachmentMaskFlags::All,
+                ._writableAttachment = AttachmentMaskFlags::All,
+                ._numSamples = 1,
+            },
             nullptr);
 
         blackBoard["BackBuffer"] = backBuffer;

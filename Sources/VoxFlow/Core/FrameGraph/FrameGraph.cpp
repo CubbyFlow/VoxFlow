@@ -12,16 +12,6 @@ namespace VoxFlow
 
 namespace RenderGraph
 {
-ResourceHandle FrameGraphBuilder::read(ResourceHandle id)
-{
-    return _frameGraph->readInternal(id, _currentPassNode);
-}
-
-ResourceHandle FrameGraphBuilder::write(ResourceHandle id)
-{
-    return _frameGraph->writeInternal(id, _currentPassNode);
-}
-
 uint32_t FrameGraphBuilder::declareRenderPass(
     std::string_view&& passName,
     typename FrameGraphRenderPass::Descriptor&& initArgs)
@@ -50,10 +40,12 @@ void FrameGraph::reset(CommandStream* cmdStream,
 
 ResourceHandle FrameGraph::importRenderTarget(
     std::string&& resourceName,
-    FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView)
+    FrameGraphTexture::Descriptor&& resourceDescArgs,
+    typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
+    TextureView* textureView)
 {
     VirtualResource* virtualResource = new ImportedRenderTarget(
-        std::move(resourceName), std::move(resourceDescArgs), {}, textureView);
+        std::move(resourceName), std::move(resourceDescArgs), std::move(importedDesc), {}, textureView);
 
     ResourceHandle resourceHandle(_resources.size());
 
@@ -156,57 +148,81 @@ bool FrameGraph::compile()
     return true;
 }
 
-
-ResourceHandle FrameGraph::readInternal(ResourceHandle id, PassNode* passNode)
+ResourceHandle FrameGraph::readInternal(
+    ResourceHandle id, [[maybe_unused]] PassNode* passNode,
+    std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
                "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
-
+    VirtualResource* vResource = _resources[resourceSlot._resourceIndex];
+    
+#if defined(VOXFLOW_DEBUG)
     DependencyGraph::EdgeContainer incomingEdges =
         _dependencyGraph.getIncomingEdges(resourceNode->getNodeID());
+    for (const DependencyGraph::Edge* edge : incomingEdges)
+    {
+        if (edge->_fromNodeID == passNode->getNodeID())
+        {
+            VOX_ASSERT(false,
+                       "This resource is already written by same pass node");
+        }
+    }
+#endif // VOXFLOW_DEBUG
 
-    _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
+    if (connect(resourceNode, vResource))
+    {
+        // TODO(snowapril) : add post-jobs after connecting two nodes
+    }
+
+    // _dependencyGraph.link(resourceNode->getNodeID(), passNode->getNodeID());
 
     return id;
 }
 
-ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode)
+ResourceHandle FrameGraph::writeInternal(
+    ResourceHandle id, PassNode* passNode,
+    std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
 {
     VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
                "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
-    VirtualResource* resource = _resources[resourceSlot._resourceIndex];
+    VirtualResource* vResource = _resources[resourceSlot._resourceIndex];
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
     const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
 
     DependencyGraph::EdgeContainer outgoingEdges =
         _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
 
-    bool alreadyWritten = false;
-    for (const DependencyGraph::Edge* edge : outgoingEdges)
-    {
-        if (edge->_toNodeID == resourceNodeID)
-        {
-            alreadyWritten = true;
-            break;
-        }
-    }
+    //bool alreadyWritten = false;
+    //for (const DependencyGraph::Edge* edge : outgoingEdges)
+    //{
+    //    if (edge->_toNodeID == resourceNodeID)
+    //    {
+    //        alreadyWritten = true;
+    //        break;
+    //    }
+    //}
+    //
+    //if (alreadyWritten)
+    //{
+    //    // TODO(snowapril) : update resource usage or something else
+    //}
+    //else
+    //{
+    //    _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
+    //}
 
-    if (alreadyWritten)
+    if (connect(resourceNode, vResource))
     {
-        // TODO(snowapril) : update resource usage or something else
-    }
-    else
-    {
-        _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
+        // TODO(snowapril) : add post-jobs after connecting two nodes
     }
 
     // If the given pass is writing to imported resource, it must not be culled.
-    if (resource->isImported())
+    if (vResource->isImported())
     {
         passNode->setSideEffectPass();
     }
