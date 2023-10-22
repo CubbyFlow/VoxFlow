@@ -122,6 +122,8 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                 ._numSamples = 1
             };
             descriptor._attachments[0] = passData._sceneColorHandle;
+            descriptor._attachments[MAX_RENDER_TARGET_COUNTS] =
+                passData._sceneDepthHandle;
 
             passData._renderPassID = builder.declareRenderPass(
                 "SceneObjectPass RenderPass", std::move(descriptor));
