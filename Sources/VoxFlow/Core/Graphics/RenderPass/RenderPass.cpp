@@ -118,7 +118,7 @@ bool RenderPass::initialize(const RenderTargetLayoutKey& rtLayoutKey)
 
         depthAttachment = VkAttachmentReference{
             .attachment = attachmentIndex++,
-            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
         };
     }
 
