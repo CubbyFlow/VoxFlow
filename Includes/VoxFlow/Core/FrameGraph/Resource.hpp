@@ -19,6 +19,18 @@ class Texture;
 namespace RenderGraph
 {
 class PassNode;
+class FrameGraph;
+
+class ResourceEdgeBase : public DependencyGraph::Edge
+{
+ public:
+    explicit ResourceEdgeBase(DependencyGraph* ownerGraph,
+                          DependencyGraph::Node* from,
+                          DependencyGraph::Node* to)
+        : DependencyGraph::Edge(ownerGraph, from, to)
+    {
+    }
+};
 
 class ResourceNode : public DependencyGraph::Node
 {
@@ -31,8 +43,17 @@ class ResourceNode : public DependencyGraph::Node
         return _resourceHandle;
     }
 
+    ResourceEdgeBase* getReaderEdgeForPassNode(const PassNode* passNode);
+    ResourceEdgeBase* getWriterEdgeForPassNode(const PassNode* passNode);
+
+    void addOutgoingEdge(DependencyGraph::Edge* edge);
+    void setIncomingEdge(DependencyGraph::Edge* edge);
+    void resolveResourceUsage(FrameGraph* frameGraph);
+
  private:
     ResourceHandle _resourceHandle;
+    std::vector<DependencyGraph::Edge*> _outgoingEdges;
+    DependencyGraph::Edge* _incomingEdge = nullptr;
 };
 
 class VirtualResource : private NonCopyable
@@ -71,6 +92,10 @@ class VirtualResource : private NonCopyable
     virtual void devirtualize(RenderResourceAllocator*) = 0;
 
     virtual void destroy(RenderResourceAllocator*) = 0;
+
+    virtual void resolveUsage(DependencyGraph* dependencyGraph,
+                              const DependencyGraph::EdgeContainer& edges,
+                              DependencyGraph::Edge* writerEdge) = 0;
 
  protected:
     std::string _resourceName;
@@ -124,14 +149,14 @@ class Resource : public VirtualResource
     }
 
  public:
-    class ResourceEdge : public DependencyGraph::Edge
+    class ResourceEdge : public ResourceEdgeBase
     {
      public:
         explicit ResourceEdge(DependencyGraph* ownerGraph,
                               DependencyGraph::Node* from,
                               DependencyGraph::Node* to,
                               typename ResourceDataType::Usage usage)
-            : DependencyGraph::Edge(ownerGraph, from, to), _usage(usage)
+            : ResourceEdgeBase(ownerGraph, from, to), _usage(usage)
         {
         }
 
@@ -150,27 +175,16 @@ class Resource : public VirtualResource
         typename ResourceDataType::Usage _usage;
     };
 
+    // Make connection to given pass node from resource node with specific usage
     bool connect(DependencyGraph* dependencyGraph, ResourceNode* node,
-                 PassNode* passNode, typename ResourceDataType::Usage usage)
-    {
-        // TODO(snowapril) : add edges
-        (void)dependencyGraph;
-        (void)passNode;
-        (void)node;
-        (void)usage;
-        return true;
-    }
-
+                 PassNode* passNode, typename ResourceDataType::Usage usage);
+    // Make connection to given resource node from pass node with specific usage
     bool connect(DependencyGraph* dependencyGraph, PassNode* passNode,
-                 ResourceNode* node, typename ResourceDataType::Usage usage)
-    {
-        // TODO(snowapril) : add edges
-        (void)dependencyGraph;
-        (void)passNode;
-        (void)node;
-        (void)usage;
-        return true;
-    }
+                 ResourceNode* node, typename ResourceDataType::Usage usage);
+
+    void resolveUsage(DependencyGraph* dependencyGraph,
+                      const DependencyGraph::EdgeContainer& edges,
+                      DependencyGraph::Edge* writerEdge) override final;
 
  protected:
     typename ResourceDataType::Descriptor _descriptor;

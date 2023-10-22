@@ -58,17 +58,6 @@ void DependencyGraph::registerNode(Node* node, NodeID id)
     _nodes.push_back(node);
 }
 
-DependencyGraph::Edge* DependencyGraph::link(NodeID fromID, NodeID toID)
-{
-    Node* fromNode = getNode(fromID);
-    Node* toNode = getNode(toID);
-
-    Edge *edge = new Edge(this, fromNode, toNode);
-    _edges.push_back(edge);
-
-    return edge;
-}
-
 void DependencyGraph::cullUnreferencedNodes()
 {
     for (Edge* edge : _edges)

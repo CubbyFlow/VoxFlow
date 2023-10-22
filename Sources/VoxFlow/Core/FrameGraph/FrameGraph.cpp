@@ -141,6 +141,11 @@ bool FrameGraph::compile()
         }
     }
 
+    for (ResourceNode* resourceNode : _resourceNodes)
+    {
+        resourceNode->resolveResourceUsage(this);
+    }
+
 #else
 
 #endif

@@ -134,6 +134,69 @@ const typename ResourceDataType::Descriptor FrameGraph::getResourceDescriptor(
 }
 
 template <ResourceConcept ResourceDataType>
+bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
+                                         ResourceNode* node, PassNode* passNode,
+                                         typename ResourceDataType::Usage usage)
+{
+    ResourceEdge* edge =
+        static_cast<ResourceEdge*>(node->getReaderEdgeForPassNode(passNode));
+
+    if (edge == nullptr)
+    {
+        dependencyGraph->link<ResourceEdge>(node->getNodeID(),
+                                            passNode->getNodeID(), usage);
+    }
+    else
+    {
+        *edge |= usage;
+    }
+
+    return true;
+}
+
+template <ResourceConcept ResourceDataType>
+bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
+                                         PassNode* passNode, ResourceNode* node,
+                                         typename ResourceDataType::Usage usage)
+{
+    ResourceEdge* edge =
+        static_cast<ResourceEdge*>(node->getWriterEdgeForPassNode(passNode));
+
+    if (edge == nullptr)
+    {
+        dependencyGraph->link<ResourceEdge>(passNode->getNodeID(),
+                                            node->getNodeID(), usage);
+    }
+    else
+    {
+        *edge |= usage;
+    }
+
+    return true;
+}
+
+template <ResourceConcept ResourceDataType>
+void Resource<ResourceDataType>::resolveUsage(
+    DependencyGraph* dependencyGraph,
+    const DependencyGraph::EdgeContainer& edges,
+    DependencyGraph::Edge* writerEdge)
+{
+    for (DependencyGraph::Edge* edge : edges)
+    {
+        if (dependencyGraph->isEdgeValid(edge))
+        {
+            ResourceEdge* resourceEdge = static_cast<ResourceEdge*>(edge);
+            _usage |= resourceEdge->getUsage();
+        }
+    }
+
+    if (writerEdge != nullptr)
+    {
+        _usage |= static_cast<ResourceEdge*>(writerEdge)->getUsage();
+    }
+}
+
+template <ResourceConcept ResourceDataType>
 [[nodiscard]] inline const Resource<ResourceDataType>&
 FrameGraphResources::getResource(ResourceHandle handle) const
 {
