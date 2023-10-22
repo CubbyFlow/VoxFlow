@@ -143,13 +143,14 @@ bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
 
     if (edge == nullptr)
     {
-        dependencyGraph->link<ResourceEdge>(node->getNodeID(),
-                                            passNode->getNodeID(), usage);
+        edge = static_cast<ResourceEdge*>(dependencyGraph->link<ResourceEdge>(
+            node->getNodeID(), passNode->getNodeID(), usage));
     }
     else
     {
         *edge |= usage;
     }
+    node->addOutgoingEdge(edge);
 
     return true;
 }
@@ -164,13 +165,14 @@ bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
 
     if (edge == nullptr)
     {
-        dependencyGraph->link<ResourceEdge>(passNode->getNodeID(),
-                                            node->getNodeID(), usage);
+        edge = static_cast<ResourceEdge*>(dependencyGraph->link<ResourceEdge>(
+            passNode->getNodeID(), node->getNodeID(), usage));
     }
     else
     {
         *edge |= usage;
     }
+    node->setIncomingEdge(edge);
 
     return true;
 }

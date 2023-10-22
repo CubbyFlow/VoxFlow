@@ -12,7 +12,9 @@ namespace RenderGraph
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
     std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs)
-    : VirtualResource(std::move(name)), _descriptor(resourceArgs)
+    : VirtualResource(std::move(name)),
+      _descriptor(resourceArgs),
+      _usage(static_cast<ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>
@@ -21,7 +23,8 @@ Resource<ResourceDataType>::Resource(
     const ResourceDataType& resource)
     : VirtualResource(std::move(name)),
       _descriptor(resourceArgs),
-      _resource(resource)
+      _resource(resource),
+      _usage(static_cast<ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>

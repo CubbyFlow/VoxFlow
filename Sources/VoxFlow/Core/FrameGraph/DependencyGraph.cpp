@@ -105,8 +105,8 @@ void DependencyGraph::insertNode(Node* node, NodeID id)
 
 bool DependencyGraph::isEdgeValid(const Edge* edge) const
 {
-    return _nodes[edge->_fromNodeID]->isCulled() == false &&
-           _nodes[edge->_toNodeID]->isCulled();
+    return (_nodes[edge->_fromNodeID]->isCulled() == false) &&
+           (_nodes[edge->_toNodeID]->isCulled() == false);
 }
 
 }  // namespace VoxFlow
