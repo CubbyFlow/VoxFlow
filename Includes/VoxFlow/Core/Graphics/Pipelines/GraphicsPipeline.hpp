@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStateObject.hpp>
 #include <memory>
 #include <initializer_list>
+#include <string>
 #include <vector>
 
 namespace VoxFlow
@@ -19,7 +20,7 @@ class GraphicsPipeline : public BasePipeline
 {
  public:
     explicit GraphicsPipeline(LogicalDevice* logicalDevice,
-                              std::initializer_list<const char*>&& shaderPaths);
+                              std::vector<std::string>&& shaderPaths);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;

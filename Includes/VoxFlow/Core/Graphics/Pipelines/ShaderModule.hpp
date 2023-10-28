@@ -20,7 +20,7 @@ class ShaderModule : private NonCopyable
 {
  public:
     explicit ShaderModule(LogicalDevice* logicalDevice,
-                          const char* shaderFilePath);
+                          const std::string& shaderFilePath);
     ~ShaderModule() override;
     ShaderModule(ShaderModule&& other) noexcept;
     ShaderModule& operator=(ShaderModule&& other) noexcept;
@@ -67,7 +67,7 @@ class ShaderModule : private NonCopyable
     LogicalDevice* _logicalDevice;
     VkShaderModule _shaderModule = VK_NULL_HANDLE;
     ShaderReflectionDataGroup _reflectionDataGroup;
-    const char* _shaderFilePath = nullptr;
+    std::string _shaderFilePath;
     VkShaderStageFlagBits _stageFlagBits;
 };
 }  // namespace VoxFlow

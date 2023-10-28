@@ -12,10 +12,10 @@
 namespace VoxFlow
 {
 BasePipeline::BasePipeline(LogicalDevice* logicalDevice,
-                           std::initializer_list<const char*>&& shaderFilePaths)
+                           std::vector<std::string>&& shaderFilePaths)
     : _logicalDevice(logicalDevice)
 {
-    for (const char* shaderPath : shaderFilePaths)
+    for (const std::string& shaderPath : shaderFilePaths)
     {
         _shaderModules.push_back(
             std::make_unique<ShaderModule>(_logicalDevice, shaderPath));
@@ -54,6 +54,11 @@ void BasePipeline::release()
         vkDestroyPipeline(_logicalDevice->get(), _pipeline, nullptr);
         _pipeline = VK_NULL_HANDLE;
     }
+}
+
+void BasePipeline::exportPipelineCache()
+{
+
 }
 
 }  // namespace VoxFlow

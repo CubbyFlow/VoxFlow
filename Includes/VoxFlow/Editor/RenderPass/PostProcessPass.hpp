@@ -37,7 +37,7 @@ class PostProcessPass : public SceneRenderPass
         uint32_t _renderPassID = 0;
     } _passData;
 
-    std::unique_ptr<GraphicsPipeline> _toneMapPipeline;
+    std::shared_ptr<GraphicsPipeline> _toneMapPipeline;
     LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow

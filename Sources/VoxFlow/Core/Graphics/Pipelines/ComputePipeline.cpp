@@ -9,7 +9,7 @@
 namespace VoxFlow
 {
 ComputePipeline::ComputePipeline(LogicalDevice* logicalDevice,
-                                 const char* shaderPath)
+                                 const std::string& shaderPath)
     : BasePipeline(logicalDevice, { shaderPath })
 {
 }

@@ -12,13 +12,14 @@ namespace VoxFlow
 {
 
 ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
-                           const char* shaderFilePath)
+                           const std::string& shaderFilePath)
     : _logicalDevice(logicalDevice), _shaderFilePath(shaderFilePath)
 {
     // TODO(snowapril) : move compilation process to external management class
     std::vector<char> shaderSource;
-    VOX_ASSERT(GlslangUtil::ReadShaderFile(shaderFilePath, &shaderSource),
-               "Failed to read shader file : {}", shaderFilePath);
+    VOX_ASSERT(
+        GlslangUtil::ReadShaderFile(shaderFilePath.c_str(), &shaderSource),
+        "Failed to read shader file : {}", shaderFilePath);
 
     const glslang_stage_t glslangStage =
         GlslangUtil::GlslangStageFromFilename(shaderFilePath);

@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
@@ -189,6 +190,9 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 
     initializeCommandStreams();
+
+    _pipelineStreamingContext = std::make_unique<PipelineStreamingContext>(
+        this, RESOURCES_DIR "/Shaders");
 }
 
 LogicalDevice::~LogicalDevice()

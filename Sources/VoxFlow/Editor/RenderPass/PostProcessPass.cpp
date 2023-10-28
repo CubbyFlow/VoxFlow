@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
@@ -26,10 +27,9 @@ PostProcessPass::~PostProcessPass()
 
 bool PostProcessPass::initialize()
 {
-    _toneMapPipeline = std::make_unique<GraphicsPipeline>(
-        _logicalDevice, std::initializer_list<const char*>{
-                            RESOURCES_DIR "/Shaders/tonemap.vert",
-                            RESOURCES_DIR "/Shaders/tonemap.frag" });
+    _toneMapPipeline =
+        _logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline(
+            { "tonemap.vert", "tonemap.frag" });
 
     // Set pipeline state for ToneMap PostProcess pipeline
     GraphicsPipelineState pipelineState;

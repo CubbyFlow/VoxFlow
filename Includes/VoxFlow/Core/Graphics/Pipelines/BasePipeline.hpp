@@ -7,7 +7,6 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
-#include <initializer_list>
 #include <vector>
 
 namespace VoxFlow
@@ -15,12 +14,13 @@ namespace VoxFlow
 class ShaderModule;
 class LogicalDevice;
 class PipelineLayout;
+class PipelineStreamingContext;
 
 class BasePipeline : NonCopyable
 {
  public:
     explicit BasePipeline(LogicalDevice* logicalDevice,
-                          std::initializer_list<const char*>&& shaderFilePaths);
+                          std::vector<std::string>&& shaderFilePaths);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;
@@ -56,6 +56,14 @@ class BasePipeline : NonCopyable
      */
     [[nodiscard]] virtual VkPipelineBindPoint getBindPoint() const noexcept = 0;
 
+     /**
+     * @brief set pipeline streaming context which manage this pipeline
+     */
+    inline void setPipelineStreamingContext(PipelineStreamingContext* pipelineStreamingContext)
+    {
+        _pipelineStreamingContext = pipelineStreamingContext;
+    }
+
  protected:
     /**
      * release shader modules and pipeline layout which is used to create
@@ -63,11 +71,17 @@ class BasePipeline : NonCopyable
      */
     void release();
 
+    /**
+     * export pipeline cache after creation via pipeline streaming context
+     */
+    void exportPipelineCache();
+
  protected:
     LogicalDevice* _logicalDevice = nullptr;
     std::unique_ptr<PipelineLayout> _pipelineLayout;
     std::vector<std::unique_ptr<ShaderModule>> _shaderModules;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
+    PipelineStreamingContext* _pipelineStreamingContext = nullptr;
 };
 }  // namespace VoxFlow
 
