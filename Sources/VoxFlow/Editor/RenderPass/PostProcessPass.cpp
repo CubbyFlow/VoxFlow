@@ -30,6 +30,14 @@ bool PostProcessPass::initialize()
         _logicalDevice, std::initializer_list<const char*>{
                             RESOURCES_DIR "/Shaders/tonemap.vert",
                             RESOURCES_DIR "/Shaders/tonemap.frag" });
+
+    // Set pipeline state for ToneMap PostProcess pipeline
+    GraphicsPipelineState pipelineState;
+    pipelineState.blendState.addBlendState().setColorWriteMask(
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+    _toneMapPipeline->setPipelineState(pipelineState);
+
     return true;
 }
 

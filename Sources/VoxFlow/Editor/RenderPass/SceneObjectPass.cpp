@@ -43,6 +43,20 @@ bool SceneObjectPass::initialize()
                             RESOURCES_DIR "/Shaders/scene_object.vert",
                             RESOURCES_DIR "/Shaders/scene_object.frag" });
 
+    // Set pipeline state for SceneObjectPass pipeline
+    GraphicsPipelineState pipelineState;
+    pipelineState
+        .blendState.addBlendState()
+        .setColorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+    pipelineState.inputLayout.addInputLayout(
+        VertexInputLayout{ ._location = 0,
+                           ._binding = 0,
+                           ._stride = sizeof(glm::vec3),
+                           ._baseType = VertexFormatBaseType::Float32 });
+    pipelineState.depthStencil.setDepth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
+    _sceneObjectPipeline->setPipelineState(pipelineState);
+
     _cubeVertexBuffer = std::make_unique<Buffer>(
         "CubeVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
