@@ -197,7 +197,7 @@ ResourceHandle FrameGraph::writeInternal(
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     VirtualResource* vResource = _resources[resourceSlot._resourceIndex];
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
-    const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
+    //const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
 
     DependencyGraph::EdgeContainer outgoingEdges =
         _dependencyGraph.getOutgoingEdges(passNode->getNodeID());

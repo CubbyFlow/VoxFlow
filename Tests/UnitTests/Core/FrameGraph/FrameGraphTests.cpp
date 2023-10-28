@@ -82,9 +82,13 @@ TEST_CASE("FrameGraph")
                             ._level = 1,
                             ._sampleCounts = 1,
                             ._format = VK_FORMAT_R8G8B8A8_UNORM });
-                passData._input1 = builder.read(passData._input1);
-                passData._input2 = builder.read(passData._input2);
-                passData._output1 = builder.write(passData._output1);
+                passData._input1 = builder.read<RenderGraph::FrameGraphTexture>(
+                    passData._input1, TextureUsage::Sampled);
+                passData._input2 = builder.read<RenderGraph::FrameGraphTexture>(
+                    passData._input2, TextureUsage::Sampled);
+                passData._output1 =
+                    builder.write<RenderGraph::FrameGraphTexture>(
+                        passData._output1, TextureUsage::RenderTarget);
             },
             [&](const RenderGraph::FrameGraphResources*,
                 SamplePassData1& passData,
@@ -122,8 +126,11 @@ TEST_CASE("FrameGraph")
                             ._level = 1,
                             ._sampleCounts = 1,
                             ._format = VK_FORMAT_R8G8B8A8_UNORM });
-                passData._input1 = builder.read(passData._input1);
-                passData._output1 = builder.write(passData._output1);
+                passData._input1 = builder.read<RenderGraph::FrameGraphTexture>(
+                    passData._input1, TextureUsage::Sampled);
+                passData._output1 =
+                    builder.write<RenderGraph::FrameGraphTexture>(
+                        passData._output1, TextureUsage::RenderTarget);
             },
             [&](const RenderGraph::FrameGraphResources*, SamplePassData2& passData,
                 CommandStream*) { passData._isExecuted = true; });
@@ -140,8 +147,11 @@ TEST_CASE("FrameGraph")
             "Sample Pass 3",
             [&](RenderGraph::FrameGraphBuilder& builder,
                 SamplePassData3& passData) {
-                passData._input1 = builder.read(samplePass1._output1);
-                builder.write(blackBoard.getHandle("BackBuffer"));
+                passData._input1 = builder.read<RenderGraph::FrameGraphTexture>(
+                    samplePass1._output1, TextureUsage::Sampled);
+                builder.write<RenderGraph::FrameGraphTexture>(
+                    blackBoard.getHandle("BackBuffer"),
+                    TextureUsage::RenderTarget);
             },
             [&](const RenderGraph::FrameGraphResources*,
                 SamplePassData3& passData,

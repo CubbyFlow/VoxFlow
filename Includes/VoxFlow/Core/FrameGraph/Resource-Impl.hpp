@@ -14,7 +14,7 @@ Resource<ResourceDataType>::Resource(
     std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs)
     : VirtualResource(std::move(name)),
       _descriptor(resourceArgs),
-      _usage(static_cast<ResourceDataType::Usage>(0))
+      _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>
@@ -24,7 +24,7 @@ Resource<ResourceDataType>::Resource(
     : VirtualResource(std::move(name)),
       _descriptor(resourceArgs),
       _resource(resource),
-      _usage(static_cast<ResourceDataType::Usage>(0))
+      _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>
