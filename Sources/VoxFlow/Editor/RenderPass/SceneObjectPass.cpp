@@ -44,14 +44,14 @@ bool SceneObjectPass::initialize()
                             RESOURCES_DIR "/Shaders/scene_object.frag" });
 
     _cubeVertexBuffer = std::make_unique<Buffer>(
-        "QuadVertexBuffer", _logicalDevice,
+        "CubeVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeVertexBuffer->makeAllocationResident(BufferInfo{
         ._size = cubeVertices.size() * sizeof(glm::vec3),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
 
     _cubeIndexBuffer = std::make_unique<Buffer>(
-        "QuadIndexBuffer", _logicalDevice,
+        "CubeIndexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeIndexBuffer->makeAllocationResident(BufferInfo{
         ._size = cubeIndices.size() * sizeof(uint32_t),
@@ -77,22 +77,24 @@ void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
 
 void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 {
-    RenderGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
-    RenderGraph::ResourceHandle backBufferHandle =
+    using namespace RenderGraph;
+
+    BlackBoard& blackBoard = frameGraph->getBlackBoard();
+    ResourceHandle backBufferHandle =
         blackBoard.getHandle("BackBuffer");
 
     const auto& backBufferDesc =
-        frameGraph->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+        frameGraph->getResourceDescriptor<FrameGraphTexture>(
             backBufferHandle);
 
     _passData = frameGraph->addCallbackPass<SceneObjectPassData>(
         "SceneObjectPass",
-        [&](RenderGraph::FrameGraphBuilder& builder,
+        [&](FrameGraphBuilder& builder,
             SceneObjectPassData& passData) {
             passData._sceneColorHandle =
-                builder.allocate<RenderGraph::FrameGraphTexture>(
+                builder.allocate<FrameGraphTexture>(
                     "SceneColor",
-                    RenderGraph::FrameGraphTexture::Descriptor{
+                    FrameGraphTexture::Descriptor{
                         ._width = backBufferDesc._width,
                         ._height = backBufferDesc._height,
                         ._depth = backBufferDesc._depth,
@@ -101,8 +103,8 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                         ._format = backBufferDesc._format });
 
             passData._sceneDepthHandle =
-                builder.allocate<RenderGraph::FrameGraphTexture>(
-                    "SceneDepth", RenderGraph::FrameGraphTexture::Descriptor{
+                builder.allocate<FrameGraphTexture>(
+                    "SceneDepth", FrameGraphTexture::Descriptor{
                                       ._width = backBufferDesc._width,
                                       ._height = backBufferDesc._height,
                                       ._depth = 1,
@@ -110,16 +112,23 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
                                       ._sampleCounts = 1,
                                       ._format = VK_FORMAT_D32_SFLOAT_S8_UINT });
 
-            builder.write(passData._sceneColorHandle);
-            builder.write(passData._sceneDepthHandle);
+            builder.write<FrameGraphTexture>(passData._sceneColorHandle, TextureUsage::RenderTarget);
+            builder.write<FrameGraphTexture>(passData._sceneDepthHandle, TextureUsage::DepthStencil);
 
-            auto descriptor = RenderGraph::FrameGraphRenderPass::Descriptor{
+            auto descriptor = FrameGraphRenderPass::Descriptor{
                 ._viewportSize =
                     glm::uvec2(backBufferDesc._width, backBufferDesc._height),
-                ._writableAttachment = AttachmentMaskFlags::Color0,
+                ._writableAttachment =
+                    AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil,
                 ._numSamples = 1
             };
             descriptor._attachments[0] = passData._sceneColorHandle;
+            descriptor._attachments[MAX_RENDER_TARGET_COUNTS] =
+                passData._sceneDepthHandle;
+            descriptor._clearFlags =
+                AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil;
+            descriptor._clearColors[0] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            descriptor._clearDepth = 1.0f;
 
             passData._renderPassID = builder.declareRenderPass(
                 "SceneObjectPass RenderPass", std::move(descriptor));
@@ -127,9 +136,9 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             blackBoard["SceneColor"] = passData._sceneColorHandle;
             blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](const RenderGraph::FrameGraphResources* fgResources,
+        [&](const FrameGraphResources* fgResources,
             SceneObjectPassData& passData, CommandStream* cmdStream) {
-            RenderGraph::RenderPassData* rpData =
+            RenderPassData* rpData =
                 fgResources->getRenderPassData(passData._renderPassID);
 
             cmdStream->addJob(CommandJobType::BeginRenderPass,
@@ -145,7 +154,7 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             
             const auto& sceneColorDesc =
                 fgResources
-                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                    ->getResourceDescriptor<FrameGraphTexture>(
                         passData._sceneColorHandle);
 
             cmdStream->addJob(

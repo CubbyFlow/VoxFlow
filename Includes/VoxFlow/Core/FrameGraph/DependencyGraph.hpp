@@ -121,8 +121,21 @@ class DependencyGraph : private NonCopyable
     EdgeContainer getIncomingEdges(NodeID id);
     EdgeContainer getOutgoingEdges(NodeID id);
 
+    template <typename ResourceEdgeType, typename... Args,
+              std::enable_if_t<std::is_base_of_v<Edge, ResourceEdgeType>,
+                               bool> = true>
+    DependencyGraph::Edge* link(NodeID fromID, NodeID toID, Args... args)
+    {
+        Node* fromNode = getNode(fromID);
+        Node* toNode = getNode(toID);
+
+        Edge* edge = new ResourceEdgeType(this, fromNode, toNode, args...);
+        _edges.push_back(edge);
+
+        return edge;
+    }
+
     void registerNode(Node* node, NodeID id);
-    Edge* link(NodeID fromID, NodeID toID);
     void cullUnreferencedNodes();
     void insertNode(Node* node, NodeID id);
     bool isEdgeValid(const Edge* edge) const;

@@ -81,7 +81,8 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     std::shared_ptr<TextureView> backBufferView =
         currentBackBuffer->getView(backBufferViewIndex.value());
 
-    auto backBufferDescriptor = RenderGraph::FrameGraphTexture::Descriptor{
+    using namespace RenderGraph;
+    auto backBufferDescriptor = FrameGraphTexture::Descriptor{
         ._width = backBufferInfo._extent.x,
         ._height = backBufferInfo._extent.y,
         ._depth = backBufferInfo._extent.z,
@@ -90,16 +91,30 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
         ._format = backBufferInfo._format,
     };
 
-    RenderGraph::BlackBoard& blackBoard = _frameGraph->getBlackBoard();
+    auto backBufferRenderTargetDesc =
+        FrameGraphRenderPass::ImportedDescriptor{
+            ._attachmentSlot = AttachmentMaskFlags::All,
+            ._viewportSize =
+                glm::uvec2(backBufferInfo._extent.x, backBufferInfo._extent.y),
+            ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+            ._clearFlags = AttachmentMaskFlags::All,
+            ._writableAttachment = AttachmentMaskFlags::All,
+            ._numSamples = 1,
+        };
 
-    RenderGraph::ResourceHandle backBufferHandle =
+    BlackBoard& blackBoard = _frameGraph->getBlackBoard();
+
+    ResourceHandle backBufferHandle =
         _frameGraph->importRenderTarget(
-            "BackBuffer", std::move(backBufferDescriptor), backBufferView.get());
+            "BackBuffer", std::move(backBufferDescriptor),
+            std::move(backBufferRenderTargetDesc), backBufferView.get());
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
 tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
 {
+    using namespace RenderGraph;
+
     SCOPED_CHROME_TRACING("SceneRenderer::resolveSceneRenderPasses");
 
     tf::Taskflow taskflow;
@@ -131,7 +146,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add present pass which followed by all other passes
-    RenderGraph::ResourceHandle backBufferHandle =
+    ResourceHandle backBufferHandle =
         _frameGraph->getBlackBoard().getHandle("BackBuffer");
 
     tf::Task presentTask =
@@ -139,8 +154,8 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
             .emplace([&]() {
                 _frameGraph->addPresentPass(
                     "PresentPass",
-                    [&](RenderGraph::FrameGraphBuilder& builder) {
-                        builder.read(backBufferHandle);
+                    [&](FrameGraphBuilder& builder) {
+                        builder.read<FrameGraphTexture>(backBufferHandle, TextureUsage::BackBuffer);
                     },
                     swapChain, _currentFrameContext);
             })

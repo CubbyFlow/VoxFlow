@@ -221,7 +221,9 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
         .default_profile = GLSLANG_NO_PROFILE,
         .force_default_version_and_profile = false,
         .forward_compatible = false,
-        .messages = GLSLANG_MSG_DEFAULT_BIT,
+        .messages =
+            GLSLANG_MSG_DEBUG_INFO_BIT,  // TODO(snowapril) : must expose this
+                                         // bits to command line arguments
         .resource =
             reinterpret_cast<const glslang_resource_t*>(&defaultResource),
     };

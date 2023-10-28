@@ -24,6 +24,34 @@ ResourceHandle FrameGraphBuilder::allocate(
                                                  std::move(initArgs));
 }
 
+template <ResourceConcept ResourceDataType>
+ResourceHandle FrameGraphBuilder::read(ResourceHandle id,
+                                       typename ResourceDataType::Usage usage)
+{
+    return _frameGraph->readInternal(
+        id, _currentPassNode,
+        [this, usage](ResourceNode* node, VirtualResource* vResource) {
+            Resource<ResourceDataType>* resource =
+                static_cast<Resource<ResourceDataType>*>(vResource);
+            return resource->connect(_frameGraph->getDependencyGraph(), node,
+                                     _currentPassNode, usage);
+        });
+}
+
+template <ResourceConcept ResourceDataType>
+ResourceHandle FrameGraphBuilder::write(ResourceHandle id,
+                                        typename ResourceDataType::Usage usage)
+{
+    return _frameGraph->writeInternal(
+        id, _currentPassNode,
+        [this, usage](ResourceNode* node, VirtualResource* vResource) {
+            Resource<ResourceDataType>* resource =
+                static_cast<Resource<ResourceDataType>*>(vResource);
+            return resource->connect(_frameGraph->getDependencyGraph(),
+                                     _currentPassNode, node, usage);
+        });
+}
+
 template <typename PassDataType, typename SetupPhase, typename ExecutePhase>
 const PassDataType& FrameGraph::addCallbackPass(std::string_view&& passName,
                                                 SetupPhase&& setup,
@@ -103,6 +131,71 @@ const typename ResourceDataType::Descriptor FrameGraph::getResourceDescriptor(
     auto resource = static_cast<Resource<ResourceDataType>*>(
         _resources[resourceSlot._resourceIndex]);
     return resource->getDescriptor();
+}
+
+template <ResourceConcept ResourceDataType>
+bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
+                                         ResourceNode* node, PassNode* passNode,
+                                         typename ResourceDataType::Usage usage)
+{
+    ResourceEdge* edge =
+        static_cast<ResourceEdge*>(node->getReaderEdgeForPassNode(passNode));
+
+    if (edge == nullptr)
+    {
+        edge = static_cast<ResourceEdge*>(dependencyGraph->link<ResourceEdge>(
+            node->getNodeID(), passNode->getNodeID(), usage));
+    }
+    else
+    {
+        *edge |= usage;
+    }
+    node->addOutgoingEdge(edge);
+
+    return true;
+}
+
+template <ResourceConcept ResourceDataType>
+bool Resource<ResourceDataType>::connect(DependencyGraph* dependencyGraph,
+                                         PassNode* passNode, ResourceNode* node,
+                                         typename ResourceDataType::Usage usage)
+{
+    ResourceEdge* edge =
+        static_cast<ResourceEdge*>(node->getWriterEdgeForPassNode(passNode));
+
+    if (edge == nullptr)
+    {
+        edge = static_cast<ResourceEdge*>(dependencyGraph->link<ResourceEdge>(
+            passNode->getNodeID(), node->getNodeID(), usage));
+    }
+    else
+    {
+        *edge |= usage;
+    }
+    node->setIncomingEdge(edge);
+
+    return true;
+}
+
+template <ResourceConcept ResourceDataType>
+void Resource<ResourceDataType>::resolveUsage(
+    DependencyGraph* dependencyGraph,
+    const DependencyGraph::EdgeContainer& edges,
+    DependencyGraph::Edge* writerEdge)
+{
+    for (DependencyGraph::Edge* edge : edges)
+    {
+        if (dependencyGraph->isEdgeValid(edge))
+        {
+            ResourceEdge* resourceEdge = static_cast<ResourceEdge*>(edge);
+            _usage |= resourceEdge->getUsage();
+        }
+    }
+
+    if (writerEdge != nullptr)
+    {
+        _usage |= static_cast<ResourceEdge*>(writerEdge)->getUsage();
+    }
 }
 
 template <ResourceConcept ResourceDataType>

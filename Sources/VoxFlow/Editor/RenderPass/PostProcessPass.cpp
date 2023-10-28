@@ -40,27 +40,29 @@ void PostProcessPass::updateRender(ResourceUploadContext* uploadContext)
 
 void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 {
-    RenderGraph::BlackBoard& blackBoard = frameGraph->getBlackBoard();
+    using namespace RenderGraph;
+
+    BlackBoard& blackBoard = frameGraph->getBlackBoard();
 
     _passData = frameGraph->addCallbackPass<PostProcessPassData>(
         "PostProcessPass",
-        [&](RenderGraph::FrameGraphBuilder& builder,
+        [&](FrameGraphBuilder& builder,
             PostProcessPassData& passData) {
-            RenderGraph::ResourceHandle backBufferHandle =
+            ResourceHandle backBufferHandle =
                 blackBoard.getHandle("BackBuffer");
 
-            RenderGraph::ResourceHandle sceneColorHandle =
+            ResourceHandle sceneColorHandle =
                 blackBoard.getHandle("SceneColor");
 
             const auto& sceneColorDesc =
                 frameGraph
-                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                    ->getResourceDescriptor<FrameGraphTexture>(
                         sceneColorHandle);
 
-            builder.read(sceneColorHandle);
-            builder.write(backBufferHandle);
+            builder.read<FrameGraphTexture>(sceneColorHandle, TextureUsage::Sampled);
+            builder.write<FrameGraphTexture>(backBufferHandle, TextureUsage::BackBuffer);
 
-            auto descriptor = RenderGraph::FrameGraphRenderPass::Descriptor{
+            auto descriptor = FrameGraphRenderPass::Descriptor{
                 ._viewportSize =
                     glm::uvec2(sceneColorDesc._width, sceneColorDesc._height),
                 ._writableAttachment = AttachmentMaskFlags::Color0,
@@ -71,9 +73,9 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             passData._renderPassID = builder.declareRenderPass(
                 "PostProcess RenderPass", std::move(descriptor));
         },
-        [&](const RenderGraph::FrameGraphResources* fgResources,
+        [&](const FrameGraphResources* fgResources,
             PostProcessPassData& passData, CommandStream* cmdStream) {
-            RenderGraph::RenderPassData* rpData =
+            RenderPassData* rpData =
                 fgResources->getRenderPassData(passData._renderPassID);
 
             cmdStream->addJob(CommandJobType::BeginRenderPass,
@@ -82,7 +84,7 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             cmdStream->addJob(CommandJobType::BindPipeline,
                               _toneMapPipeline.get());
 
-            RenderGraph::ResourceHandle sceneColorHandle =
+            ResourceHandle sceneColorHandle =
                 blackBoard.getHandle("SceneColor");
             TextureView* sceneColorView =
                 fgResources->getTextureView(sceneColorHandle);
@@ -97,7 +99,7 @@ void PostProcessPass::renderScene(RenderGraph::FrameGraph* frameGraph)
 
             const auto& sceneColorDesc =
                 fgResources
-                    ->getResourceDescriptor<RenderGraph::FrameGraphTexture>(
+                    ->getResourceDescriptor<FrameGraphTexture>(
                         sceneColorHandle);
 
             cmdStream->addJob(

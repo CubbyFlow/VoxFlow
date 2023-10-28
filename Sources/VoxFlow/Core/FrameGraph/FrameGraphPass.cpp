@@ -227,7 +227,13 @@ void RenderPassNode::resolve(FrameGraph* frameGraph)
             maxHeight = rpData._descriptor._viewportSize.y;
         }
 
+        rpData._passParams._attachmentFlags._clearFlags = rpData._descriptor._clearFlags;
         rpData._passParams._viewportSize = glm::uvec2(maxWidth, maxHeight);
+        rpData._passParams._clearColors = rpData._descriptor._clearColors;
+        rpData._passParams._clearDepth = rpData._descriptor._clearDepth;
+        rpData._passParams._clearStencil = rpData._descriptor._clearStencil;
+        rpData._passParams._writableAttachment =
+            rpData._descriptor._writableAttachment;
     }
 }
 

@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <vector>
 #include <istream>
+#include <functional>
 
 namespace VoxFlow
 {
@@ -53,8 +54,14 @@ class FrameGraphBuilder
     [[nodiscard]] ResourceHandle allocate(
         std::string&& resourceName,
         typename ResourceDataType::Descriptor&& initArgs);
-    ResourceHandle read(ResourceHandle id);
-    ResourceHandle write(ResourceHandle id);
+
+    template <ResourceConcept ResourceDataType>
+    ResourceHandle read(ResourceHandle id,
+                        typename ResourceDataType::Usage usage);
+
+    template <ResourceConcept ResourceDataType>
+    ResourceHandle write(ResourceHandle id,
+                         typename ResourceDataType::Usage usage);
 
     [[nodiscard]] uint32_t declareRenderPass(
         std::string_view&& passName,
@@ -109,7 +116,9 @@ class FrameGraph : private NonCopyable
 
     [[nodiscard]] ResourceHandle importRenderTarget(
         std::string&& resourceName,
-        FrameGraphTexture::Descriptor&& resourceDescArgs, TextureView* textureView);
+        FrameGraphTexture::Descriptor&& resourceDescArgs,
+        typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
+        TextureView* textureView);
 
     // Compile given frame graph
     bool compile();
@@ -191,8 +200,12 @@ private:
  private:
     friend class FrameGraphBuilder;
 
-    ResourceHandle readInternal(ResourceHandle id, PassNode* passNode);
-    ResourceHandle writeInternal(ResourceHandle id, PassNode* passNode);
+    ResourceHandle readInternal(
+        ResourceHandle id, [[maybe_unused]] PassNode* passNode,
+        std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
+    ResourceHandle writeInternal(
+        ResourceHandle id, PassNode* passNode,
+        std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
 
  private:
     std::vector<ResourceSlot> _resourceSlots;

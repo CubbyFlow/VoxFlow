@@ -11,43 +11,39 @@ namespace RenderGraph
 {
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
-    std::string&& debugName,
-    typename ResourceDataType::Descriptor&& resourceArgs)
-    : VirtualResource(std::move(debugName)), _descriptor(resourceArgs)
+    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs)
+    : VirtualResource(std::move(name)),
+      _descriptor(resourceArgs),
+      _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
-
 template <ResourceConcept ResourceDataType>
 Resource<ResourceDataType>::Resource(
-    std::string&& debugName,
-    typename ResourceDataType::Descriptor&& resourceArgs,
+    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
     const ResourceDataType& resource)
-    : VirtualResource(std::move(debugName)),
+    : VirtualResource(std::move(name)),
       _descriptor(resourceArgs),
-      _resource(resource)
+      _resource(resource),
+      _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
-
 template <ResourceConcept ResourceDataType>
-Resource<ResourceDataType>::~Resource()
+Resource<ResourceDataType>::Resource(
+    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
+    typename ResourceDataType::Usage usage)
+    : VirtualResource(std::move(name)), _descriptor(resourceArgs), _usage(usage)
 {
 }
-
 template <ResourceConcept ResourceDataType>
-ImportedResource<ResourceDataType>::ImportedResource(
-    std::string&& debugName,
-    typename ResourceDataType::Descriptor&& resourceArgs,
-    const ResourceDataType& resource)
-    : Resource<ResourceDataType>(std::move(debugName), std::move(resourceArgs),
-                                 resource)
+Resource<ResourceDataType>::Resource(
+    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
+    typename ResourceDataType::Usage usage, const ResourceDataType& resource)
+    : VirtualResource(std::move(name)),
+      _descriptor(resourceArgs),
+      _resource(resource),
+      _usage(usage)
 {
 }
-
-template <ResourceConcept ResourceDataType>
-ImportedResource<ResourceDataType>::~ImportedResource()
-{
-}
-
 }  // namespace RenderGraph
 
 }  // namespace VoxFlow
