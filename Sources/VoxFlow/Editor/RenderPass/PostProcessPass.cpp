@@ -36,6 +36,7 @@ bool PostProcessPass::initialize()
     pipelineState.blendState.addBlendState().setColorWriteMask(
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+    pipelineState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     _toneMapPipeline->setPipelineState(pipelineState);
 
     return true;
