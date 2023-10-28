@@ -399,6 +399,9 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
             auto location =
                 compiler.get_decoration(attribute.id, spv::DecorationLocation);
 
+            auto binding =
+                compiler.get_decoration(attribute.id, spv::DecorationBinding);
+
             const spirv_cross::SPIRType& resourceType =
                 compiler.get_type(attribute.type_id);
 
@@ -412,6 +415,7 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
 
             reflectionDataGroup->_vertexInputLayouts.push_back(
                 { ._location = location,
+                  ._binding = binding,
                   ._stride = (size >> 3),
                   ._baseType = baseType });
         }
