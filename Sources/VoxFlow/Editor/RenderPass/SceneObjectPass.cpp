@@ -44,14 +44,14 @@ bool SceneObjectPass::initialize()
                             RESOURCES_DIR "/Shaders/scene_object.frag" });
 
     _cubeVertexBuffer = std::make_unique<Buffer>(
-        "QuadVertexBuffer", _logicalDevice,
+        "CubeVertexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeVertexBuffer->makeAllocationResident(BufferInfo{
         ._size = cubeVertices.size() * sizeof(glm::vec3),
         ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
 
     _cubeIndexBuffer = std::make_unique<Buffer>(
-        "QuadIndexBuffer", _logicalDevice,
+        "CubeIndexBuffer", _logicalDevice,
         _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeIndexBuffer->makeAllocationResident(BufferInfo{
         ._size = cubeIndices.size() * sizeof(uint32_t),
@@ -118,12 +118,17 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
             auto descriptor = FrameGraphRenderPass::Descriptor{
                 ._viewportSize =
                     glm::uvec2(backBufferDesc._width, backBufferDesc._height),
-                ._writableAttachment = AttachmentMaskFlags::Color0,
+                ._writableAttachment =
+                    AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil,
                 ._numSamples = 1
             };
             descriptor._attachments[0] = passData._sceneColorHandle;
             descriptor._attachments[MAX_RENDER_TARGET_COUNTS] =
                 passData._sceneDepthHandle;
+            descriptor._clearFlags =
+                AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil;
+            descriptor._clearColors[0] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            descriptor._clearDepth = 1.0f;
 
             passData._renderPassID = builder.declareRenderPass(
                 "SceneObjectPass RenderPass", std::move(descriptor));

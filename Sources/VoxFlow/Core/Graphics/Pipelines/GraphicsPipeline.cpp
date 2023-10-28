@@ -173,8 +173,8 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizationInfo.lineWidth = 1.0f;
-    rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-    rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationInfo.depthBiasEnable = VK_FALSE;
     rasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
     rasterizationInfo.depthBiasClamp = 0.0f;           // Optional
@@ -223,7 +223,7 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
         VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencilInfo.depthTestEnable = VK_TRUE;
     depthStencilInfo.depthWriteEnable = VK_TRUE;
-    depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
     depthStencilInfo.minDepthBounds = 0.0f;  // Optional
     depthStencilInfo.maxDepthBounds = 1.0f;  // Optional

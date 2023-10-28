@@ -10,5 +10,6 @@ layout (location = 0) out vec4 outFragCoord;
 
 void main()
 {
-	outFragCoord = vec4(fs_in.color, 1.0f);
+	vec3 color = fs_in.color + vec3(0.5);
+	outFragCoord = vec4(color, 1.0f);
 }
