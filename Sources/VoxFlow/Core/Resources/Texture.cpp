@@ -224,6 +224,26 @@ bool Texture::initializeFromSwapChain(const TextureInfo& swapChainSurfaceInfo,
     DebugUtil::setObjectName(_logicalDevice, _vkImage, _debugName.c_str());
 #endif
 
+    const std::optional<uint32_t> defaultViewIndex =
+        createTextureView(TextureViewInfo{
+            ._viewType = convertToImageViewType(_textureInfo._imageType,
+                                                _textureInfo._extent),
+            ._format = _textureInfo._format,
+            ._aspectFlags = convertToImageAspectFlags(_textureInfo._format),
+            ._baseMipLevel = 0,
+            ._levelCount = 1,
+            ._baseArrayLayer = 0,
+            ._layerCount = 1 });
+
+    VOX_ASSERT(defaultViewIndex.has_value(),
+               "Failed to create default texture view for texture({})",
+               _debugName);
+
+    if (defaultViewIndex.has_value())
+    {
+        _defaultView = getView(defaultViewIndex.value()).get();
+    }
+
     return true;
 }
 

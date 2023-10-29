@@ -244,27 +244,12 @@ void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
 
 void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_t backBufferIndex)
 {
-    VkImageMemoryBarrier imageMemoryBarrier{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = nullptr,
-        .srcAccessMask = 0,
-        .dstAccessMask = 0,
-        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = swapChain->getSwapChainImage(backBufferIndex)->get(),
-        .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                              .baseMipLevel = 0,
-                              .levelCount = 1,
-                              .baseArrayLayer = 0,
-                              .layerCount = 1 },
-    };
+    const std::shared_ptr<Texture>& backBuffer = swapChain->getSwapChainImage(backBufferIndex);
+    
+    addMemoryBarrier(backBuffer->getDefaultView(), ResourceAccessMask::Present,
+                     VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
-    vkCmdPipelineBarrier(
-        _vkCommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0,
-        nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+    _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 }
 
 void CommandBuffer::bindResourceGroup(
