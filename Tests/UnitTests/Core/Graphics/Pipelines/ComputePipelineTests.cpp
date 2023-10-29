@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include "../../../UnitTestUtils.hpp"
 
@@ -18,10 +19,11 @@ TEST_CASE("Vulkan Compute Pipeline Initialization")
         gVulkanContext, &physicalDevice, &instance,
         VoxFlow::LogicalDeviceType::MainDevice);
 
-    VoxFlow::ComputePipeline testPipeline(
-        logicalDevice.get(), RESOURCES_DIR "/Shaders/test_shader.comp");
+    std::shared_ptr<VoxFlow::ComputePipeline> testPipeline =
+        logicalDevice->getPipelineStreamingContext()->createComputePipeline(
+            "test_shader.frag");
 
-    const bool result = testPipeline.initialize();
+    const bool result = testPipeline->initialize();
     CHECK_EQ(result, true);
     CHECK_NE(testPipeline.get(), VK_NULL_HANDLE);
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);
