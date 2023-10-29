@@ -433,3 +433,4 @@ build/
 Dependencies/.bootstrap.json
 Dependencies/archives/
 Dependencies/src/
+*.vfpipeline

@@ -40,7 +40,7 @@ class SceneObjectPass : public SceneRenderPass
         uint32_t _renderPassID = UINT32_MAX;
     } _passData;
 
-    std::unique_ptr<GraphicsPipeline> _sceneObjectPipeline;
+    std::shared_ptr<GraphicsPipeline> _sceneObjectPipeline;
     std::unique_ptr<Buffer> _cubeVertexBuffer;
     std::unique_ptr<Buffer> _cubeIndexBuffer;
     LogicalDevice* _logicalDevice = nullptr;

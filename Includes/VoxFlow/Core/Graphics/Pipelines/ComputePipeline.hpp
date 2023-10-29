@@ -5,6 +5,7 @@
 
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <memory>
+#include <string>
 
 namespace VoxFlow
 {
@@ -13,8 +14,8 @@ class ShaderModule;
 class ComputePipeline : public BasePipeline
 {
  public:
-    explicit ComputePipeline(LogicalDevice* logicalDevice,
-                             const char* shaderPath);
+    explicit ComputePipeline(PipelineStreamingContext* pipelineStreamingContext,
+                             const ShaderPathInfo& shaderPath);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;

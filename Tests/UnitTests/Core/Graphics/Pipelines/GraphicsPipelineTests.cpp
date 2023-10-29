@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
@@ -30,11 +31,11 @@ TEST_CASE("Vulkan Graphics Pipeline Initialization")
 
     renderPass->initialize(dummyRTKey);
 
-    VoxFlow::GraphicsPipeline testPipeline(
-        logicalDevice.get(), { RESOURCES_DIR "/Shaders/test_shader.vert",
-                               RESOURCES_DIR "/Shaders/test_shader.frag" });
+    std::shared_ptr<VoxFlow::GraphicsPipeline> testPipeline =
+        logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline(
+            { "test_shader.vert", "test_shader.frag" });
 
-    const bool result = testPipeline.initialize(renderPass.get());
+    const bool result = testPipeline->initialize(renderPass.get());
     CHECK_EQ(result, true);
     CHECK_NE(testPipeline.get(), VK_NULL_HANDLE);
     CHECK_EQ(VoxFlow::DebugUtil::NumValidationErrorDetected, 0);

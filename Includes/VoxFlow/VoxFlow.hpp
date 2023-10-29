@@ -10,7 +10,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>

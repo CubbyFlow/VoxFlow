@@ -4,6 +4,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -38,10 +39,23 @@ const std::vector<unsigned int> cubeIndices = {
 
 bool SceneObjectPass::initialize()
 {
-    _sceneObjectPipeline = std::make_unique<GraphicsPipeline>(
-        _logicalDevice, std::initializer_list<const char*>{
-                            RESOURCES_DIR "/Shaders/scene_object.vert",
-                            RESOURCES_DIR "/Shaders/scene_object.frag" });
+    _sceneObjectPipeline =
+        _logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline(
+            { "scene_object.vert", "scene_object.frag" });
+
+    // Set pipeline state for SceneObjectPass pipeline
+    GraphicsPipelineState pipelineState;
+    pipelineState
+        .blendState.addBlendState()
+        .setColorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+    pipelineState.inputLayout.addInputLayout(
+        VertexInputLayout{ ._location = 0,
+                           ._binding = 0,
+                           ._stride = sizeof(glm::vec3),
+                           ._baseType = VertexFormatBaseType::Float32 });
+    pipelineState.depthStencil.setDepth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
+    _sceneObjectPipeline->setPipelineState(pipelineState);
 
     _cubeVertexBuffer = std::make_unique<Buffer>(
         "CubeVertexBuffer", _logicalDevice,

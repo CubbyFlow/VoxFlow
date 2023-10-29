@@ -7,6 +7,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <array>
 #include <unordered_map>
@@ -14,13 +15,13 @@
 
 namespace VoxFlow
 {
-class LogicalDevice;
+class PipelineStreamingContext;
 
 class ShaderModule : private NonCopyable
 {
  public:
-    explicit ShaderModule(LogicalDevice* logicalDevice,
-                          const char* shaderFilePath);
+    explicit ShaderModule(PipelineStreamingContext* pipelineStreamingContext,
+                          const ShaderPathInfo& shaderPath);
     ~ShaderModule() override;
     ShaderModule(ShaderModule&& other) noexcept;
     ShaderModule& operator=(ShaderModule&& other) noexcept;
@@ -64,10 +65,11 @@ class ShaderModule : private NonCopyable
         std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);
 
  protected:
-    LogicalDevice* _logicalDevice;
+    PipelineStreamingContext* _pipelineStreamingContext = nullptr;
+    LogicalDevice* _logicalDevice = nullptr;
     VkShaderModule _shaderModule = VK_NULL_HANDLE;
     ShaderReflectionDataGroup _reflectionDataGroup;
-    const char* _shaderFilePath = nullptr;
+    ShaderPathInfo _shaderFilePath;
     VkShaderStageFlagBits _stageFlagBits;
 };
 }  // namespace VoxFlow

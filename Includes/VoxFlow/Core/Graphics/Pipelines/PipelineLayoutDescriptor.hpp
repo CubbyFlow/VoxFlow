@@ -1,7 +1,7 @@
 // Author : snowapril
 
-#ifndef VOXEL_FLOW_SHADER_LAYOUT_BINDING_HPP
-#define VOXEL_FLOW_SHADER_LAYOUT_BINDING_HPP
+#ifndef VOXEL_FLOW_PIPELINE_LAYOUT_DESCRIPTOR_HPP
+#define VOXEL_FLOW_PIPELINE_LAYOUT_DESCRIPTOR_HPP
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSet.hpp>
@@ -16,6 +16,7 @@ namespace VoxFlow
 struct VertexInputLayout
 {
     uint32_t _location = 0;
+    uint32_t _binding = 0;
     uint32_t _stride = 0;  //! # bytes
     VertexFormatBaseType _baseType = VertexFormatBaseType::Unknown;
 

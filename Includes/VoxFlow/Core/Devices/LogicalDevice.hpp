@@ -27,6 +27,7 @@ class DescriptorSetAllocatorPool;
 class StagingBufferContext;
 class ResourceUploadContext;
 class CommandJobSystem;
+class PipelineStreamingContext;
 
 class LogicalDevice : NonCopyable
 {
@@ -114,6 +115,11 @@ class LogicalDevice : NonCopyable
         return _commandJobSystem.get();
     }
 
+    inline PipelineStreamingContext* getPipelineStreamingContext() const
+    {
+        return _pipelineStreamingContext.get();
+    }
+
  public:
     void initializeCommandStreams();
 
@@ -142,6 +148,7 @@ class LogicalDevice : NonCopyable
     RenderPassCollector* _renderPassCollector = nullptr;
     DescriptorSetAllocatorPool* _descriptorSetAllocatorPool = nullptr;
     std::unique_ptr<CommandJobSystem> _commandJobSystem;
+    std::unique_ptr<PipelineStreamingContext> _pipelineStreamingContext;
 };
 }  // namespace VoxFlow
 

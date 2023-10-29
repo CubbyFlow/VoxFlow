@@ -2,18 +2,19 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineCache.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
 GraphicsPipeline::GraphicsPipeline(
-    LogicalDevice* logicalDevice,
-    std::initializer_list<const char*>&& shaderPaths)
-    : BasePipeline(logicalDevice, std::move(shaderPaths))
+    PipelineStreamingContext* pipelineStreamingContext,
+    std::vector<ShaderPathInfo>&& shaderPaths)
+    : BasePipeline(pipelineStreamingContext, std::move(shaderPaths))
 {
 }
 
@@ -58,28 +59,29 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
         return false;
     }
 
-    std::vector<VertexInputLayout> vertexInputLayouts;
-    std::vector<FragmentOutputLayout> fragmentOutputLayouts;
-
-    for (const ShaderReflectionDataGroup* reflectionDataGroup :
-         combinedReflectionDataGroups)
-    {
-        if (vertexInputLayouts.empty() &&
-            (reflectionDataGroup->_vertexInputLayouts.empty() == false))
-        {
-            std::move(reflectionDataGroup->_vertexInputLayouts.begin(),
-                      reflectionDataGroup->_vertexInputLayouts.end(),
-                      std::back_inserter(vertexInputLayouts));
-        }
-
-        if (fragmentOutputLayouts.empty() &&
-            (reflectionDataGroup->_fragmentOutputLayouts.empty() == false))
-        {
-            std::move(reflectionDataGroup->_fragmentOutputLayouts.begin(),
-                      reflectionDataGroup->_fragmentOutputLayouts.end(),
-                      std::back_inserter(fragmentOutputLayouts));
-        }
-    }
+    // TODO(snowapril) : need comparison between input layout and reflected one
+    //std::vector<VertexInputLayout> vertexInputLayouts;
+    //std::vector<FragmentOutputLayout> fragmentOutputLayouts;
+    //
+    //for (const ShaderReflectionDataGroup* reflectionDataGroup :
+    //     combinedReflectionDataGroups)
+    //{
+    //    if (vertexInputLayouts.empty() &&
+    //        (reflectionDataGroup->_vertexInputLayouts.empty() == false))
+    //    {
+    //        std::move(reflectionDataGroup->_vertexInputLayouts.begin(),
+    //                  reflectionDataGroup->_vertexInputLayouts.end(),
+    //                  std::back_inserter(vertexInputLayouts));
+    //    }
+    //
+    //    if (fragmentOutputLayouts.empty() &&
+    //        (reflectionDataGroup->_fragmentOutputLayouts.empty() == false))
+    //    {
+    //        std::move(reflectionDataGroup->_fragmentOutputLayouts.begin(),
+    //                  reflectionDataGroup->_fragmentOutputLayouts.end(),
+    //                  std::back_inserter(fragmentOutputLayouts));
+    //    }
+    //}
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos;
     shaderStageInfos.reserve(_shaderModules.size());
@@ -106,11 +108,13 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     vertexInputInfo.pNext = nullptr;
 
     // TODO(snowapril) : support instancing with given input layout
-    const bool hasStageInputs = vertexInputLayouts.size() > 0;
+    const std::vector<VertexInputLayout>& inputLayouts =
+        _pipelineState.inputLayout.inputLayouts;
+    const bool hasStageInputs = inputLayouts.size() > 0;
     if (hasStageInputs)
     {
         uint32_t offset = 0;
-        for (const auto& inputLayout : vertexInputLayouts)
+        for (const VertexInputLayout& inputLayout : inputLayouts)
         {
             bindingDescriptions.push_back(
                 { .binding = 0,
@@ -147,7 +151,7 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     inputAssemblyInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyInfo.pNext = nullptr;
-    inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    inputAssemblyInfo.topology = _pipelineState.topology;
     inputAssemblyInfo.flags = 0;
     inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
@@ -171,10 +175,10 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizationInfo.depthClampEnable = VK_FALSE;
     rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
-    rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizationInfo.polygonMode = _pipelineState.rasterization.polygonMode;
     rasterizationInfo.lineWidth = 1.0f;
-    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizationInfo.cullMode = _pipelineState.rasterization.cullMode;
+    rasterizationInfo.frontFace = _pipelineState.rasterization.front;
     rasterizationInfo.depthBiasEnable = VK_FALSE;
     rasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
     rasterizationInfo.depthBiasClamp = 0.0f;           // Optional
@@ -190,29 +194,34 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     multiSampleInfo.alphaToCoverageEnable = VK_FALSE;  // Optional
     multiSampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
 
-    VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {};
-    colorBlendAttachmentState.colorWriteMask =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachmentState.blendEnable = VK_FALSE;
-    colorBlendAttachmentState.srcColorBlendFactor =
-        VK_BLEND_FACTOR_ONE;  // Optional
-    colorBlendAttachmentState.dstColorBlendFactor =
-        VK_BLEND_FACTOR_ZERO;                                  // Optional
-    colorBlendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;  // Optional
-    colorBlendAttachmentState.srcAlphaBlendFactor =
-        VK_BLEND_FACTOR_ONE;  // Optional
-    colorBlendAttachmentState.dstAlphaBlendFactor =
-        VK_BLEND_FACTOR_ZERO;                                  // Optional
-    colorBlendAttachmentState.alphaBlendOp = VK_BLEND_OP_ADD;  // Optional
+    std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
+    colorBlendAttachments.resize(_pipelineState.blendState.activeStates);
+    for (uint32_t i = 0; i < _pipelineState.blendState.activeStates; ++i)
+    {
+        const BlendState& blendState =
+            _pipelineState.blendState.blendStates
+                [i];
+
+        VkPipelineColorBlendAttachmentState& colorBlendAttachmentState =
+            colorBlendAttachments[i];
+        colorBlendAttachmentState.colorWriteMask = blendState.colorMasks;
+        colorBlendAttachmentState.blendEnable = blendState.blendEnabled ? VK_TRUE : VK_FALSE;
+        colorBlendAttachmentState.srcColorBlendFactor = blendState.sourceColor;  // Optional
+        colorBlendAttachmentState.dstColorBlendFactor = blendState.destinationColor;  // Optional
+        colorBlendAttachmentState.colorBlendOp = blendState.colorOperation;  // Optional
+        colorBlendAttachmentState.srcAlphaBlendFactor = blendState.sourceAlpha;  // Optional
+        colorBlendAttachmentState.dstAlphaBlendFactor = blendState.destinationAlpha;  // Optional
+        colorBlendAttachmentState.alphaBlendOp = blendState.alphaOperation;  // Optional
+    }
 
     VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
     colorBlendInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlendInfo.logicOpEnable = VK_FALSE;
     colorBlendInfo.logicOp = VK_LOGIC_OP_COPY;  // Optional
-    colorBlendInfo.attachmentCount = 1;
-    colorBlendInfo.pAttachments = &colorBlendAttachmentState;
+    colorBlendInfo.attachmentCount =
+        static_cast<uint32_t>(colorBlendAttachments.size());
+    colorBlendInfo.pAttachments = colorBlendAttachments.data();
     colorBlendInfo.blendConstants[0] = 0.0f;  // Optional
     colorBlendInfo.blendConstants[1] = 0.0f;  // Optional
     colorBlendInfo.blendConstants[2] = 0.0f;  // Optional
@@ -221,15 +230,31 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
     depthStencilInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depthStencilInfo.depthTestEnable = VK_TRUE;
-    depthStencilInfo.depthWriteEnable = VK_TRUE;
-    depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+    depthStencilInfo.depthTestEnable = _pipelineState.depthStencil.depthEnable ? VK_TRUE : VK_FALSE;
+    depthStencilInfo.depthWriteEnable = _pipelineState.depthStencil.depthWriteEnable ? VK_TRUE : VK_FALSE;
+    depthStencilInfo.depthCompareOp = _pipelineState.depthStencil.depthComparison;
     depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
     depthStencilInfo.minDepthBounds = 0.0f;  // Optional
     depthStencilInfo.maxDepthBounds = 1.0f;  // Optional
-    depthStencilInfo.stencilTestEnable = VK_FALSE;
-    depthStencilInfo.front = {};  // Optional
-    depthStencilInfo.back = {};   // Optional
+    depthStencilInfo.stencilTestEnable = _pipelineState.depthStencil.stencilEnable;
+    depthStencilInfo.front = {
+        .failOp = _pipelineState.depthStencil.front.fail,
+        .passOp = _pipelineState.depthStencil.front.pass,
+        .depthFailOp = _pipelineState.depthStencil.front.depthFail,
+        .compareOp = _pipelineState.depthStencil.front.compare,
+        .compareMask = _pipelineState.depthStencil.front.compareMask,
+        .writeMask = _pipelineState.depthStencil.front.writeMask,
+        .reference = _pipelineState.depthStencil.front.reference,
+    };
+    depthStencilInfo.back = {
+        .failOp = _pipelineState.depthStencil.back.fail,
+        .passOp = _pipelineState.depthStencil.back.pass,
+        .depthFailOp = _pipelineState.depthStencil.back.depthFail,
+        .compareOp = _pipelineState.depthStencil.back.compare,
+        .compareMask = _pipelineState.depthStencil.back.compareMask,
+        .writeMask = _pipelineState.depthStencil.back.writeMask,
+        .reference = _pipelineState.depthStencil.back.reference,
+    };
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT,
                                       VK_DYNAMIC_STATE_SCISSOR };
@@ -244,7 +269,7 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
     const VkGraphicsPipelineCreateInfo pipelineInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0,
+        .flags = _pipelineState.flags,
         .stageCount = static_cast<unsigned int>(shaderStageInfos.size()),
         .pStages = shaderStageInfos.data(),
         .pVertexInputState = &vertexInputInfo,
@@ -263,14 +288,18 @@ bool GraphicsPipeline::initialize(RenderPass* renderPass)
         .basePipelineIndex = -1
     };
 
-    VK_ASSERT(vkCreateGraphicsPipelines(_logicalDevice->get(), VK_NULL_HANDLE,
-                                        1, &pipelineInfo, nullptr, &_pipeline));
+    VkPipelineCache pipelineCache =
+        _pipelineCache != nullptr ? _pipelineCache->get() : VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateGraphicsPipelines(_logicalDevice->get(), pipelineCache, 1,
+                                        &pipelineInfo, nullptr, &_pipeline));
 
     if (_pipeline == VK_NULL_HANDLE)
     {
         VOX_ASSERT(false, "Failed to create graphics pipeline");
         return false;
     }
+
+    _pipelineCache.reset();
     
     return true;
 }
