@@ -6,6 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace VoxFlow
@@ -37,6 +38,9 @@ class PipelineStreamingContext : NonCopyable
                          const ShaderPathInfo& pathInfo,
                          const bool skipShaderCacheExport = false);
 
+    void exportPipelineCache(const size_t pipelineHash,
+                             std::vector<uint8_t>&& pipelineCacheBinary);
+
     [[nodiscard]] inline LogicalDevice* getLogicalDevice()
     {
         return _logicalDevice;
@@ -44,7 +48,8 @@ class PipelineStreamingContext : NonCopyable
 
  private:
     ShaderPathInfo getShaderPathInfo(const std::string& path);
-    bool getPipelineCacheIfExist(std::vector<uint8_t>& outCacheData);
+    void getPipelineCacheIfExist(const std::string& pipelineCachePath,
+                                 std::vector<uint8_t>& outCacheData);
     void exportShaderCache(const ShaderPathInfo& pathInfo,
                            const std::vector<uint32_t>& spirvBinary);
 

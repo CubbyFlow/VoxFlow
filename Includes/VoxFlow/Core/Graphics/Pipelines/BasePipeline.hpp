@@ -16,6 +16,7 @@ class ShaderModule;
 class LogicalDevice;
 class PipelineLayout;
 class PipelineStreamingContext;
+class PipelineCache;
 
 class BasePipeline : NonCopyable
 {
@@ -57,6 +58,11 @@ class BasePipeline : NonCopyable
      */
     [[nodiscard]] virtual VkPipelineBindPoint getBindPoint() const noexcept = 0;
 
+    /**
+     * @brief set pipeline cache for this pipeline
+     */
+    void setPipelineCache(std::unique_ptr<PipelineCache>&& pipelineCache);
+
  protected:
     /**
      * release shader modules and pipeline layout which is used to create
@@ -73,6 +79,7 @@ class BasePipeline : NonCopyable
     PipelineStreamingContext* _pipelineStreamingContext = nullptr;
     LogicalDevice* _logicalDevice = nullptr;
     std::unique_ptr<PipelineLayout> _pipelineLayout;
+    std::unique_ptr<PipelineCache> _pipelineCache;
     std::vector<std::unique_ptr<ShaderModule>> _shaderModules;
     VkPipeline _pipeline{ VK_NULL_HANDLE };
 };

@@ -1,10 +1,12 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineCache.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Utils/HashUtil.hpp>
 #include <string_view>
 #include <fstream>
 #include <filesystem>
@@ -49,15 +51,34 @@ std::shared_ptr<GraphicsPipeline>
 PipelineStreamingContext::createGraphicsPipeline(
     std::vector<std::string>&& shaderPaths)
 {
+    uint32_t pipelineHash = 0;
+
     std::vector<ShaderPathInfo> pathInfos;
     pathInfos.reserve(shaderPaths.size());
     for (std::string path : shaderPaths)
     {
         pathInfos.push_back(getShaderPathInfo(path));
+        hash_combine(pipelineHash, path);
     }
 
     auto graphicsPipeline =
         std::make_shared<GraphicsPipeline>(this, std::move(pathInfos));
+
+    auto pipelineCache = std::make_unique<PipelineCache>(this, pipelineHash);
+
+    std::vector<uint8_t> pipelineCacheBinary;
+    const std::string pipelineCachePath =
+        _pipelineCachePath + std::to_string(pipelineHash) + ".vfpipeline";
+    getPipelineCacheIfExist(pipelineCachePath, pipelineCacheBinary);
+
+    if (pipelineCacheBinary.size() > 0)
+    {
+        spdlog::info("pipeline cache loaded [ {} ]", pipelineCachePath);
+    }
+
+    pipelineCache->loadPipelineCache(pipelineCacheBinary);
+    graphicsPipeline->setPipelineCache(std::move(pipelineCache));
+
     _registeredPipelines.push_back(graphicsPipeline);
     return graphicsPipeline;
 }
@@ -65,8 +86,27 @@ PipelineStreamingContext::createGraphicsPipeline(
 std::shared_ptr<ComputePipeline>
 PipelineStreamingContext::createComputePipeline(std::string&& shaderPath)
 {
+    uint32_t pipelineHash = 0;
+    hash_combine(pipelineHash, shaderPath);
+
     auto computePipeline =
         std::make_shared<ComputePipeline>(this, getShaderPathInfo(shaderPath));
+
+    auto pipelineCache = std::make_unique<PipelineCache>(this, pipelineHash);
+
+    std::vector<uint8_t> pipelineCacheBinary;
+    const std::string pipelineCachePath =
+        _pipelineCachePath + std::to_string(pipelineHash) + ".vfpipeline";
+    getPipelineCacheIfExist(pipelineCachePath, pipelineCacheBinary);
+
+    if (pipelineCacheBinary.size() > 0)
+    {
+        spdlog::info("pipeline cache loaded [ {} ]", pipelineCachePath);
+    }
+
+    pipelineCache->loadPipelineCache(pipelineCacheBinary);
+    computePipeline->setPipelineCache(std::move(pipelineCache));
+
     _registeredPipelines.push_back(computePipeline);
     return computePipeline;
 }
@@ -102,6 +142,8 @@ bool PipelineStreamingContext::loadSpirvBinary(
 
         compileResult =
             ShaderUtil::ReadSpirvBinary(shaderAbsPath.c_str(), &outSpirvBinary);
+        
+        spdlog::info("shader cache loaded [ {} ]", shaderAbsPath);
     }
 
     return compileResult;
@@ -123,6 +165,23 @@ void PipelineStreamingContext::exportShaderCache(
     shaderCacheFile.close();
 
     spdlog::info("shader cache exported [ {} ]", shaderCachePath);
+}
+
+void PipelineStreamingContext::exportPipelineCache(
+    const size_t pipelineHash, std::vector<uint8_t>&& pipelineCacheBinary)
+{
+    std::ofstream pipelineCacheFile;
+
+    std::string pipelineCachePath =
+        _pipelineCachePath + std::to_string(pipelineHash) + ".vfpipeline";
+
+    pipelineCacheFile.open(pipelineCachePath, std::ios::app | std::ios::binary);
+    pipelineCacheFile.write(
+        reinterpret_cast<const char*>(pipelineCacheBinary.data()),
+        pipelineCacheBinary.size() * 4);
+    pipelineCacheFile.close();
+
+    spdlog::info("pipeline cache exported [ {} ]", pipelineCachePath);
 }
 
 ShaderPathInfo PipelineStreamingContext::getShaderPathInfo(
@@ -159,11 +218,23 @@ ShaderPathInfo PipelineStreamingContext::getShaderPathInfo(
     return pathInfo;
 }
 
-bool PipelineStreamingContext::getPipelineCacheIfExist(
-    std::vector<uint8_t>& outCacheData)
+void PipelineStreamingContext::getPipelineCacheIfExist(
+    const std::string& pipelineCachePath, std::vector<uint8_t>& outCacheData)
 {
-    (void)outCacheData;
-    return true;
+    std::ifstream file(pipelineCachePath,
+                       std::ios::in | std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+    {
+        return;
+    }
+
+    const size_t fileSize = file.tellg();
+    outCacheData.resize(fileSize);
+
+    file.seekg(std::ios::beg);
+    file.read(reinterpret_cast<char*>(outCacheData.data()), fileSize);
+
+    file.close();
 }
 
 }  // namespace VoxFlow

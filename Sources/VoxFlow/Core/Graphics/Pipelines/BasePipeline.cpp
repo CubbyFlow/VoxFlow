@@ -8,6 +8,7 @@
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineCache.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
@@ -45,6 +46,12 @@ BasePipeline& BasePipeline::operator=(BasePipeline&& other) noexcept
         other._pipeline = VK_NULL_HANDLE;
     }
     return *this;
+}
+
+void BasePipeline::setPipelineCache(
+    std::unique_ptr<PipelineCache>&& pipelineCache)
+{
+    _pipelineCache = std::move(pipelineCache);
 }
 
 void BasePipeline::release()

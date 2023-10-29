@@ -3,6 +3,7 @@
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineCache.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
@@ -77,8 +78,18 @@ bool ComputePipeline::initialize()
         .basePipelineIndex = -1
     };
 
-    VK_ASSERT(vkCreateComputePipelines(_logicalDevice->get(), VK_NULL_HANDLE, 1,
+    VkPipelineCache pipelineCache =
+        _pipelineCache != nullptr ? _pipelineCache->get() : VK_NULL_HANDLE;
+    VK_ASSERT(vkCreateComputePipelines(_logicalDevice->get(), pipelineCache, 1,
                                        &pipelineInfo, nullptr, &_pipeline));
+
+    if (_pipeline == VK_NULL_HANDLE)
+    {
+        VOX_ASSERT(false, "Failed to create graphics pipeline");
+        return false;
+    }
+
+    _pipelineCache.reset();
 
     return true;
 }

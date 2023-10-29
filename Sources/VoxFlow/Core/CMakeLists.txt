@@ -38,6 +38,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineCache.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Graphics/Pipelines/PipelineStateObject.hpp
@@ -111,10 +112,11 @@ set(SRCS
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSet.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocator.cpp
     ${SRC_DIR}/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.cpp
+    ${SRC_DIR}/Core/Graphics/Pipelines/PipelineCache.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayout.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineLayoutDescriptor.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/PipelineStreamingContext.cpp
-    "Graphics/Pipelines/ShaderUtil.cpp"
+    ${SRC_DIR}/Core/Graphics/Pipelines/ShaderUtil.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/BasePipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/GraphicsPipeline.cpp
     ${SRC_DIR}/Core/Graphics/Pipelines/ComputePipeline.cpp
