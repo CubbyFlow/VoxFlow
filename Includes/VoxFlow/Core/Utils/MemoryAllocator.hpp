@@ -5,10 +5,10 @@
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <condition_variable>
+#include <list>
 #include <mutex>
 #include <thread>
 #include <vector>
-#include <list>
 
 namespace VoxFlow
 {
@@ -28,8 +28,7 @@ class BlockAllocator : private NonCopyable
 
  protected:
     virtual uint64_t allocateInner(const uint64_t size) = 0;
-    virtual void deallocateInner(const uint64_t offset,
-                                 const uint64_t size) = 0;
+    virtual void deallocateInner(const uint64_t offset, const uint64_t size) = 0;
     virtual void defragmentInner() = 0;
 
  private:
@@ -42,8 +41,7 @@ class FixedBlockAllocator : public BlockAllocator
 {
  public:
     FixedBlockAllocator() = default;
-    FixedBlockAllocator(const uint64_t blockSize, const uint64_t numBlocks,
-                        const bool isThreadSafe);
+    FixedBlockAllocator(const uint64_t blockSize, const uint64_t numBlocks, const bool isThreadSafe);
     ~FixedBlockAllocator();
 
     uint64_t allocateInner(const uint64_t size) override;

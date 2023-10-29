@@ -1,14 +1,13 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
 
 namespace VoxFlow
 {
-FrameBuffer::FrameBuffer(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+FrameBuffer::FrameBuffer(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
 {
 }
 
@@ -39,10 +38,8 @@ bool FrameBuffer::initialize(const RenderTargetsInfo& rtInfo)
     _renderTargetsInfo = rtInfo;
 
     std::vector<VkImageView> attachments;
-    attachments.reserve(
-        _renderTargetsInfo._colorRenderTarget.size() +
-        (_renderTargetsInfo._depthStencilImage.has_value() ? 1U : 0U));
-    
+    attachments.reserve(_renderTargetsInfo._colorRenderTarget.size() + (_renderTargetsInfo._depthStencilImage.has_value() ? 1U : 0U));
+
     for (const auto& colorRT : rtInfo._colorRenderTarget)
     {
         attachments.push_back(colorRT->get());
@@ -69,8 +66,7 @@ bool FrameBuffer::initialize(const RenderTargetsInfo& rtInfo)
         frameBufferInfo.flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
     }
 
-    VK_ASSERT(vkCreateFramebuffer(_logicalDevice->get(), &frameBufferInfo, nullptr,
-                        &_vkFrameBuffer));
+    VK_ASSERT(vkCreateFramebuffer(_logicalDevice->get(), &frameBufferInfo, nullptr, &_vkFrameBuffer));
 
     if (_vkFrameBuffer == VK_NULL_HANDLE)
     {
@@ -78,8 +74,7 @@ bool FrameBuffer::initialize(const RenderTargetsInfo& rtInfo)
     }
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    DebugUtil::setObjectName(_logicalDevice, _vkFrameBuffer,
-                             _renderTargetsInfo._debugName.c_str());
+    DebugUtil::setObjectName(_logicalDevice, _vkFrameBuffer, _renderTargetsInfo._debugName.c_str());
 #endif
 
     return true;

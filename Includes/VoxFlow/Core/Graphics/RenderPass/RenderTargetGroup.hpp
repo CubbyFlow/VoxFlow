@@ -87,9 +87,7 @@ class AttachmentGroup
 {
  public:
     AttachmentGroup() = default;
-    explicit AttachmentGroup(std::vector<Attachment>&& colorAttachments,
-                             Attachment&& depthStencilAttachment,
-                             const uint32_t numSamples);
+    explicit AttachmentGroup(std::vector<Attachment>&& colorAttachments, Attachment&& depthStencilAttachment, const uint32_t numSamples);
     ~AttachmentGroup() = default;
     AttachmentGroup(const AttachmentGroup& rhs)
     {
@@ -159,15 +157,13 @@ class AttachmentGroup
 template <>
 struct std::hash<VoxFlow::RenderTargetLayoutKey>
 {
-    std::size_t operator()(
-        VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept;
+    std::size_t operator()(VoxFlow::RenderTargetLayoutKey const& layoutKey) const noexcept;
 };
 
 template <>
 struct std::hash<VoxFlow::RenderTargetsInfo>
 {
-    std::size_t operator()(
-        VoxFlow::RenderTargetsInfo const& rtInfo) const noexcept;
+    std::size_t operator()(VoxFlow::RenderTargetsInfo const& rtInfo) const noexcept;
 };
 
 #endif

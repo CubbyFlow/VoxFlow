@@ -1,7 +1,7 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
@@ -13,8 +13,7 @@
 namespace VoxFlow
 {
 
-SceneObjectPass::SceneObjectPass(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+SceneObjectPass::SceneObjectPass(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
 {
 }
 
@@ -23,9 +22,8 @@ SceneObjectPass::~SceneObjectPass()
 }
 
 const std::vector<glm::vec3> cubeVertices = {
-    { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f },   { -0.5f, 0.5f, 0.5f },
-    { 0.5f, 0.5f, 0.5f },   { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f },
-    { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f },
+    { -0.5f, -0.5f, 0.5f },  { 0.5f, -0.5f, 0.5f },  { -0.5f, 0.5f, 0.5f },  { 0.5f, 0.5f, 0.5f },
+    { -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f },
 };
 
 const std::vector<unsigned int> cubeIndices = {
@@ -39,54 +37,35 @@ const std::vector<unsigned int> cubeIndices = {
 
 bool SceneObjectPass::initialize()
 {
-    _sceneObjectPipeline =
-        _logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline(
-            { "scene_object.vert", "scene_object.frag" });
+    _sceneObjectPipeline = _logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline({ "scene_object.vert", "scene_object.frag" });
 
     // Set pipeline state for SceneObjectPass pipeline
     GraphicsPipelineState pipelineState;
-    pipelineState
-        .blendState.addBlendState()
-        .setColorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT);
+    pipelineState.blendState.addBlendState().setColorWriteMask(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+                                                               VK_COLOR_COMPONENT_A_BIT);
     pipelineState.inputLayout.addInputLayout(
-        VertexInputLayout{ ._location = 0,
-                           ._binding = 0,
-                           ._stride = sizeof(glm::vec3),
-                           ._baseType = VertexFormatBaseType::Float32 });
+        VertexInputLayout{ ._location = 0, ._binding = 0, ._stride = sizeof(glm::vec3), ._baseType = VertexFormatBaseType::Float32 });
     pipelineState.depthStencil.setDepth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
     _sceneObjectPipeline->setPipelineState(pipelineState);
 
-    _cubeVertexBuffer = std::make_unique<Buffer>(
-        "CubeVertexBuffer", _logicalDevice,
-        _logicalDevice->getDeviceDefaultResourceMemoryPool());
-    _cubeVertexBuffer->makeAllocationResident(BufferInfo{
-        ._size = cubeVertices.size() * sizeof(glm::vec3),
-        ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
+    _cubeVertexBuffer = std::make_unique<Buffer>("CubeVertexBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _cubeVertexBuffer->makeAllocationResident(
+        BufferInfo{ ._size = cubeVertices.size() * sizeof(glm::vec3), ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
 
-    _cubeIndexBuffer = std::make_unique<Buffer>(
-        "CubeIndexBuffer", _logicalDevice,
-        _logicalDevice->getDeviceDefaultResourceMemoryPool());
-    _cubeIndexBuffer->makeAllocationResident(BufferInfo{
-        ._size = cubeIndices.size() * sizeof(uint32_t),
-        ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+    _cubeIndexBuffer = std::make_unique<Buffer>("CubeIndexBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _cubeIndexBuffer->makeAllocationResident(
+        BufferInfo{ ._size = cubeIndices.size() * sizeof(uint32_t), ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
 
     return true;
 }
 
 void SceneObjectPass::updateRender(ResourceUploadContext* uploadContext)
 {
-    uploadContext->addPendingUpload(
-        UploadPhase::Immediate, _cubeVertexBuffer.get(),
-        UploadData{ ._data = &cubeVertices[0].x,
-                    ._size = cubeVertices.size() * sizeof(glm::vec3),
-                    ._dstOffset = 0 });
+    uploadContext->addPendingUpload(UploadPhase::Immediate, _cubeVertexBuffer.get(),
+                                    UploadData{ ._data = &cubeVertices[0].x, ._size = cubeVertices.size() * sizeof(glm::vec3), ._dstOffset = 0 });
 
-    uploadContext->addPendingUpload(
-        UploadPhase::Immediate, _cubeIndexBuffer.get(),
-        UploadData{ ._data = &cubeIndices[0],
-                    ._size = cubeIndices.size() * sizeof(uint32_t),
-                    ._dstOffset = 0 });
+    uploadContext->addPendingUpload(UploadPhase::Immediate, _cubeIndexBuffer.get(),
+                                    UploadData{ ._data = &cubeIndices[0], ._size = cubeIndices.size() * sizeof(uint32_t), ._dstOffset = 0 });
 }
 
 void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
@@ -94,86 +73,59 @@ void SceneObjectPass::renderScene(RenderGraph::FrameGraph* frameGraph)
     using namespace RenderGraph;
 
     BlackBoard& blackBoard = frameGraph->getBlackBoard();
-    ResourceHandle backBufferHandle =
-        blackBoard.getHandle("BackBuffer");
+    ResourceHandle backBufferHandle = blackBoard.getHandle("BackBuffer");
 
-    const auto& backBufferDesc =
-        frameGraph->getResourceDescriptor<FrameGraphTexture>(
-            backBufferHandle);
+    const auto& backBufferDesc = frameGraph->getResourceDescriptor<FrameGraphTexture>(backBufferHandle);
 
     _passData = frameGraph->addCallbackPass<SceneObjectPassData>(
         "SceneObjectPass",
-        [&](FrameGraphBuilder& builder,
-            SceneObjectPassData& passData) {
+        [&](FrameGraphBuilder& builder, SceneObjectPassData& passData) {
             passData._sceneColorHandle =
-                builder.allocate<FrameGraphTexture>(
-                    "SceneColor",
-                    FrameGraphTexture::Descriptor{
-                        ._width = backBufferDesc._width,
-                        ._height = backBufferDesc._height,
-                        ._depth = backBufferDesc._depth,
-                        ._level = backBufferDesc._level,
-                        ._sampleCounts = backBufferDesc._sampleCounts,
-                        ._format = backBufferDesc._format });
+                builder.allocate<FrameGraphTexture>("SceneColor", FrameGraphTexture::Descriptor{ ._width = backBufferDesc._width,
+                                                                                                 ._height = backBufferDesc._height,
+                                                                                                 ._depth = backBufferDesc._depth,
+                                                                                                 ._level = backBufferDesc._level,
+                                                                                                 ._sampleCounts = backBufferDesc._sampleCounts,
+                                                                                                 ._format = backBufferDesc._format });
 
             passData._sceneDepthHandle =
-                builder.allocate<FrameGraphTexture>(
-                    "SceneDepth", FrameGraphTexture::Descriptor{
-                                      ._width = backBufferDesc._width,
-                                      ._height = backBufferDesc._height,
-                                      ._depth = 1,
-                                      ._level = backBufferDesc._level,
-                                      ._sampleCounts = 1,
-                                      ._format = VK_FORMAT_D32_SFLOAT_S8_UINT });
+                builder.allocate<FrameGraphTexture>("SceneDepth", FrameGraphTexture::Descriptor{ ._width = backBufferDesc._width,
+                                                                                                 ._height = backBufferDesc._height,
+                                                                                                 ._depth = 1,
+                                                                                                 ._level = backBufferDesc._level,
+                                                                                                 ._sampleCounts = 1,
+                                                                                                 ._format = VK_FORMAT_D32_SFLOAT_S8_UINT });
 
             builder.write<FrameGraphTexture>(passData._sceneColorHandle, TextureUsage::RenderTarget);
             builder.write<FrameGraphTexture>(passData._sceneDepthHandle, TextureUsage::DepthStencil);
 
-            auto descriptor = FrameGraphRenderPass::Descriptor{
-                ._viewportSize =
-                    glm::uvec2(backBufferDesc._width, backBufferDesc._height),
-                ._writableAttachment =
-                    AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil,
-                ._numSamples = 1
-            };
+            auto descriptor = FrameGraphRenderPass::Descriptor{ ._viewportSize = glm::uvec2(backBufferDesc._width, backBufferDesc._height),
+                                                                ._writableAttachment = AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil,
+                                                                ._numSamples = 1 };
             descriptor._attachments[0] = passData._sceneColorHandle;
-            descriptor._attachments[MAX_RENDER_TARGET_COUNTS] =
-                passData._sceneDepthHandle;
-            descriptor._clearFlags =
-                AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil;
+            descriptor._attachments[MAX_RENDER_TARGET_COUNTS] = passData._sceneDepthHandle;
+            descriptor._clearFlags = AttachmentMaskFlags::Color0 | AttachmentMaskFlags::DepthStencil;
             descriptor._clearColors[0] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             descriptor._clearDepth = 1.0f;
 
-            passData._renderPassID = builder.declareRenderPass(
-                "SceneObjectPass RenderPass", std::move(descriptor));
+            passData._renderPassID = builder.declareRenderPass("SceneObjectPass RenderPass", std::move(descriptor));
 
             blackBoard["SceneColor"] = passData._sceneColorHandle;
             blackBoard["SceneDepth"] = passData._sceneDepthHandle;
         },
-        [&](const FrameGraphResources* fgResources,
-            SceneObjectPassData& passData, CommandStream* cmdStream) {
-            RenderPassData* rpData =
-                fgResources->getRenderPassData(passData._renderPassID);
+        [&](const FrameGraphResources* fgResources, SceneObjectPassData& passData, CommandStream* cmdStream) {
+            RenderPassData* rpData = fgResources->getRenderPassData(passData._renderPassID);
 
-            cmdStream->addJob(CommandJobType::BeginRenderPass,
-                              rpData->_attachmentGroup, rpData->_passParams);
-            cmdStream->addJob(CommandJobType::BindPipeline,
-                              _sceneObjectPipeline.get());
-            
-            cmdStream->addJob(CommandJobType::BindVertexBuffer,
-                              _cubeVertexBuffer);
+            cmdStream->addJob(CommandJobType::BeginRenderPass, rpData->_attachmentGroup, rpData->_passParams);
+            cmdStream->addJob(CommandJobType::BindPipeline, _sceneObjectPipeline.get());
 
-            cmdStream->addJob(CommandJobType::BindIndexBuffer,
-                              _cubeIndexBuffer);
-            
-            const auto& sceneColorDesc =
-                fgResources
-                    ->getResourceDescriptor<FrameGraphTexture>(
-                        passData._sceneColorHandle);
+            cmdStream->addJob(CommandJobType::BindVertexBuffer, _cubeVertexBuffer);
 
-            cmdStream->addJob(
-                CommandJobType::SetViewport,
-                glm::uvec2(sceneColorDesc._width, sceneColorDesc._height));
+            cmdStream->addJob(CommandJobType::BindIndexBuffer, _cubeIndexBuffer);
+
+            const auto& sceneColorDesc = fgResources->getResourceDescriptor<FrameGraphTexture>(passData._sceneColorHandle);
+
+            cmdStream->addJob(CommandJobType::SetViewport, glm::uvec2(sceneColorDesc._width, sceneColorDesc._height));
 
             cmdStream->addJob(CommandJobType::DrawIndexed, 36, 1, 0, 0, 0);
 

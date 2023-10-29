@@ -13,8 +13,7 @@ class PipelineStreamingContext;
 class PipelineCache : NonCopyable
 {
  public:
-    explicit PipelineCache(PipelineStreamingContext* pipelineStreamingContext,
-                           const uint32_t pipelineHash);
+    explicit PipelineCache(PipelineStreamingContext* pipelineStreamingContext, const uint32_t pipelineHash);
     ~PipelineCache() override;
     PipelineCache(PipelineCache&& other) noexcept;
     PipelineCache& operator=(PipelineCache&& other) noexcept;

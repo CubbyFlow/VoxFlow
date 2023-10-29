@@ -16,12 +16,13 @@ constexpr const uint32_t INVALID_HANDLE_ID = UINT32_MAX;
 class ResourceHandle
 {
  public:
-    ResourceHandle() : _handleID(INVALID_HANDLE_ID){}
+    ResourceHandle() : _handleID(INVALID_HANDLE_ID)
+    {
+    }
     constexpr ResourceHandle(const uint32_t id) noexcept : _handleID(id)
     {
     }
-    constexpr ResourceHandle(const std::size_t id) noexcept
-        : _handleID(static_cast<uint32_t>(id))
+    constexpr ResourceHandle(const std::size_t id) noexcept : _handleID(static_cast<uint32_t>(id))
     {
     }
 
@@ -72,8 +73,7 @@ constexpr const ResourceHandle INVALID_RESOURCE_HANDLE(INVALID_HANDLE_ID);
 template <>
 struct std::hash<VoxFlow::RenderGraph::ResourceHandle>
 {
-    std::size_t operator()(
-        VoxFlow::RenderGraph::ResourceHandle const& handle) const noexcept;
+    std::size_t operator()(VoxFlow::RenderGraph::ResourceHandle const& handle) const noexcept;
 };
 
 #endif

@@ -2,18 +2,15 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
-#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 #include <VoxFlow/Core/Resources/StagingBuffer.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 
 namespace VoxFlow
 {
 constexpr uint64_t STAGING_BUFFER_DEFAULT_SIZE = 1024U * 1024U;
 
-StagingBufferContext::StagingBufferContext(
-    LogicalDevice* logicalDevice,
-    RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+StagingBufferContext::StagingBufferContext(LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool)
+    : _logicalDevice(logicalDevice), _renderResourceMemoryPool(renderResourceMemoryPool)
 {
 }
 
@@ -22,8 +19,7 @@ StagingBufferContext ::~StagingBufferContext()
     release();
 }
 
-std::tuple<StagingBuffer*, uint64_t>
-StagingBufferContext::getOrCreateStagingBuffer(const uint64_t size)
+std::tuple<StagingBuffer*, uint64_t> StagingBufferContext::getOrCreateStagingBuffer(const uint64_t size)
 {
     StagingBuffer* stagingBuffer = nullptr;
     uint64_t stagingBufferOffset = UINT32_MAX;
@@ -40,20 +36,16 @@ StagingBufferContext::getOrCreateStagingBuffer(const uint64_t size)
 
     if (stagingBuffer == nullptr)
     {
-        auto stagingBufferPtr = std::make_shared<StagingBuffer>(
-            "StagingBuffer", _logicalDevice, _renderResourceMemoryPool);
+        auto stagingBufferPtr = std::make_shared<StagingBuffer>("StagingBuffer", _logicalDevice, _renderResourceMemoryPool);
 
         stagingBufferPtr->makeAllocationResident(STAGING_BUFFER_DEFAULT_SIZE);
 
         stagingBuffer = stagingBufferPtr.get();
 
         _stagingBufferPools.push_back(
-            StagingBufferPool{ std::move(stagingBufferPtr),
-                               std::make_unique<LinearBlockAllocator>(
-                                   STAGING_BUFFER_DEFAULT_SIZE, false) });
+            StagingBufferPool{ std::move(stagingBufferPtr), std::make_unique<LinearBlockAllocator>(STAGING_BUFFER_DEFAULT_SIZE, false) });
 
-        stagingBufferOffset =
-            _stagingBufferPools.back()._blockAllocator->allocate(size);
+        stagingBufferOffset = _stagingBufferPools.back()._blockAllocator->allocate(size);
     }
 
     return { stagingBuffer, stagingBufferOffset };

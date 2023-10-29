@@ -29,7 +29,7 @@ class SceneRenderPass : NonCopyable
      * @return self
      */
     SceneRenderPass* addDependency(const std::string& passName);
-    
+
     /**
      * @return get added dependency pass names
      */

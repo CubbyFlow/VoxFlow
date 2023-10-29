@@ -3,11 +3,11 @@
 #ifndef VOXEL_FLOW_BINDABLE_RESOURCE_VIEW_HPP
 #define VOXEL_FLOW_BINDABLE_RESOURCE_VIEW_HPP
 
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <VoxFlow/Core/Utils/FenceObject.hpp>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace VoxFlow
 {
@@ -26,9 +26,7 @@ enum class ResourceViewType : uint8_t
 class ResourceView : private NonCopyable
 {
  public:
-    explicit ResourceView(
-        std::string&& debugName, LogicalDevice* logicalDevice,
-                                  RenderResource* ownerResource);
+    explicit ResourceView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource);
     virtual ~ResourceView();
 
     virtual ResourceViewType getResourceViewType() const = 0;
@@ -43,8 +41,7 @@ class ResourceView : private NonCopyable
         _lastAccessMask = accessMask;
     }
 
-    inline void setLastusedShaderStageFlags(
-        VkPipelineStageFlags stageFlags)
+    inline void setLastusedShaderStageFlags(VkPipelineStageFlags stageFlags)
 
     {
         _lastUsedStageFlags = stageFlags;

@@ -9,11 +9,8 @@
 
 namespace VoxFlow
 {
-StagingBuffer::StagingBuffer(std::string_view&& debugName,
-                             LogicalDevice* logicalDevice,
-                             RenderResourceMemoryPool* renderResourceMemoryPool)
-    : RenderResource(std::move(debugName), logicalDevice,
-                     renderResourceMemoryPool)
+StagingBuffer::StagingBuffer(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool)
+    : RenderResource(std::move(debugName), logicalDevice, renderResourceMemoryPool)
 {
 }
 
@@ -26,33 +23,25 @@ bool StagingBuffer::makeAllocationResident(const uint32_t size)
 {
     _size = size;
 
-    VkBufferCreateInfo bufferCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = size,
-        .usage =
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr
-    };
+    VkBufferCreateInfo bufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                            .pNext = nullptr,
+                                            .flags = 0,
+                                            .size = size,
+                                            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                                            .queueFamilyIndexCount = 0,
+                                            .pQueueFamilyIndices = nullptr };
 
-    VmaAllocationCreateInfo vmaCreateInfo = {
-        .flags =
-            VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT,  // TODO(snowapril) :
-                                                            // choose best one
-        .usage = VMA_MEMORY_USAGE_CPU_TO_GPU,
-        .requiredFlags = 0,
-        .preferredFlags = 0,
-        .memoryTypeBits = 0,
-        .pool = VK_NULL_HANDLE,
-        .pUserData = nullptr
-    };
+    VmaAllocationCreateInfo vmaCreateInfo = { .flags = VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT,  // TODO(snowapril) :
+                                                                                                       // choose best one
+                                              .usage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+                                              .requiredFlags = 0,
+                                              .preferredFlags = 0,
+                                              .memoryTypeBits = 0,
+                                              .pool = VK_NULL_HANDLE,
+                                              .pUserData = nullptr };
 
-    VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(),
-                              &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer,
-                              &_allocation, nullptr));
+    VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(), &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer, &_allocation, nullptr));
 
     if (_vkBuffer == VK_NULL_HANDLE)
     {
@@ -64,13 +53,9 @@ bool StagingBuffer::makeAllocationResident(const uint32_t size)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
 
-    std::optional<uint32_t> defaultViewIndex = createStagingBufferView(
-        BufferViewInfo{ ._offset = 0, ._range = _size });
+    std::optional<uint32_t> defaultViewIndex = createStagingBufferView(BufferViewInfo{ ._offset = 0, ._range = _size });
 
-    VOX_ASSERT(
-        defaultViewIndex.has_value(),
-        "Failed to create default staging buffer view for staging buffer({})",
-        _debugName);
+    VOX_ASSERT(defaultViewIndex.has_value(), "Failed to create default staging buffer view for staging buffer({})", _debugName);
     if (defaultViewIndex.has_value())
     {
         _defaultView = getView(defaultViewIndex.value()).get();
@@ -93,12 +78,8 @@ void StagingBuffer::release()
         VkBuffer vkBuffer = _vkBuffer;
         VmaAllocation vmaAllocation = _allocation;
 
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences),
-                                  [vmaAllocator, vkBuffer, vmaAllocation]() {
-                                      vmaDestroyBuffer(vmaAllocator, vkBuffer,
-                                                       vmaAllocation);
-                                  }));
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(RenderResourceGarbage(
+            std::move(_accessedFences), [vmaAllocator, vkBuffer, vmaAllocation]() { vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation); }));
 
         _vkBuffer = VK_NULL_HANDLE;
         _allocation = VK_NULL_HANDLE;
@@ -109,9 +90,7 @@ std::optional<uint32_t> StagingBuffer::createStagingBufferView(const BufferViewI
 {
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
     std::shared_ptr<StagingBufferView> stagingBufferView =
-        std::make_shared<StagingBufferView>(
-            fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-            this);
+        std::make_shared<StagingBufferView>(fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice, this);
 
     if (stagingBufferView->initialize(viewInfo) == false)
     {
@@ -127,8 +106,7 @@ uint8_t* StagingBuffer::map()
     if (_permanentMappedAddress == nullptr)
     {
         void* memoryAddress = nullptr;
-        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(), _allocation,
-                               &memoryAddress));
+        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(), _allocation, &memoryAddress));
         _permanentMappedAddress = memoryAddress;
     }
 
@@ -140,8 +118,7 @@ void StagingBuffer::unmap()
     // TODO(snowapril) : consider unmap or not
 }
 
-StagingBufferView::StagingBufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                       RenderResource* ownerResource)
+StagingBufferView::StagingBufferView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource)
     : ResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }

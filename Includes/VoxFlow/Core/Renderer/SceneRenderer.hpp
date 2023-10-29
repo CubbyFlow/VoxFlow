@@ -4,8 +4,8 @@
 #define VOXEL_FLOW_SCENE_RENDERER_HPP
 
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandConfig.hpp>
+#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <string>
 #include <taskflow/taskflow.hpp>
 #include <unordered_map>
@@ -22,8 +22,7 @@ class SwapChain;
 class SceneRenderer final : NonCopyable
 {
  public:
-    SceneRenderer(LogicalDevice* mainLogicalDevice,
-                  RenderGraph::FrameGraph* frameGraph);
+    SceneRenderer(LogicalDevice* mainLogicalDevice, RenderGraph::FrameGraph* frameGraph);
     ~SceneRenderer() override;
 
  public:
@@ -34,13 +33,10 @@ class SceneRenderer final : NonCopyable
     void submitFrameGraph();
 
     template <typename SceneRenderPassType, typename... Args,
-              typename = typename std::enable_if_t<
-                  std::is_base_of<SceneRenderPass, SceneRenderPassType>::value>>
-    SceneRenderPassType* getOrCreateSceneRenderPass(const std::string& passName,
-                                                Args... args)
+              typename = typename std::enable_if_t<std::is_base_of<SceneRenderPass, SceneRenderPassType>::value>>
+    SceneRenderPassType* getOrCreateSceneRenderPass(const std::string& passName, Args... args)
     {
-        SceneRenderPassType* newPassPtr =
-            new SceneRenderPassType(args...);
+        SceneRenderPassType* newPassPtr = new SceneRenderPassType(args...);
 
         std::unique_ptr<SceneRenderPass> newPass(newPassPtr);
 
@@ -57,8 +53,7 @@ class SceneRenderer final : NonCopyable
     std::unique_ptr<RenderResourceAllocator> _renderResourceAllocator;
     CommandStreamKey _renderCmdStreamKey;
 
-    std::unordered_map<std::string, std::unique_ptr<SceneRenderPass>>
-        _sceneRenderPasses;
+    std::unordered_map<std::string, std::unique_ptr<SceneRenderPass>> _sceneRenderPasses;
 };
 }  // namespace VoxFlow
 

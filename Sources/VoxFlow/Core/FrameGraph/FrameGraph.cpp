@@ -4,21 +4,17 @@
 #include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
-#include <stack>
 #include <map>
+#include <stack>
 
 namespace VoxFlow
 {
 
 namespace RenderGraph
 {
-uint32_t FrameGraphBuilder::declareRenderPass(
-    std::string_view&& passName,
-    typename FrameGraphRenderPass::Descriptor&& initArgs)
+uint32_t FrameGraphBuilder::declareRenderPass(std::string_view&& passName, typename FrameGraphRenderPass::Descriptor&& initArgs)
 {
-    return static_cast<RenderPassNode*>(_currentPassNode)
-        ->declareRenderPass(_frameGraph, this, std::move(passName),
-                              std::move(initArgs));
+    return static_cast<RenderPassNode*>(_currentPassNode)->declareRenderPass(_frameGraph, this, std::move(passName), std::move(initArgs));
 }
 
 FrameGraph::FrameGraph()
@@ -29,8 +25,7 @@ FrameGraph::~FrameGraph()
 {
 }
 
-void FrameGraph::reset(CommandStream* cmdStream,
-                       RenderResourceAllocator* renderResourceAllocator)
+void FrameGraph::reset(CommandStream* cmdStream, RenderResourceAllocator* renderResourceAllocator)
 {
     clear();
 
@@ -38,26 +33,19 @@ void FrameGraph::reset(CommandStream* cmdStream,
     _renderResourceAllocator = renderResourceAllocator;
 }
 
-ResourceHandle FrameGraph::importRenderTarget(
-    std::string&& resourceName,
-    FrameGraphTexture::Descriptor&& resourceDescArgs,
-    typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
-    TextureView* textureView)
+ResourceHandle FrameGraph::importRenderTarget(std::string&& resourceName, FrameGraphTexture::Descriptor&& resourceDescArgs,
+                                              typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc, TextureView* textureView)
 {
-    VirtualResource* virtualResource = new ImportedRenderTarget(
-        std::move(resourceName), std::move(resourceDescArgs), std::move(importedDesc), {}, textureView);
+    VirtualResource* virtualResource = new ImportedRenderTarget(std::move(resourceName), std::move(resourceDescArgs), std::move(importedDesc), {}, textureView);
 
     ResourceHandle resourceHandle(_resources.size());
 
-    _resourceSlots.push_back(
-        { ._resourceIndex =
-              static_cast<ResourceSlot::IndexType>(_resourceNodes.size()),
-          ._nodeIndex = static_cast<ResourceSlot::IndexType>(_resources.size()),
-          ._version = static_cast<ResourceSlot::VersionType>(0) });
+    _resourceSlots.push_back({ ._resourceIndex = static_cast<ResourceSlot::IndexType>(_resourceNodes.size()),
+                               ._nodeIndex = static_cast<ResourceSlot::IndexType>(_resources.size()),
+                               ._version = static_cast<ResourceSlot::VersionType>(0) });
     _resources.push_back(virtualResource);
 
-    ResourceNode* resourceNode = new ResourceNode(
-        &_dependencyGraph, resourceHandle);
+    ResourceNode* resourceNode = new ResourceNode(&_dependencyGraph, resourceHandle);
     resourceNode->_refCount = UINT32_MAX;
 
     _resourceNodes.push_back(resourceNode);
@@ -78,7 +66,7 @@ bool FrameGraph::compile()
 // #define FRAMEGRAPH_FULL_OPTIMIZE
 #define FRAMEGRAPH_CULLING_ONLY
 #if defined(FRAMEGRAPH_FULL_OPTIMIZE)
-    
+
     buildAdjacencyLists(numPassNodes);
 
     if (bool isCycleExist = topologicalSortPassNodes(numPassNodes))
@@ -95,35 +83,26 @@ bool FrameGraph::compile()
 
     _dependencyGraph.cullUnreferencedNodes();
 
-    _passNodeLast = std::stable_partition(
-        _passNodes.begin(), _passNodes.end(),
-        [](PassNode* node) { return node->isCulled() == false; });
+    _passNodeLast = std::stable_partition(_passNodes.begin(), _passNodes.end(), [](PassNode* node) { return node->isCulled() == false; });
 
     for (auto it = _passNodes.begin(); it != _passNodeLast; ++it)
     {
         PassNode* passNode = *it;
 
-        VOX_ASSERT(passNode->isCulled() == false,
-                   "There must not be culled nodes after culling");
+        VOX_ASSERT(passNode->isCulled() == false, "There must not be culled nodes after culling");
 
-        DependencyGraph::EdgeContainer reads =
-            _dependencyGraph.getIncomingEdges(passNode->getNodeID());
+        DependencyGraph::EdgeContainer reads = _dependencyGraph.getIncomingEdges(passNode->getNodeID());
         for (const DependencyGraph::Edge* edge : reads)
         {
-            DependencyGraph::Node* node =
-                _dependencyGraph.getNode(edge->_fromNodeID);
-            passNode->registerResource(
-                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+            DependencyGraph::Node* node = _dependencyGraph.getNode(edge->_fromNodeID);
+            passNode->registerResource(this, static_cast<ResourceNode*>(node)->getResourceHandle());
         }
 
-        DependencyGraph::EdgeContainer writes =
-            _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
+        DependencyGraph::EdgeContainer writes = _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
         for (const DependencyGraph::Edge* edge : writes)
         {
-            DependencyGraph::Node* node =
-                _dependencyGraph.getNode(edge->_toNodeID);
-            passNode->registerResource(
-                this, static_cast<ResourceNode*>(node)->getResourceHandle());
+            DependencyGraph::Node* node = _dependencyGraph.getNode(edge->_toNodeID);
+            passNode->registerResource(this, static_cast<ResourceNode*>(node)->getResourceHandle());
         }
 
         passNode->resolve(this);
@@ -153,29 +132,24 @@ bool FrameGraph::compile()
     return true;
 }
 
-ResourceHandle FrameGraph::readInternal(
-    ResourceHandle id, [[maybe_unused]] PassNode* passNode,
-    std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
+ResourceHandle FrameGraph::readInternal(ResourceHandle id, [[maybe_unused]] PassNode* passNode, std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
 {
-    VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given", id.get());
+    VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()), "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
     VirtualResource* vResource = _resources[resourceSlot._resourceIndex];
-    
+
 #if defined(VOXFLOW_DEBUG)
-    DependencyGraph::EdgeContainer incomingEdges =
-        _dependencyGraph.getIncomingEdges(resourceNode->getNodeID());
+    DependencyGraph::EdgeContainer incomingEdges = _dependencyGraph.getIncomingEdges(resourceNode->getNodeID());
     for (const DependencyGraph::Edge* edge : incomingEdges)
     {
         if (edge->_fromNodeID == passNode->getNodeID())
         {
-            VOX_ASSERT(false,
-                       "This resource is already written by same pass node");
+            VOX_ASSERT(false, "This resource is already written by same pass node");
         }
     }
-#endif // VOXFLOW_DEBUG
+#endif  // VOXFLOW_DEBUG
 
     if (connect(resourceNode, vResource))
     {
@@ -187,39 +161,35 @@ ResourceHandle FrameGraph::readInternal(
     return id;
 }
 
-ResourceHandle FrameGraph::writeInternal(
-    ResourceHandle id, PassNode* passNode,
-    std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
+ResourceHandle FrameGraph::writeInternal(ResourceHandle id, PassNode* passNode, std::function<bool(ResourceNode*, VirtualResource*)>&& connect)
 {
-    VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()),
-               "Invalid ResourceHandle({}) is given", id.get());
+    VOX_ASSERT(id < static_cast<ResourceHandle>(_resourceSlots.size()), "Invalid ResourceHandle({}) is given", id.get());
 
     const ResourceSlot& resourceSlot = getResourceSlot(id);
     VirtualResource* vResource = _resources[resourceSlot._resourceIndex];
     ResourceNode* resourceNode = _resourceNodes[resourceSlot._nodeIndex];
-    //const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
+    // const DependencyGraph::NodeID resourceNodeID = resourceNode->getNodeID();
 
-    DependencyGraph::EdgeContainer outgoingEdges =
-        _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
+    DependencyGraph::EdgeContainer outgoingEdges = _dependencyGraph.getOutgoingEdges(passNode->getNodeID());
 
-    //bool alreadyWritten = false;
-    //for (const DependencyGraph::Edge* edge : outgoingEdges)
+    // bool alreadyWritten = false;
+    // for (const DependencyGraph::Edge* edge : outgoingEdges)
     //{
-    //    if (edge->_toNodeID == resourceNodeID)
-    //    {
-    //        alreadyWritten = true;
-    //        break;
-    //    }
-    //}
+    //     if (edge->_toNodeID == resourceNodeID)
+    //     {
+    //         alreadyWritten = true;
+    //         break;
+    //     }
+    // }
     //
-    //if (alreadyWritten)
+    // if (alreadyWritten)
     //{
-    //    // TODO(snowapril) : update resource usage or something else
-    //}
-    //else
+    //     // TODO(snowapril) : update resource usage or something else
+    // }
+    // else
     //{
-    //    _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
-    //}
+    //     _dependencyGraph.link(passNode->getNodeID(), resourceNode->getNodeID());
+    // }
 
     if (connect(resourceNode, vResource))
     {
@@ -251,12 +221,9 @@ void FrameGraph::buildAdjacencyLists(const uint32_t numPassNodes)
             if (i == j)
                 continue;
 
-            for (const DependencyGraph::Edge* writeEdge :
-                 _dependencyGraph.getOutgoingEdges(_passNodes[i]->getNodeID()))
+            for (const DependencyGraph::Edge* writeEdge : _dependencyGraph.getOutgoingEdges(_passNodes[i]->getNodeID()))
             {
-                for (const DependencyGraph::Edge* readEdge :
-                     _dependencyGraph.getIncomingEdges(
-                         _passNodes[j]->getNodeID()))
+                for (const DependencyGraph::Edge* readEdge : _dependencyGraph.getIncomingEdges(_passNodes[j]->getNodeID()))
                 {
                     if (writeEdge->_toNodeID == readEdge->_fromNodeID)
                     {
@@ -339,8 +306,7 @@ void FrameGraph::calcDependencyLevels(const uint32_t numPassNodes)
             if (sDistances[connectedNodeIndex] < sDistances[nodeIndex] + 1)
             {
                 sDistances[connectedNodeIndex] = sDistances[nodeIndex] + 1;
-                maxDistances =
-                    std::max(maxDistances, sDistances[connectedNodeIndex]);
+                maxDistances = std::max(maxDistances, sDistances[connectedNodeIndex]);
             }
         }
     }
@@ -384,8 +350,7 @@ void FrameGraph::execute()
 {
     SCOPED_CHROME_TRACING("FrameGraph::execute");
 
-    for (std::vector<PassNode*>::iterator iter = _passNodes.begin();
-         iter != _passNodeLast; ++iter)
+    for (std::vector<PassNode*>::iterator iter = _passNodes.begin(); iter != _passNodeLast; ++iter)
     {
         PassNode* passNode = *iter;
 
@@ -451,7 +416,7 @@ class AlphabetPermutator
                 {
                     permutationIndex++;
                     needToIncrementAlphabet = false;
-                }    
+                }
             }
         }
         return alphabetPermutation;
@@ -467,8 +432,7 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
              "[style=dashed];\n";
 
     std::map<DependencyGraph::NodeID, std::string> nodeLabelMap;
-    const uint32_t numTotalNodes =
-        static_cast<uint32_t>(_passNodes.size() + _resourceNodes.size());
+    const uint32_t numTotalNodes = static_cast<uint32_t>(_passNodes.size() + _resourceNodes.size());
 
     AlphabetPermutator permutator(numTotalNodes);
 
@@ -476,31 +440,25 @@ void FrameGraph::dumpGraphViz(std::ostringstream& osstr)
     {
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[passNode->getNodeID()] = nodeLabel;
-        osstr << "\t" << nodeLabel << "[ label=\"" << passNode->getPassName()
-              << "\" shape=record bgcolor=\"grey\" "
-              << "style=\"filled" << (passNode->isCulled() ? ",dashed\"" : "\"")
-              << "];\n";
+        osstr << "\t" << nodeLabel << "[ label=\"" << passNode->getPassName() << "\" shape=record bgcolor=\"grey\" "
+              << "style=\"filled" << (passNode->isCulled() ? ",dashed\"" : "\"") << "];\n";
     }
     osstr << '\n';
 
     for (ResourceNode* resourceNode : _resourceNodes)
     {
-        VirtualResource* vresource =
-            _resources[getResourceSlot(resourceNode->getResourceHandle())
-                           ._resourceIndex];
+        VirtualResource* vresource = _resources[getResourceSlot(resourceNode->getResourceHandle())._resourceIndex];
 
         const std::string& nodeLabel = permutator.getNextAlphabetPermutation();
         nodeLabelMap[resourceNode->getNodeID()] = nodeLabel;
-        osstr << "\t" << nodeLabel << "[ label=\""
-              << vresource->getResourceName() << "\" shape=label "
-              << (resourceNode->isCulled() ? "style=dashed" : "") << "];\n";
+        osstr << "\t" << nodeLabel << "[ label=\"" << vresource->getResourceName() << "\" shape=label " << (resourceNode->isCulled() ? "style=dashed" : "")
+              << "];\n";
     }
     osstr << '\n';
 
     for (const DependencyGraph::Edge* edge : _dependencyGraph.getLinkedEdges())
     {
-        osstr << '\t' << nodeLabelMap[edge->_fromNodeID] << " -> "
-              << nodeLabelMap[edge->_toNodeID] << '\n';
+        osstr << '\t' << nodeLabelMap[edge->_fromNodeID] << " -> " << nodeLabelMap[edge->_toNodeID] << '\n';
     }
     osstr << '}';
 }

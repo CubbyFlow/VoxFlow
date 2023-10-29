@@ -5,26 +5,20 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
-#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceAllocator.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
 
 namespace VoxFlow
 {
-SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice,
-                             RenderGraph::FrameGraph* frameGraph)
-    : _mainLogicalDevice(mainLogicalDevice),
-      _frameGraph(frameGraph)
+SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice, RenderGraph::FrameGraph* frameGraph)
+    : _mainLogicalDevice(mainLogicalDevice), _frameGraph(frameGraph)
 {
     _commandJobSystem = _mainLogicalDevice->getCommandJobSystem();
 
-    _renderCmdStreamKey =
-        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Graphics };
+    _renderCmdStreamKey = CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Graphics };
 
-    _renderResourceAllocator = std::make_unique<RenderResourceAllocator>(
-        mainLogicalDevice,
-        mainLogicalDevice->getDeviceDefaultResourceMemoryPool());
+    _renderResourceAllocator = std::make_unique<RenderResourceAllocator>(mainLogicalDevice, mainLogicalDevice->getDeviceDefaultResourceMemoryPool());
 }
 
 SceneRenderer::~SceneRenderer()
@@ -37,8 +31,7 @@ bool SceneRenderer::initializePasses()
     {
         if (pass->initialize() == false)
         {
-            VOX_ASSERT(false, "Failed to initialize scene render pass {}",
-                       passName);
+            VOX_ASSERT(false, "Failed to initialize scene render pass {}", passName);
             return false;
         }
     }
@@ -59,27 +52,19 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 
     _currentFrameContext = frameContext;
 
-    _frameGraph->reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey),
-                       _renderResourceAllocator.get());
+    _frameGraph->reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey), _renderResourceAllocator.get());
 
-    SwapChain* swapChain =
-        _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex)
-            .get();
+    SwapChain* swapChain = _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex).get();
 
-    Texture* currentBackBuffer =
-        swapChain->getSwapChainImage(_currentFrameContext._backBufferIndex)
-            .get();
+    Texture* currentBackBuffer = swapChain->getSwapChainImage(_currentFrameContext._backBufferIndex).get();
 
     const TextureInfo& backBufferInfo = currentBackBuffer->getTextureInfo();
 
     // TODO(snowapril) : create back buffer view other place.
     std::optional<uint32_t> backBufferViewIndex =
-        currentBackBuffer->createTextureView(
-            TextureViewInfo{ ._format = backBufferInfo._format,
-                             ._aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT });
+        currentBackBuffer->createTextureView(TextureViewInfo{ ._format = backBufferInfo._format, ._aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT });
 
-    std::shared_ptr<TextureView> backBufferView =
-        currentBackBuffer->getView(backBufferViewIndex.value());
+    std::shared_ptr<TextureView> backBufferView = currentBackBuffer->getView(backBufferViewIndex.value());
 
     using namespace RenderGraph;
     auto backBufferDescriptor = FrameGraphTexture::Descriptor{
@@ -91,23 +76,19 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
         ._format = backBufferInfo._format,
     };
 
-    auto backBufferRenderTargetDesc =
-        FrameGraphRenderPass::ImportedDescriptor{
-            ._attachmentSlot = AttachmentMaskFlags::All,
-            ._viewportSize =
-                glm::uvec2(backBufferInfo._extent.x, backBufferInfo._extent.y),
-            ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-            ._clearFlags = AttachmentMaskFlags::All,
-            ._writableAttachment = AttachmentMaskFlags::All,
-            ._numSamples = 1,
-        };
+    auto backBufferRenderTargetDesc = FrameGraphRenderPass::ImportedDescriptor{
+        ._attachmentSlot = AttachmentMaskFlags::All,
+        ._viewportSize = glm::uvec2(backBufferInfo._extent.x, backBufferInfo._extent.y),
+        ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+        ._clearFlags = AttachmentMaskFlags::All,
+        ._writableAttachment = AttachmentMaskFlags::All,
+        ._numSamples = 1,
+    };
 
     BlackBoard& blackBoard = _frameGraph->getBlackBoard();
 
     ResourceHandle backBufferHandle =
-        _frameGraph->importRenderTarget(
-            "BackBuffer", std::move(backBufferDescriptor),
-            std::move(backBufferRenderTargetDesc), backBufferView.get());
+        _frameGraph->importRenderTarget("BackBuffer", std::move(backBufferDescriptor), std::move(backBufferRenderTargetDesc), backBufferView.get());
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
@@ -121,13 +102,10 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     std::unordered_map<std::string, tf::Task> tasks;
 
     // Prepare tasks from registered scene render passes
-    for (auto iter = _sceneRenderPasses.begin();
-         iter != _sceneRenderPasses.end(); ++iter)
+    for (auto iter = _sceneRenderPasses.begin(); iter != _sceneRenderPasses.end(); ++iter)
     {
         SceneRenderPass* pass = iter->second.get();
-        tf::Task fgTask =
-            taskflow.emplace([this, pass]() { pass->renderScene(_frameGraph); })
-                .name(iter->first);
+        tf::Task fgTask = taskflow.emplace([this, pass]() { pass->renderScene(_frameGraph); }).name(iter->first);
 
         tasks.emplace(iter->first, std::move(fgTask));
     }
@@ -135,8 +113,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     // Resolve dependency between tasks
     for (const auto& [passName, pass] : _sceneRenderPasses)
     {
-        const std::vector<std::string>* dependentPasses =
-            pass->getDepenentPasses();
+        const std::vector<std::string>* dependentPasses = pass->getDepenentPasses();
         tf::Task& fgTask = tasks.find(passName)->second;
 
         for (const std::string& dependentPassName : *dependentPasses)
@@ -146,18 +123,14 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add present pass which followed by all other passes
-    ResourceHandle backBufferHandle =
-        _frameGraph->getBlackBoard().getHandle("BackBuffer");
+    ResourceHandle backBufferHandle = _frameGraph->getBlackBoard().getHandle("BackBuffer");
 
     tf::Task presentTask =
         taskflow
             .emplace([&]() {
                 _frameGraph->addPresentPass(
-                    "PresentPass",
-                    [&](FrameGraphBuilder& builder) {
-                        builder.read<FrameGraphTexture>(backBufferHandle, TextureUsage::BackBuffer);
-                    },
-                    swapChain, _currentFrameContext);
+                    "PresentPass", [&](FrameGraphBuilder& builder) { builder.read<FrameGraphTexture>(backBufferHandle, TextureUsage::BackBuffer); }, swapChain,
+                    _currentFrameContext);
             })
             .name("PresentPass");
 
@@ -169,9 +142,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add frame graph compilation task
-    taskflow.emplace([&]() { _frameGraph->compile(); })
-        .name("Compilation")
-        .succeed(presentTask);
+    taskflow.emplace([&]() { _frameGraph->compile(); }).name("Compilation").succeed(presentTask);
 
     tf::Executor executor;
     return executor.run(taskflow);

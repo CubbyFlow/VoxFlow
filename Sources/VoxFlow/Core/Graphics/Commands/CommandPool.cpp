@@ -8,9 +8,7 @@
 namespace VoxFlow
 {
 CommandPool::CommandPool(LogicalDevice* logicalDevice, Queue* ownerQueue)
-    : _creationThreadId(std::this_thread::get_id()),
-      _logicalDevice(logicalDevice),
-      _ownerQueue(ownerQueue)
+    : _creationThreadId(std::this_thread::get_id()), _logicalDevice(logicalDevice), _ownerQueue(ownerQueue)
 
 {
     VkCommandPoolCreateInfo poolInfo{
@@ -19,18 +17,14 @@ CommandPool::CommandPool(LogicalDevice* logicalDevice, Queue* ownerQueue)
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         .queueFamilyIndex = _ownerQueue->getFamilyIndex(),
     };
-    VK_ASSERT(vkCreateCommandPool(_logicalDevice->get(), &poolInfo, nullptr,
-                                  &_commandPool));
+    VK_ASSERT(vkCreateCommandPool(_logicalDevice->get(), &poolInfo, nullptr, &_commandPool));
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    const std::string debugName =
-        _ownerQueue->getDebugName() + "_" +
-        std::to_string(reinterpret_cast<uint64_t>(_commandPool));
+    const std::string debugName = _ownerQueue->getDebugName() + "_" + std::to_string(reinterpret_cast<uint64_t>(_commandPool));
 
     if (_commandPool != VK_NULL_HANDLE)
     {
-        DebugUtil::setObjectName(_logicalDevice, _commandPool,
-                                 debugName.c_str());
+        DebugUtil::setObjectName(_logicalDevice, _commandPool, debugName.c_str());
     }
     else
 #endif
@@ -90,17 +84,14 @@ std::shared_ptr<CommandBuffer> CommandPool::getOrCreateCommandBuffer()
         };
 
         VkCommandBuffer vkCommandBuffer = VK_NULL_HANDLE;
-        VK_ASSERT(vkAllocateCommandBuffers(_logicalDevice->get(), &allocInfo,
-                                           &vkCommandBuffer));
-        outCommandBuffer =
-            std::make_shared<CommandBuffer>(_logicalDevice, vkCommandBuffer);
+        VK_ASSERT(vkAllocateCommandBuffers(_logicalDevice->get(), &allocInfo, &vkCommandBuffer));
+        outCommandBuffer = std::make_shared<CommandBuffer>(_logicalDevice, vkCommandBuffer);
     }
 
     return outCommandBuffer;
 }
 
-void CommandPool::releaseCommandBuffer(
-    std::shared_ptr<CommandBuffer>&& commandBuffer)
+void CommandPool::releaseCommandBuffer(std::shared_ptr<CommandBuffer>&& commandBuffer)
 {
     VOX_ASSERT(std::this_thread::get_id() == _creationThreadId, "");
     _freedCommandBuffers.push(std::move(commandBuffer));

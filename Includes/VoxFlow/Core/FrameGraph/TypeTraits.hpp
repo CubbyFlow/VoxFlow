@@ -4,8 +4,8 @@
 #define VOXEL_FLOW_FRAME_GRAPH_CONCEPT_HPP
 
 #include <concepts>
-#include <type_traits>
 #include <string>
+#include <type_traits>
 
 namespace VoxFlow
 {
@@ -20,12 +20,10 @@ concept ResourceConcept = requires(Type resource)
     typename Type::Descriptor;
     typename Type::Usage;
 
-    requires std::is_default_constructible_v<Type> and
-        std::is_move_constructible_v<Type>;
+    requires std::is_default_constructible_v<Type> and std::is_move_constructible_v<Type>;
 
     {
-        resource.create((RenderResourceAllocator *)nullptr, std::string{},
-                        typename Type::Descriptor{}, typename Type::Usage{})
+        resource.create((RenderResourceAllocator *)nullptr, std::string{}, typename Type::Descriptor{}, typename Type::Usage{})
         } -> std::same_as<bool>;
     {
         resource.destroy((RenderResourceAllocator *)nullptr)
@@ -36,8 +34,7 @@ template <typename Type>
 concept RenderPassConcept = requires(Type resource)
 {
     typename Type::Descriptor;
-    requires std::is_default_constructible_v<Type> and
-        std::is_move_constructible_v<Type>;
+    requires std::is_default_constructible_v<Type> and std::is_move_constructible_v<Type>;
 };
 }  // namespace RenderGraph
 

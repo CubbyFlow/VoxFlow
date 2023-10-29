@@ -22,9 +22,8 @@ class Texture;
 class SwapChain : private NonCopyable
 {
  public:
-    explicit SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
-                       LogicalDevice* logicalDevice, Queue* presentSupportQueue,
-                       std::string&& titleName, const glm::uvec2 resolution) noexcept;
+    explicit SwapChain(Instance* instance, PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, Queue* presentSupportQueue, std::string&& titleName,
+                       const glm::uvec2 resolution) noexcept;
     ~SwapChain();
     SwapChain(SwapChain&& other) noexcept;
     SwapChain& operator=(SwapChain&& other) noexcept;
@@ -58,9 +57,7 @@ class SwapChain : private NonCopyable
 
     // Add semaphores and waiting values from queue which use swapchain's back
     // buffer to submit command
-    void addWaitSemaphores(const uint32_t frameIndex,
-                           VkSemaphore timelineSemaphore,
-                           const uint64_t waitingValue);
+    void addWaitSemaphores(const uint32_t frameIndex, VkSemaphore timelineSemaphore, const uint64_t waitingValue);
 
     // Wait all semaphores added with frameIndex
     void waitForGpuComplete(const uint32_t frameIndex);
@@ -68,9 +65,8 @@ class SwapChain : private NonCopyable
     // Returns whether swapChain window should be removed.
     bool shouldDestroySwapChain() const;
 
-private:
-    void querySwapChainCapability(
-        VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync);
+ private:
+    void querySwapChainCapability(VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync);
 
  private:
     Instance* _instance = nullptr;
@@ -106,7 +102,6 @@ private:
     std::array<SemaphoreWaitInfo, FRAME_BUFFER_COUNT> _waitSemaphoreInfos;
 };
 
-
 inline VkSwapchainKHR SwapChain::get() const noexcept
 {
     return _swapChain;
@@ -135,12 +130,9 @@ inline uint32_t SwapChain::getFrameIndex() const noexcept
 {
     return _frameIndex;
 }
-inline std::shared_ptr<Texture> SwapChain::getSwapChainImage(
-    const uint32_t index) const
+inline std::shared_ptr<Texture> SwapChain::getSwapChainImage(const uint32_t index) const
 {
-    VOX_ASSERT(index < static_cast<uint32_t>(_swapChainImages.size()),
-               "Given Index ({}), Num SwapChain Images ({})", index,
-               _swapChainImages.size());
+    VOX_ASSERT(index < static_cast<uint32_t>(_swapChainImages.size()), "Given Index ({}), Num SwapChain Images ({})", index, _swapChainImages.size());
     return _swapChainImages[index];
 }
 inline glm::uvec2 SwapChain::getResolution() const noexcept

@@ -21,8 +21,7 @@ class SwapChain;
 class Queue : private NonCopyable
 {
  public:
-    explicit Queue(const std::string& debugName, LogicalDevice* logicalDevice, VkQueueFlags queueTypeFlags,
-                   VkQueue _queueTypeBits, uint32_t familyIndex,
+    explicit Queue(const std::string& debugName, LogicalDevice* logicalDevice, VkQueueFlags queueTypeFlags, VkQueue _queueTypeBits, uint32_t familyIndex,
                    uint32_t queueIndex) noexcept;
     ~Queue();
     Queue(Queue&& other) noexcept;
@@ -55,17 +54,13 @@ class Queue : private NonCopyable
 
     // Submit given single command buffer to queue and returns FenceObject for
     // waiting submission completed
-    FenceObject submitCommandBuffer(
-        const std::shared_ptr<CommandBuffer>& commandBuffer,
-        SwapChain* swapChain, const FrameContext* frameContext,
-        const bool waitCompletion);
+    FenceObject submitCommandBuffer(const std::shared_ptr<CommandBuffer>& commandBuffer, SwapChain* swapChain, const FrameContext* frameContext,
+                                    const bool waitCompletion);
 
     // Submit given command buffers to queue and returns FenceObject for waiting
     // submission completed
-    FenceObject submitCommandBufferBatch(
-        std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers,
-        SwapChain* swapChain, const FrameContext* frameContext,
-        const bool waitAllCompletion);
+    FenceObject submitCommandBufferBatch(std::vector<std::shared_ptr<CommandBuffer>>&& batchedCommandBuffers, SwapChain* swapChain,
+                                         const FrameContext* frameContext, const bool waitAllCompletion);
 
     // Returns Timeline semaphore which synchronized with queue submission
     [[nodiscard]] inline VkSemaphore* getSubmitTimelineSemaphore()

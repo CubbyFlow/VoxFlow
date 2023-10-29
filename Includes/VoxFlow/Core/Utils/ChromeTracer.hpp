@@ -10,7 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <string_view>
 #include <thread>
-#endif // ENABLE_CHROME_TRACING
+#endif  // ENABLE_CHROME_TRACING
 
 namespace VoxFlow
 {
@@ -71,7 +71,7 @@ class ChromeTracer
  private:
     ChromeTracer() = default;
 
-private:
+ private:
     struct EventDescriptor
     {
         std::string _name;
@@ -80,7 +80,7 @@ private:
         std::thread::id _threadId;
     };
 
-private:
+ private:
     std::mutex _mutex;
     nlohmann::json _json;
     std::chrono::system_clock::time_point _traceStartTime;
@@ -90,11 +90,8 @@ private:
 
 #define HAS_TRACING_BEGIN() ChromeTracer::Get().hasBegun()
 #define BEGIN_CHROME_TRACING() ChromeTracer::Get().beginTrace()
-#define END_CHROME_TRACING(traceFilePath) \
-    ChromeTracer::Get().endTrace(traceFilePath)
-#define SCOPED_CHROME_TRACING(eventName) \
-    auto scopdChromeTracing##__LINE__ =   \
-        ChromeTracer::Get().createScopedTracingHandle(eventName);
+#define END_CHROME_TRACING(traceFilePath) ChromeTracer::Get().endTrace(traceFilePath)
+#define SCOPED_CHROME_TRACING(eventName) auto scopdChromeTracing##__LINE__ = ChromeTracer::Get().createScopedTracingHandle(eventName);
 #else
 #define HAS_TRACING_BEGIN() false
 #define BEGIN_CHROME_TRACING()

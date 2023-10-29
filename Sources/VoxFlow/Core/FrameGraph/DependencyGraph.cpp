@@ -6,16 +6,13 @@
 
 namespace VoxFlow
 {
-DependencyGraph::Node::Node(DependencyGraph* ownerGraph)
-    : _ownerGraph(ownerGraph), _nodeId(ownerGraph->getNextNodeID())
+DependencyGraph::Node::Node(DependencyGraph* ownerGraph) : _ownerGraph(ownerGraph), _nodeId(ownerGraph->getNextNodeID())
 {
     _ownerGraph->registerNode(this, _nodeId);
 }
 
 DependencyGraph::Edge::Edge(DependencyGraph* ownerGraph, Node* from, Node* to)
-    : _ownerGraph(ownerGraph),
-      _fromNodeID(from->getNodeID()),
-      _toNodeID(to->getNodeID())
+    : _ownerGraph(ownerGraph), _fromNodeID(from->getNodeID()), _toNodeID(to->getNodeID())
 {
 }
 
@@ -34,27 +31,22 @@ DependencyGraph::NodeID DependencyGraph::getNextNodeID()
 DependencyGraph::EdgeContainer DependencyGraph::getIncomingEdges(NodeID id)
 {
     EdgeContainer incomingEdges;
-    std::copy_if(_edges.begin(), _edges.end(),
-                 std::back_inserter(incomingEdges),
-                 [id](Edge* edge) { return edge->_toNodeID == id; });
-    
+    std::copy_if(_edges.begin(), _edges.end(), std::back_inserter(incomingEdges), [id](Edge* edge) { return edge->_toNodeID == id; });
+
     return incomingEdges;
 }
 
 DependencyGraph::EdgeContainer DependencyGraph::getOutgoingEdges(NodeID id)
 {
     EdgeContainer outgoingEdges;
-    std::copy_if(_edges.begin(), _edges.end(),
-                 std::back_inserter(outgoingEdges),
-                 [id](Edge* edge) { return edge->_fromNodeID == id; });
+    std::copy_if(_edges.begin(), _edges.end(), std::back_inserter(outgoingEdges), [id](Edge* edge) { return edge->_fromNodeID == id; });
 
     return outgoingEdges;
 }
 
 void DependencyGraph::registerNode(Node* node, NodeID id)
-{ 
-    VOX_ASSERT(id == static_cast<NodeID>(_nodes.size()),
-               "Invalid Node ID {} was given", id);
+{
+    VOX_ASSERT(id == static_cast<NodeID>(_nodes.size()), "Invalid Node ID {} was given", id);
     _nodes.push_back(node);
 }
 
@@ -87,8 +79,7 @@ void DependencyGraph::cullUnreferencedNodes()
         for (Edge* incomingEdge : incomingEdges)
         {
             Node* linkedNode = getNode(incomingEdge->_fromNodeID);
-            VOX_ASSERT(linkedNode->_refCount > 0,
-                       "Reference count must not be zero");
+            VOX_ASSERT(linkedNode->_refCount > 0, "Reference count must not be zero");
             if ((--linkedNode->_refCount) == 0)
             {
                 unreferencedNodes.push(linkedNode);
@@ -105,8 +96,7 @@ void DependencyGraph::insertNode(Node* node, NodeID id)
 
 bool DependencyGraph::isEdgeValid(const Edge* edge) const
 {
-    return (_nodes[edge->_fromNodeID]->isCulled() == false) &&
-           (_nodes[edge->_toNodeID]->isCulled() == false);
+    return (_nodes[edge->_fromNodeID]->isCulled() == false) && (_nodes[edge->_toNodeID]->isCulled() == false);
 }
 
 }  // namespace VoxFlow

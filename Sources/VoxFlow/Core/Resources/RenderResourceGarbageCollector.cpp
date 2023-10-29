@@ -8,8 +8,7 @@
 namespace VoxFlow
 {
 
-void RenderResourceGarbageCollector::pushRenderResourceGarbage(
-    RenderResourceGarbage&& garbage)
+void RenderResourceGarbageCollector::pushRenderResourceGarbage(RenderResourceGarbage&& garbage)
 {
     std::lock_guard<std::mutex> scopedLock(_garbageCollectionLock);
     _garbageCollection.emplace_back(std::move(garbage));
@@ -29,12 +28,9 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
 
     {
         std::lock_guard<std::mutex> scopedLock(_garbageCollectionLock);
-        sTmpGarbageCollection.reserve(_garbageCollection.size() +
-                                      sTmpGarbageCollection.size());
-        sTmpGarbageCollection.insert(
-            sTmpGarbageCollection.end(),
-            std::make_move_iterator(_garbageCollection.begin()),
-            std::make_move_iterator(_garbageCollection.end()));
+        sTmpGarbageCollection.reserve(_garbageCollection.size() + sTmpGarbageCollection.size());
+        sTmpGarbageCollection.insert(sTmpGarbageCollection.end(), std::make_move_iterator(_garbageCollection.begin()),
+                                     std::make_move_iterator(_garbageCollection.end()));
     }
 
     uint32_t numGarbages = static_cast<uint32_t>(sTmpGarbageCollection.size());
@@ -53,7 +49,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
             }
         }
 
-       if (isUsingResource == false)
+        if (isUsingResource == false)
         {
             std::invoke(resourceGarbage._deletionDelegate);
             std::swap(resourceGarbage, sTmpGarbageCollection[numGarbages - 1]);
@@ -66,8 +62,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
         }
     }
 
-    sTmpGarbageCollection.resize(sTmpGarbageCollection.size() -
-                                 numDeletedResources);
+    sTmpGarbageCollection.resize(sTmpGarbageCollection.size() - numDeletedResources);
 }
 
 void RenderResourceGarbageCollector::threadConstruct()
@@ -75,15 +70,14 @@ void RenderResourceGarbageCollector::threadConstruct()
     _isConstructed = true;
     _shouldTerminate = false;
 
-    _threadHandle =
-        std::thread(&RenderResourceGarbageCollector::threadProcess, this);
+    _threadHandle = std::thread(&RenderResourceGarbageCollector::threadProcess, this);
 }
 
 void RenderResourceGarbageCollector::threadProcess()
 {
     using namespace std::chrono_literals;
 
-    static bool sIsThreadNameInitialized = false; // TODO(snowapril)
+    static bool sIsThreadNameInitialized = false;  // TODO(snowapril)
     if (sIsThreadNameInitialized == false)
     {
         Thread::SetThreadName("RenderResourceGarbageCollector");

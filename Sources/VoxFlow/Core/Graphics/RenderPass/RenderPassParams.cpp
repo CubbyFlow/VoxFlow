@@ -6,8 +6,7 @@ namespace VoxFlow
 {
 }  // namespace VoxFlow
 
-std::size_t std::hash<VoxFlow::RenderPassFlags>::operator()(
-    VoxFlow::RenderPassFlags const& passFlags) const noexcept
+std::size_t std::hash<VoxFlow::RenderPassFlags>::operator()(VoxFlow::RenderPassFlags const& passFlags) const noexcept
 {
     uint32_t seed = 0;
 

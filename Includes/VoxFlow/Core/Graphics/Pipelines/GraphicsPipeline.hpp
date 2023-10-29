@@ -5,8 +5,8 @@
 
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStateObject.hpp>
-#include <memory>
 #include <initializer_list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -19,9 +19,7 @@ class RenderPass;
 class GraphicsPipeline : public BasePipeline
 {
  public:
-    explicit GraphicsPipeline(
-        PipelineStreamingContext* pipelineStreamingContext,
-        std::vector<ShaderPathInfo>&& shaderPaths);
+    explicit GraphicsPipeline(PipelineStreamingContext* pipelineStreamingContext, std::vector<ShaderPathInfo>&& shaderPaths);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;
@@ -46,14 +44,14 @@ class GraphicsPipeline : public BasePipeline
         return _pipelineState;
     }
 
-public:
+ public:
     /**
-    * Create graphics pipeline with given renderpass and owned shader modules
-    */
-   bool initialize(RenderPass* renderPass);
+     * Create graphics pipeline with given renderpass and owned shader modules
+     */
+    bool initialize(RenderPass* renderPass);
 
-private:
-   GraphicsPipelineState _pipelineState;
+ private:
+    GraphicsPipelineState _pipelineState;
 };
 }  // namespace VoxFlow
 

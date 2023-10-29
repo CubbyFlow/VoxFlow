@@ -3,9 +3,9 @@
 #ifndef VOXEL_FLOW_POST_PROCESS_PASS_HPP
 #define VOXEL_FLOW_POST_PROCESS_PASS_HPP
 
+#include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/FrameGraph/Resource.hpp>
 #include <memory>
 
 namespace VoxFlow

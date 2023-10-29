@@ -1,15 +1,15 @@
 // Author : snowapril
 
-#include <chrono>
-#include <VoxFlow/Editor/VoxEditor.hpp>
-#include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
-#include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
+#include <GLFW/glfw3.h>
+#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
-#include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderer.hpp>
 #include <VoxFlow/Core/Utils/ChromeTracer.hpp>
-#include <GLFW/glfw3.h>
+#include <VoxFlow/Editor/RenderPass/PostProcessPass.hpp>
+#include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
+#include <VoxFlow/Editor/VoxEditor.hpp>
+#include <chrono>
 
 namespace VoxFlow
 {
@@ -20,8 +20,7 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
     {
         const char* glfwErrorMsg = nullptr;
         glfwGetError(&glfwErrorMsg);
-        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : {}",
-                   glfwErrorMsg);
+        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : {}", glfwErrorMsg);
         return;
     }
 
@@ -57,24 +56,17 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
 
     _renderDevice = new RenderDevice(context);
 
-    LogicalDevice* mainLogicalDevice =
-        _renderDevice->getLogicalDevice(LogicalDeviceType::MainDevice);
+    LogicalDevice* mainLogicalDevice = _renderDevice->getLogicalDevice(LogicalDeviceType::MainDevice);
 
-    _inputRegistrator.addObserveTargetWindow(
-        mainLogicalDevice->getSwapChain(0)->getGlfwWindow());
+    _inputRegistrator.addObserveTargetWindow(mainLogicalDevice->getSwapChain(0)->getGlfwWindow());
 
     using namespace std::placeholders;
     auto processKeyCallback = std::mem_fn(&VoxEditor::processKeyInput);
-    _inputRegistrator.registerDeviceKeyCallback(
-        uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
+    _inputRegistrator.registerDeviceKeyCallback(uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
 
     SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
-    _sceneObjectPass =
-        sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>(
-            "SceneObjectPass", mainLogicalDevice);
-    _postProcessPass =
-        sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>(
-            "PostProcessPass", mainLogicalDevice);
+    _sceneObjectPass = sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>("SceneObjectPass", mainLogicalDevice);
+    _postProcessPass = sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>("PostProcessPass", mainLogicalDevice);
     _postProcessPass->addDependency("SceneObjectPass");
 
     sceneRenderer->initializePasses();
@@ -97,8 +89,7 @@ void VoxEditor::runEditorLoop()
     while (_shouldCloseEditor == false)
     {
         const auto currentTime = std::chrono::system_clock::now();
-        const double elapsed =
-            std::chrono::duration<double>(currentTime - previousTime).count();
+        const double elapsed = std::chrono::duration<double>(currentTime - previousTime).count();
         previousTime = currentTime;
 
         glfwPollEvents();

@@ -17,14 +17,11 @@ class StagingBuffer;
 class StagingBufferContext : private NonCopyable
 {
  public:
-    explicit StagingBufferContext(
-        LogicalDevice* logicalDevice,
-        RenderResourceMemoryPool* renderResourceMemoryPool);
+    explicit StagingBufferContext(LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     ~StagingBufferContext();
 
  public:
-    std::tuple<StagingBuffer*, uint64_t> getOrCreateStagingBuffer(
-        const uint64_t size);
+    std::tuple<StagingBuffer*, uint64_t> getOrCreateStagingBuffer(const uint64_t size);
 
     void release();
 

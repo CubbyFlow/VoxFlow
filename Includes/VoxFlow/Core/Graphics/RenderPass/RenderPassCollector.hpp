@@ -25,8 +25,7 @@ class RenderPassCollector : private NonCopyable
     RenderPassCollector& operator=(RenderPassCollector&& other) noexcept;
 
  public:
-    [[nodiscard]] RenderPass* getOrCreateRenderPass(
-        RenderTargetLayoutKey layoutKey);
+    [[nodiscard]] RenderPass* getOrCreateRenderPass(RenderTargetLayoutKey layoutKey);
 
     [[nodiscard]] FrameBuffer* getOrCreateFrameBuffer(RenderTargetsInfo rtInfo);
 
@@ -34,10 +33,8 @@ class RenderPassCollector : private NonCopyable
 
  private:
     LogicalDevice* _logicalDevice = nullptr;
-    std::unordered_map<RenderTargetLayoutKey, std::shared_ptr<RenderPass>>
-        _renderPassCollection;
-    std::unordered_map<RenderTargetsInfo, std::shared_ptr<FrameBuffer>>
-        _frameBufferCollection;
+    std::unordered_map<RenderTargetLayoutKey, std::shared_ptr<RenderPass>> _renderPassCollection;
+    std::unordered_map<RenderTargetsInfo, std::shared_ptr<FrameBuffer>> _frameBufferCollection;
 };
 }  // namespace VoxFlow
 

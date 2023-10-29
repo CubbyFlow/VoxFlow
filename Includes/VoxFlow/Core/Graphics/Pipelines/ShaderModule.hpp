@@ -10,8 +10,8 @@
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <array>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 namespace VoxFlow
 {
@@ -20,8 +20,7 @@ class PipelineStreamingContext;
 class ShaderModule : private NonCopyable
 {
  public:
-    explicit ShaderModule(PipelineStreamingContext* pipelineStreamingContext,
-                          const ShaderPathInfo& shaderPath);
+    explicit ShaderModule(PipelineStreamingContext* pipelineStreamingContext, const ShaderPathInfo& shaderPath);
     ~ShaderModule() override;
     ShaderModule(ShaderModule&& other) noexcept;
     ShaderModule& operator=(ShaderModule&& other) noexcept;
@@ -42,8 +41,7 @@ class ShaderModule : private NonCopyable
     /**
      * @return reflected shader layout binding of thie module
      */
-    [[nodiscard]] inline const ShaderReflectionDataGroup*
-    getShaderReflectionDataGroup() const
+    [[nodiscard]] inline const ShaderReflectionDataGroup* getShaderReflectionDataGroup() const
     {
         return &_reflectionDataGroup;
     }
@@ -60,9 +58,8 @@ class ShaderModule : private NonCopyable
      * slot category will be reflected
      * @return whether reflection is successful or not
      */
-    static bool reflectShaderLayoutBindings(
-        ShaderReflectionDataGroup* reflectionDataGroup,
-        std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits stageBits);
+    static bool reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflectionDataGroup, std::vector<uint32_t>&& spirvCodes,
+                                            VkShaderStageFlagBits stageBits);
 
  protected:
     PipelineStreamingContext* _pipelineStreamingContext = nullptr;

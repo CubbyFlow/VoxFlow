@@ -8,12 +8,8 @@
 namespace VoxFlow
 {
 
-RenderResourceMemoryPool::RenderResourceMemoryPool(
-    LogicalDevice* logicalDevice, PhysicalDevice* physicalDevice,
-    Instance* instance)
-    : _logicalDevice(logicalDevice),
-      _physicalDevice(physicalDevice),
-      _instance(instance)
+RenderResourceMemoryPool::RenderResourceMemoryPool(LogicalDevice* logicalDevice, PhysicalDevice* physicalDevice, Instance* instance)
+    : _logicalDevice(logicalDevice), _physicalDevice(physicalDevice), _instance(instance)
 {
 }
 
@@ -34,13 +30,13 @@ bool RenderResourceMemoryPool::initialize()
         .flags = 0,
         .physicalDevice = _physicalDevice->get(),
         .device = _logicalDevice->get(),
-        .preferredLargeHeapBlockSize = 0, // TODO(snowapril) : customize fields
+        .preferredLargeHeapBlockSize = 0,  // TODO(snowapril) : customize fields
         .pAllocationCallbacks = nullptr,
         .pDeviceMemoryCallbacks = nullptr,
-        .pHeapSizeLimit = nullptr, // TODO(snowapril) : customize fields
+        .pHeapSizeLimit = nullptr,  // TODO(snowapril) : customize fields
         .pVulkanFunctions = &vmaVulkanFunctions,
         .instance = _instance->get(),
-        .vulkanApiVersion = VK_API_VERSION_1_3, // TODO(snowapril) : customize fields
+        .vulkanApiVersion = VK_API_VERSION_1_3,  // TODO(snowapril) : customize fields
         .pTypeExternalMemoryHandleTypes = nullptr,
     };
 

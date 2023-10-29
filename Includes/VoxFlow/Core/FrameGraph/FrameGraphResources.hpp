@@ -18,8 +18,7 @@ namespace RenderGraph
 class FrameGraphResources
 {
  public:
-    explicit FrameGraphResources(FrameGraph* frameGraph, PassNode* passNode)
-        : _frameGraph(frameGraph), _passNode(passNode)
+    explicit FrameGraphResources(FrameGraph* frameGraph, PassNode* passNode) : _frameGraph(frameGraph), _passNode(passNode)
     {
     }
 
@@ -38,12 +37,10 @@ class FrameGraphResources
     }
 
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] inline const Resource<ResourceDataType>& getResource(
-        ResourceHandle handle) const;
+    [[nodiscard]] inline const Resource<ResourceDataType>& getResource(ResourceHandle handle) const;
 
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] inline const typename ResourceDataType::Descriptor
-    getResourceDescriptor(ResourceHandle handle) const;
+    [[nodiscard]] inline const typename ResourceDataType::Descriptor getResourceDescriptor(ResourceHandle handle) const;
 
     [[nodiscard]] TextureView* getTextureView(ResourceHandle handle) const;
 

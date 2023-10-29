@@ -7,11 +7,8 @@
 
 namespace VoxFlow
 {
-RenderResourceAllocator::RenderResourceAllocator(
-    LogicalDevice* logicalDevice,
-    RenderResourceMemoryPool* renderResourceMemoryPool)
-    : _logicalDevice(logicalDevice),
-      _renderResourceMemoryPool(renderResourceMemoryPool)
+RenderResourceAllocator::RenderResourceAllocator(LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool)
+    : _logicalDevice(logicalDevice), _renderResourceMemoryPool(renderResourceMemoryPool)
 {
 }
 
@@ -23,11 +20,9 @@ RenderResourceAllocator::~RenderResourceAllocator()
     }
 }
 
-std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(
-    const TextureInfo& textureInfo, std::string&& debugName)
+std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(const TextureInfo& textureInfo, std::string&& debugName)
 {
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(
-        std::move(debugName), _logicalDevice, _renderResourceMemoryPool);
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(std::move(debugName), _logicalDevice, _renderResourceMemoryPool);
 
     if (texture->makeAllocationResident(textureInfo) == false)
     {
@@ -37,11 +32,9 @@ std::shared_ptr<Texture> RenderResourceAllocator::allocateTexture(
     return texture;
 }
 
-std::shared_ptr<Buffer> RenderResourceAllocator::allocateBuffer(
-    const BufferInfo& bufferInfo, std::string&& debugName)
+std::shared_ptr<Buffer> RenderResourceAllocator::allocateBuffer(const BufferInfo& bufferInfo, std::string&& debugName)
 {
-    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(
-        std::move(debugName), _logicalDevice, _renderResourceMemoryPool);
+    std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(std::move(debugName), _logicalDevice, _renderResourceMemoryPool);
 
     if (buffer->makeAllocationResident(bufferInfo) == false)
     {

@@ -4,8 +4,8 @@
 #define VOXEL_FLOW_RESOURCE_UPLOAD_CONTEXT_HPP
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <vector>
 
 namespace VoxFlow
@@ -40,11 +40,9 @@ class ResourceUploadContext : private NonCopyable
     ~ResourceUploadContext();
 
  public:
-    void addPendingUpload(UploadPhase uploadPhase, RenderResource* uploadDst,
-                          UploadData&& uploadData);
+    void addPendingUpload(UploadPhase uploadPhase, RenderResource* uploadDst, UploadData&& uploadData);
 
-    void processPendingUploads(UploadPhase uploadPhase,
-                               CommandStream* cmdStream);
+    void processPendingUploads(UploadPhase uploadPhase, CommandStream* cmdStream);
 
  private:
     struct PendingUploadInfo
@@ -55,17 +53,14 @@ class ResourceUploadContext : private NonCopyable
         UploadData _uploadData = {};
     };
 
-    void uploadResource(PendingUploadInfo&& uploadInfo,
-                        CommandStream* cmdStream);
+    void uploadResource(PendingUploadInfo&& uploadInfo, CommandStream* cmdStream);
 
     void release();
 
-private:
+ private:
     RenderDevice* _renderDevice = nullptr;
     std::vector<std::unique_ptr<StagingBufferContext>> _stagingBufferContexts;
-    std::array<std::vector<PendingUploadInfo>,
-               static_cast<uint32_t>(UploadPhase::Count)>
-        _pendingUploadDatas;
+    std::array<std::vector<PendingUploadInfo>, static_cast<uint32_t>(UploadPhase::Count)> _pendingUploadDatas;
 };
 
 }  // namespace VoxFlow

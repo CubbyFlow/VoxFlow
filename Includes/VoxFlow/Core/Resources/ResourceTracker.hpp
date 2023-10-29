@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_RESOURCE_TRACKER_HPP
 #define VOXEL_FLOW_RESOURCE_TRACKER_HPP
 
-#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Resources/Handle.hpp>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <string_view>
@@ -31,16 +31,11 @@ class ResourceTracker : private NonCopyable
 
  public:
     template <typename RenderResourceType>
-    Handle<RenderResourceType> allocate(std::string_view&& debugName,
-                                        LogicalDevice* logicalDevice,
-                                        RenderResourceMemoryPool* memoryPool)
+    Handle<RenderResourceType> allocate(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* memoryPool)
     {
-        std::unique_ptr<RenderResource> renderResource =
-            std::make_unique<RenderResourceType>(std::move(debugName),
-                                                 logicalDevice, memoryPool);
+        std::unique_ptr<RenderResource> renderResource = std::make_unique<RenderResourceType>(std::move(debugName), logicalDevice, memoryPool);
 
-        const HandleBase::HandleID handleID =
-            static_cast<HandleBase::HandleID>(_nextHandleID++);
+        const HandleBase::HandleID handleID = static_cast<HandleBase::HandleID>(_nextHandleID++);
         Handle<RenderResourceType> resourceHandle(handleID);
 
         auto iter = _renderResources.find(handleID);
@@ -78,8 +73,7 @@ class ResourceTracker : private NonCopyable
     }
 
  private:
-    std::unordered_map<HandleBase::HandleID, std::unique_ptr<RenderResource>>
-        _renderResources;
+    std::unordered_map<HandleBase::HandleID, std::unique_ptr<RenderResource>> _renderResources;
     HandleBase::HandleID _nextHandleID = 0;
 
  private:

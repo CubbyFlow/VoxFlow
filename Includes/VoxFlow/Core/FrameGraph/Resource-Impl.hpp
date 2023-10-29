@@ -10,38 +10,24 @@ namespace VoxFlow
 namespace RenderGraph
 {
 template <ResourceConcept ResourceDataType>
-Resource<ResourceDataType>::Resource(
-    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs)
-    : VirtualResource(std::move(name)),
-      _descriptor(resourceArgs),
-      _usage(static_cast<typename ResourceDataType::Usage>(0))
+Resource<ResourceDataType>::Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs)
+    : VirtualResource(std::move(name)), _descriptor(resourceArgs), _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>
-Resource<ResourceDataType>::Resource(
-    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
-    const ResourceDataType& resource)
-    : VirtualResource(std::move(name)),
-      _descriptor(resourceArgs),
-      _resource(resource),
-      _usage(static_cast<typename ResourceDataType::Usage>(0))
+Resource<ResourceDataType>::Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, const ResourceDataType& resource)
+    : VirtualResource(std::move(name)), _descriptor(resourceArgs), _resource(resource), _usage(static_cast<typename ResourceDataType::Usage>(0))
 {
 }
 template <ResourceConcept ResourceDataType>
-Resource<ResourceDataType>::Resource(
-    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
-    typename ResourceDataType::Usage usage)
+Resource<ResourceDataType>::Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, typename ResourceDataType::Usage usage)
     : VirtualResource(std::move(name)), _descriptor(resourceArgs), _usage(usage)
 {
 }
 template <ResourceConcept ResourceDataType>
-Resource<ResourceDataType>::Resource(
-    std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs,
-    typename ResourceDataType::Usage usage, const ResourceDataType& resource)
-    : VirtualResource(std::move(name)),
-      _descriptor(resourceArgs),
-      _resource(resource),
-      _usage(usage)
+Resource<ResourceDataType>::Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, typename ResourceDataType::Usage usage,
+                                     const ResourceDataType& resource)
+    : VirtualResource(std::move(name)), _descriptor(resourceArgs), _resource(resource), _usage(usage)
 {
 }
 }  // namespace RenderGraph

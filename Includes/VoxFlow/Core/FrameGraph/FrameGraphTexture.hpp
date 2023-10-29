@@ -29,8 +29,7 @@ struct FrameGraphTexture
 
     using Usage = TextureUsage;
 
-    bool create(RenderResourceAllocator* resourceAllocator,
-                std::string&& debugName, Descriptor descriptor, Usage usage);
+    bool create(RenderResourceAllocator* resourceAllocator, std::string&& debugName, Descriptor descriptor, Usage usage);
 
     void destroy(RenderResourceAllocator* resourceAllocator);
 

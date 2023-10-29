@@ -7,8 +7,7 @@
 
 namespace VoxFlow
 {
-CommandStream::CommandStream(LogicalDevice* logicalDevice, Queue* queue)
-    : _logicalDevice(logicalDevice), _queue(queue)
+CommandStream::CommandStream(LogicalDevice* logicalDevice, Queue* queue) : _logicalDevice(logicalDevice), _queue(queue)
 {
 }
 
@@ -16,9 +15,7 @@ CommandStream::~CommandStream()
 {
 }
 
-FenceObject CommandStream::flush(SwapChain* swapChain,
-                                 const FrameContext* frameContext,
-                                 const bool waitAllCompletion)
+FenceObject CommandStream::flush(SwapChain* swapChain, const FrameContext* frameContext, const bool waitAllCompletion)
 {
     std::vector<std::shared_ptr<CommandBuffer>> cmdBufs;
     {
@@ -37,8 +34,7 @@ FenceObject CommandStream::flush(SwapChain* swapChain,
     }
 
     // TODO(snowapril) : sort command buffer according and set dependency
-    FenceObject fenceToSignal = _queue->submitCommandBufferBatch(
-        std::move(cmdBufs), swapChain, frameContext, waitAllCompletion);
+    FenceObject fenceToSignal = _queue->submitCommandBufferBatch(std::move(cmdBufs), swapChain, frameContext, waitAllCompletion);
 
     return fenceToSignal;
 }
@@ -55,11 +51,9 @@ CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
         if (cmdIter == _cmdBufferStorage.end())
         {
             CommandPool* cmdPool = getOrAllocateCommandPool();
-            std::shared_ptr<CommandBuffer> cmdBufferPtr =
-                cmdPool->getOrCreateCommandBuffer();
+            std::shared_ptr<CommandBuffer> cmdBufferPtr = cmdPool->getOrCreateCommandBuffer();
             // TODO(snowapril) : add thread_id to command buffer begin name
-            cmdBufferPtr->beginCommandBuffer(_queue->allocateFenceToSignal(),
-                                             fmt::format("CommandStream"));
+            cmdBufferPtr->beginCommandBuffer(_queue->allocateFenceToSignal(), fmt::format("CommandStream"));
 
             cmdBuffer = cmdBufferPtr.get();
             _cmdBufferStorage.emplace(threadId, std::move(cmdBufferPtr));
@@ -69,7 +63,7 @@ CommandBuffer* CommandStream::getOrAllocateCommandBuffer()
             cmdBuffer = cmdIter->second.get();
         }
     }
-    
+
     return cmdBuffer;
 }
 
@@ -83,8 +77,7 @@ CommandPool* CommandStream::getOrAllocateCommandPool()
         auto cmdPoolIter = _cmdPoolStorage.find(threadId);
         if (cmdPoolIter == _cmdPoolStorage.end())
         {
-            auto cmdPoolPtr =
-                std::make_unique<CommandPool>(_logicalDevice, _queue);
+            auto cmdPoolPtr = std::make_unique<CommandPool>(_logicalDevice, _queue);
             cmdPool = cmdPoolPtr.get();
             _cmdPoolStorage.emplace(threadId, std::move(cmdPoolPtr));
         }
@@ -97,8 +90,7 @@ CommandPool* CommandStream::getOrAllocateCommandPool()
     return cmdPool;
 }
 
-CommandJobSystem::CommandJobSystem(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+CommandJobSystem::CommandJobSystem(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
 {
 }
 
@@ -106,19 +98,15 @@ CommandJobSystem::~CommandJobSystem()
 {
 }
 
-void CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey,
-                                           Queue* queue)
+void CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey, Queue* queue)
 {
-    _cmdStreams.emplace(streamKey,
-                        std::make_unique<CommandStream>(_logicalDevice, queue));
+    _cmdStreams.emplace(streamKey, std::make_unique<CommandStream>(_logicalDevice, queue));
 }
 
-CommandStream* CommandJobSystem::getCommandStream(
-    const CommandStreamKey& streamKey)
+CommandStream* CommandJobSystem::getCommandStream(const CommandStreamKey& streamKey)
 {
     CommandStream* cmdStream = nullptr;
-    if (auto cmdStreamIter = _cmdStreams.find(streamKey);
-        cmdStreamIter != _cmdStreams.end())
+    if (auto cmdStreamIter = _cmdStreams.find(streamKey); cmdStreamIter != _cmdStreams.end())
     {
         cmdStream = cmdStreamIter->second.get();
     }

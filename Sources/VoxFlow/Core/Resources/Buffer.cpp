@@ -2,9 +2,9 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
-#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
+#include <VoxFlow/Core/Resources/StagingBufferContext.hpp>
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
@@ -23,16 +23,14 @@ static VkBufferUsageFlags convertToVkBufferUsage(BufferUsage usage)
         resultUsage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::IndirectCommand) > 0)
         resultUsage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    if ((static_cast<uint32_t>(usage & BufferUsage::Readback) > 0) ||
-        (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0))
+    if ((static_cast<uint32_t>(usage & BufferUsage::Readback) > 0) || (static_cast<uint32_t>(usage & BufferUsage::CopyDst) > 0))
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     if (static_cast<uint32_t>(usage & BufferUsage::CopySrc) > 0)
         resultUsage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     return resultUsage;
 }
 
-Buffer::Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
-               RenderResourceMemoryPool* renderResourceMemoryPool)
+Buffer::Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool)
     : RenderResource(std::move(debugName), logicalDevice, renderResourceMemoryPool)
 {
 }
@@ -44,36 +42,28 @@ Buffer::~Buffer()
 
 bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
 {
-    VOX_ASSERT(bufferInfo._usage != BufferUsage::Unknown,
-               "BufferUsage must be specified");
+    VOX_ASSERT(bufferInfo._usage != BufferUsage::Unknown, "BufferUsage must be specified");
 
     _bufferInfo = bufferInfo;
-    VkBufferCreateInfo bufferCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = bufferInfo._size,
-        .usage = convertToVkBufferUsage(bufferInfo._usage),
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr
-    };
+    VkBufferCreateInfo bufferCreateInfo = { .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                                            .pNext = nullptr,
+                                            .flags = 0,
+                                            .size = bufferInfo._size,
+                                            .usage = convertToVkBufferUsage(bufferInfo._usage),
+                                            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                                            .queueFamilyIndexCount = 0,
+                                            .pQueueFamilyIndices = nullptr };
 
-    VmaAllocationCreateInfo vmaCreateInfo = {
-        .flags =
-            VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT,  // TODO(snowapril) :
-                                                            // choose best one
-        .usage = VMA_MEMORY_USAGE_AUTO,
-        .requiredFlags = 0,
-        .preferredFlags = 0,
-        .memoryTypeBits = 0,
-        .pool = VK_NULL_HANDLE,
-        .pUserData = nullptr
-    };
+    VmaAllocationCreateInfo vmaCreateInfo = { .flags = VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT,  // TODO(snowapril) :
+                                                                                                       // choose best one
+                                              .usage = VMA_MEMORY_USAGE_AUTO,
+                                              .requiredFlags = 0,
+                                              .preferredFlags = 0,
+                                              .memoryTypeBits = 0,
+                                              .pool = VK_NULL_HANDLE,
+                                              .pUserData = nullptr };
 
-    VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(),
-                              &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer,
-                              &_allocation, nullptr));
+    VK_ASSERT(vmaCreateBuffer(_renderResourceMemoryPool->get(), &bufferCreateInfo, &vmaCreateInfo, &_vkBuffer, &_allocation, nullptr));
 
     if (_vkBuffer == VK_NULL_HANDLE)
     {
@@ -85,26 +75,21 @@ bool Buffer::makeAllocationResident(const BufferInfo& bufferInfo)
     DebugUtil::setObjectName(_logicalDevice, _vkBuffer, _debugName.c_str());
 #endif
 
-    std::optional<uint32_t> defaultViewIndex = createBufferView(
-        BufferViewInfo{ ._offset = 0, ._range = bufferInfo._size });
+    std::optional<uint32_t> defaultViewIndex = createBufferView(BufferViewInfo{ ._offset = 0, ._range = bufferInfo._size });
 
-    VOX_ASSERT(defaultViewIndex.has_value(),
-               "Failed to create default buffer view for buffer({})",
-               _debugName);
+    VOX_ASSERT(defaultViewIndex.has_value(), "Failed to create default buffer view for buffer({})", _debugName);
     if (defaultViewIndex.has_value())
     {
         _defaultView = getView(defaultViewIndex.value()).get();
     }
-    
+
     return true;
 }
 
 std::optional<uint32_t> Buffer::createBufferView(const BufferViewInfo& viewInfo)
 {
     const uint32_t viewIndex = static_cast<uint32_t>(_ownedBufferViews.size());
-    std::shared_ptr<BufferView> bufferView = std::make_shared<BufferView>(
-        fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice,
-        this);
+    std::shared_ptr<BufferView> bufferView = std::make_shared<BufferView>(fmt::format("{}_View({})", _debugName, viewIndex), _logicalDevice, this);
 
     if (bufferView->initialize(viewInfo) == false)
     {
@@ -127,17 +112,12 @@ void Buffer::release()
 
     if (_vkBuffer != VK_NULL_HANDLE)
     {
-        VmaAllocator vmaAllocator =
-            _renderResourceMemoryPool->get();
+        VmaAllocator vmaAllocator = _renderResourceMemoryPool->get();
         VkBuffer vkBuffer = _vkBuffer;
         VmaAllocation vmaAllocation = _allocation;
-        
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences),
-                                  [vmaAllocator, vkBuffer, vmaAllocation]() {
-                                      vmaDestroyBuffer(vmaAllocator, vkBuffer,
-                                                       vmaAllocation);
-                                  }));
+
+        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(RenderResourceGarbage(
+            std::move(_accessedFences), [vmaAllocator, vkBuffer, vmaAllocation]() { vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation); }));
 
         _vkBuffer = VK_NULL_HANDLE;
         _allocation = VK_NULL_HANDLE;
@@ -146,16 +126,13 @@ void Buffer::release()
 
 uint8_t* Buffer::map()
 {
-    VOX_ASSERT(
-        static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback |
-                                                    BufferUsage::Upload)) > 0,
-        "Buffer without Readback flag must not be mapped");
+    VOX_ASSERT(static_cast<uint32_t>(_bufferInfo._usage & (BufferUsage::Readback | BufferUsage::Upload)) > 0,
+               "Buffer without Readback flag must not be mapped");
 
     if (_permanentMappedAddress == nullptr)
     {
         void* memoryAddress = nullptr;
-        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(),
-                               _allocation, &memoryAddress));
+        VK_ASSERT(vmaMapMemory(_renderResourceMemoryPool->get(), _allocation, &memoryAddress));
         _permanentMappedAddress = memoryAddress;
     }
 
@@ -167,8 +144,7 @@ void Buffer::unmap()
     // TODO(snowapril) : consider unmap or not
 }
 
-BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                       RenderResource* ownerResource)
+BufferView::BufferView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource)
     : ResourceView(std::move(debugName), logicalDevice, ownerResource)
 {
 }

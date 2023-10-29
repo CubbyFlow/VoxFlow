@@ -23,8 +23,7 @@ class BufferView;
 class Buffer final : public RenderResource
 {
  public:
-    explicit Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice,
-                    RenderResourceMemoryPool* renderResourceMemoryPool);
+    explicit Buffer(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     ~Buffer() override;
 
  public:
@@ -33,12 +32,9 @@ class Buffer final : public RenderResource
         return _vkBuffer;
     }
 
-    [[nodiscard]] inline std::shared_ptr<BufferView> getView(
-        const uint32_t viewIndex) const
+    [[nodiscard]] inline std::shared_ptr<BufferView> getView(const uint32_t viewIndex) const
     {
-        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedBufferViews.size()),
-                   "Given Index ({}), Num Buffer Views ({})", viewIndex,
-                   _ownedBufferViews.size());
+        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedBufferViews.size()), "Given Index ({}), Num Buffer Views ({})", viewIndex, _ownedBufferViews.size());
         return _ownedBufferViews[viewIndex];
     }
 
@@ -88,8 +84,7 @@ class Buffer final : public RenderResource
 class BufferView : public ResourceView
 {
  public:
-    explicit BufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                        RenderResource* ownerResource);
+    explicit BufferView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource);
     ~BufferView();
 
  public:

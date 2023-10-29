@@ -13,15 +13,12 @@ namespace RenderGraph
 
 TextureView* FrameGraphResources::getTextureView(ResourceHandle handle) const
 {
-    Resource<FrameGraphTexture>* resource =
-        static_cast<Resource<FrameGraphTexture>*>(
-            _frameGraph->getVirtualResource(handle));
+    Resource<FrameGraphTexture>* resource = static_cast<Resource<FrameGraphTexture>*>(_frameGraph->getVirtualResource(handle));
 
     TextureView* attachmentView = nullptr;
     if (resource->isImported())
     {
-        attachmentView =
-            static_cast<ImportedRenderTarget*>(resource)->getTextureView();
+        attachmentView = static_cast<ImportedRenderTarget*>(resource)->getTextureView();
     }
     else
     {

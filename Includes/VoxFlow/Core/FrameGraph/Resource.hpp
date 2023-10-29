@@ -4,10 +4,10 @@
 #define VOXEL_FLOW_FRAME_GRAPH_RESOURCE_HPP
 
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
-#include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
-#include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphTexture.hpp>
 #include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
+#include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
 #include <string_view>
@@ -24,10 +24,7 @@ class FrameGraph;
 class ResourceEdgeBase : public DependencyGraph::Edge
 {
  public:
-    explicit ResourceEdgeBase(DependencyGraph* ownerGraph,
-                          DependencyGraph::Node* from,
-                          DependencyGraph::Node* to)
-        : DependencyGraph::Edge(ownerGraph, from, to)
+    explicit ResourceEdgeBase(DependencyGraph* ownerGraph, DependencyGraph::Node* from, DependencyGraph::Node* to) : DependencyGraph::Edge(ownerGraph, from, to)
     {
     }
 };
@@ -35,8 +32,7 @@ class ResourceEdgeBase : public DependencyGraph::Edge
 class ResourceNode : public DependencyGraph::Node
 {
  public:
-    explicit ResourceNode(DependencyGraph* dependencyGraph,
-                          ResourceHandle resourceHandle);
+    explicit ResourceNode(DependencyGraph* dependencyGraph, ResourceHandle resourceHandle);
 
     inline ResourceHandle getResourceHandle() const
     {
@@ -93,9 +89,7 @@ class VirtualResource : private NonCopyable
 
     virtual void destroy(RenderResourceAllocator*) = 0;
 
-    virtual void resolveUsage(DependencyGraph* dependencyGraph,
-                              const DependencyGraph::EdgeContainer& edges,
-                              DependencyGraph::Edge* writerEdge) = 0;
+    virtual void resolveUsage(DependencyGraph* dependencyGraph, const DependencyGraph::EdgeContainer& edges, DependencyGraph::Edge* writerEdge) = 0;
 
  protected:
     std::string _resourceName;
@@ -108,17 +102,10 @@ template <ResourceConcept ResourceDataType>
 class Resource : public VirtualResource
 {
  public:
-    explicit Resource(std::string&& name,
-                      typename ResourceDataType::Descriptor&& resourceArgs);
-    explicit Resource(std::string&& name,
-                      typename ResourceDataType::Descriptor&& resourceArgs,
-                      const ResourceDataType& resource);
-    explicit Resource(std::string&& name,
-                      typename ResourceDataType::Descriptor&& resourceArgs,
-                      typename ResourceDataType::Usage usage);
-    explicit Resource(std::string&& name,
-                      typename ResourceDataType::Descriptor&& resourceArgs,
-                      typename ResourceDataType::Usage usage,
+    explicit Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs);
+    explicit Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, const ResourceDataType& resource);
+    explicit Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, typename ResourceDataType::Usage usage);
+    explicit Resource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, typename ResourceDataType::Usage usage,
                       const ResourceDataType& resource);
     ~Resource() = default;
 
@@ -152,10 +139,7 @@ class Resource : public VirtualResource
     class ResourceEdge : public ResourceEdgeBase
     {
      public:
-        explicit ResourceEdge(DependencyGraph* ownerGraph,
-                              DependencyGraph::Node* from,
-                              DependencyGraph::Node* to,
-                              typename ResourceDataType::Usage usage)
+        explicit ResourceEdge(DependencyGraph* ownerGraph, DependencyGraph::Node* from, DependencyGraph::Node* to, typename ResourceDataType::Usage usage)
             : ResourceEdgeBase(ownerGraph, from, to), _usage(usage)
         {
         }
@@ -176,15 +160,11 @@ class Resource : public VirtualResource
     };
 
     // Make connection to given pass node from resource node with specific usage
-    bool connect(DependencyGraph* dependencyGraph, ResourceNode* node,
-                 PassNode* passNode, typename ResourceDataType::Usage usage);
+    bool connect(DependencyGraph* dependencyGraph, ResourceNode* node, PassNode* passNode, typename ResourceDataType::Usage usage);
     // Make connection to given resource node from pass node with specific usage
-    bool connect(DependencyGraph* dependencyGraph, PassNode* passNode,
-                 ResourceNode* node, typename ResourceDataType::Usage usage);
+    bool connect(DependencyGraph* dependencyGraph, PassNode* passNode, ResourceNode* node, typename ResourceDataType::Usage usage);
 
-    void resolveUsage(DependencyGraph* dependencyGraph,
-                      const DependencyGraph::EdgeContainer& edges,
-                      DependencyGraph::Edge* writerEdge) override final;
+    void resolveUsage(DependencyGraph* dependencyGraph, const DependencyGraph::EdgeContainer& edges, DependencyGraph::Edge* writerEdge) override final;
 
  protected:
     typename ResourceDataType::Descriptor _descriptor;
@@ -197,12 +177,9 @@ template <ResourceConcept ResourceDataType>
 class ImportedResource : public Resource<ResourceDataType>
 {
  public:
-    ImportedResource(std::string&& name,
-                     typename ResourceDataType::Descriptor&& resourceArgs,
-                     typename ResourceDataType::Usage usage,
+    ImportedResource(std::string&& name, typename ResourceDataType::Descriptor&& resourceArgs, typename ResourceDataType::Usage usage,
                      const ResourceDataType& resource)
-        : Resource<ResourceDataType>(std::move(name),
-                                     std::move(resourceArgs), usage, resource)
+        : Resource<ResourceDataType>(std::move(name), std::move(resourceArgs), usage, resource)
     {
     }
     ~ImportedResource()
@@ -215,19 +192,16 @@ class ImportedResource : public Resource<ResourceDataType>
         return true;
     }
 
-    void devirtualize(RenderResourceAllocator*) final {};
+    void devirtualize(RenderResourceAllocator*) final{};
 
-    void destroy(RenderResourceAllocator*) final {};
+    void destroy(RenderResourceAllocator*) final{};
 };
 
 class ImportedRenderTarget : public ImportedResource<FrameGraphTexture>
 {
  public:
-    ImportedRenderTarget(std::string&& name,
-                         FrameGraphTexture::Descriptor&& resourceArgs,
-                         FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
-                         const FrameGraphTexture& resource,
-                         TextureView* textureView);
+    ImportedRenderTarget(std::string&& name, FrameGraphTexture::Descriptor&& resourceArgs, FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
+                         const FrameGraphTexture& resource, TextureView* textureView);
     ~ImportedRenderTarget();
 
     inline TextureView* getTextureView()

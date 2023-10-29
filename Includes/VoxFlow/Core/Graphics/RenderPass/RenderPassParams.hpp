@@ -4,10 +4,10 @@
 #define VOXEL_FLOW_RENDER_PASS_PARAMS_HPP
 
 #include <VoxFlow/Core/Utils/BitwiseOperators.hpp>
-#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <VoxFlow/Core/Utils/HashUtil.hpp>
-#include <glm/vec2.hpp>
+#include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <array>
+#include <glm/vec2.hpp>
 
 namespace VoxFlow
 {
@@ -30,23 +30,19 @@ enum class AttachmentMaskFlags : uint32_t
 };
 IMPL_BITWISE_OPERATORS(AttachmentMaskFlags, uint32_t);
 
-inline bool hasColorAspect(const AttachmentMaskFlags& attachmentFlags,
-                         const uint32_t index)
+inline bool hasColorAspect(const AttachmentMaskFlags& attachmentFlags, const uint32_t index)
 {
-    return (static_cast<uint32_t>(attachmentFlags) &
-            (static_cast<uint32_t>(AttachmentMaskFlags::Color0) << index)) > 0;
+    return (static_cast<uint32_t>(attachmentFlags) & (static_cast<uint32_t>(AttachmentMaskFlags::Color0) << index)) > 0;
 }
 
 inline bool hasDepthAspect(const AttachmentMaskFlags& attachmentFlags)
 {
-    return (static_cast<uint32_t>(attachmentFlags) &
-            static_cast<uint32_t>(AttachmentMaskFlags::Depth)) > 0;
+    return (static_cast<uint32_t>(attachmentFlags) & static_cast<uint32_t>(AttachmentMaskFlags::Depth)) > 0;
 }
 
 inline bool hasStencilAspect(const AttachmentMaskFlags& attachmentFlags)
 {
-    return (static_cast<uint32_t>(attachmentFlags) &
-            static_cast<uint32_t>(AttachmentMaskFlags::Stencil)) > 0;
+    return (static_cast<uint32_t>(attachmentFlags) & static_cast<uint32_t>(AttachmentMaskFlags::Stencil)) > 0;
 }
 
 struct RenderPassFlags
@@ -57,9 +53,7 @@ struct RenderPassFlags
 
     inline bool operator==(const RenderPassFlags& rhs) const
     {
-        return (_clearFlags == rhs._clearFlags) &&
-               (_loadFlags == rhs._loadFlags) &&
-               (_storeFlags == rhs._storeFlags);
+        return (_clearFlags == rhs._clearFlags) && (_loadFlags == rhs._loadFlags) && (_storeFlags == rhs._storeFlags);
     }
 };
 
@@ -78,8 +72,7 @@ struct RenderPassParams
 template <>
 struct std::hash<VoxFlow::RenderPassFlags>
 {
-    std::size_t operator()(
-        VoxFlow::RenderPassFlags const& passFlags) const noexcept;
+    std::size_t operator()(VoxFlow::RenderPassFlags const& passFlags) const noexcept;
 };
 
 #endif

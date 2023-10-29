@@ -4,8 +4,8 @@
 #define VOXEL_FLOW_RESOURCE_BINDING_LAYOUT_HPP
 
 #include <volk/volk.h>
-#include <string>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <string>
 
 namespace VoxFlow
 {

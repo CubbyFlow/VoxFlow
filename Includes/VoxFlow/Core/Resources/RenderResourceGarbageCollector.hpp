@@ -17,10 +17,8 @@ struct RenderResourceGarbage
     std::function<void()> _deletionDelegate;
 
     RenderResourceGarbage() = default;
-    RenderResourceGarbage(std::vector<FenceObject>&& accessedFences,
-                          std::function<void()>&& deletionDelegate)
-        : _accessedFences(std::move(accessedFences)),
-          _deletionDelegate(std::move(deletionDelegate))
+    RenderResourceGarbage(std::vector<FenceObject>&& accessedFences, std::function<void()>&& deletionDelegate)
+        : _accessedFences(std::move(accessedFences)), _deletionDelegate(std::move(deletionDelegate))
     {
     }
     ~RenderResourceGarbage() = default;
@@ -51,7 +49,6 @@ struct RenderResourceGarbage
         return *this;
     }
 };
-
 
 class RenderResourceGarbageCollector : private Thread
 {

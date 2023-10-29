@@ -9,7 +9,7 @@
 
 namespace VoxFlow
 {
-    
+
 enum class SetSlotCategory : uint8_t
 {
     Bindless = 0,
@@ -38,15 +38,13 @@ struct DescriptorInfo
 
     inline bool isValid() const
     {
-        return (_setCategory != SetSlotCategory::Undefined) &&
-               (_descriptorCategory != DescriptorCategory::Undefined);
+        return (_setCategory != SetSlotCategory::Undefined) && (_descriptorCategory != DescriptorCategory::Undefined);
     }
 
     inline bool operator==(const DescriptorInfo& rhs) const
     {
-        return (_setCategory == rhs._setCategory) &&
-               (_descriptorCategory == rhs._descriptorCategory) &&
-               (_arraySize == rhs._arraySize) && (_binding == rhs._binding);
+        return (_setCategory == rhs._setCategory) && (_descriptorCategory == rhs._descriptorCategory) && (_arraySize == rhs._arraySize) &&
+               (_binding == rhs._binding);
     }
 };
 
@@ -57,9 +55,7 @@ struct DescriptorSetLayoutDesc
 
     inline bool operator==(const DescriptorSetLayoutDesc& rhs) const
     {
-        return std::equal(_descriptorInfos.begin(), _descriptorInfos.end(),
-                          rhs._descriptorInfos.begin(),
-                          rhs._descriptorInfos.end()) &&
+        return std::equal(_descriptorInfos.begin(), _descriptorInfos.end(), rhs._descriptorInfos.begin(), rhs._descriptorInfos.end()) &&
                (_stageFlags == rhs._stageFlags);
     }
 };
@@ -69,15 +65,13 @@ struct DescriptorSetLayoutDesc
 template <>
 struct std::hash<VoxFlow::DescriptorInfo>
 {
-    std::size_t operator()(
-        VoxFlow::DescriptorInfo const& info) const noexcept;
+    std::size_t operator()(VoxFlow::DescriptorInfo const& info) const noexcept;
 };
 
 template <>
 struct std::hash<VoxFlow::DescriptorSetLayoutDesc>
 {
-    std::size_t operator()(
-        VoxFlow::DescriptorSetLayoutDesc const& setLayout) const noexcept;
+    std::size_t operator()(VoxFlow::DescriptorSetLayoutDesc const& setLayout) const noexcept;
 };
 
 #endif

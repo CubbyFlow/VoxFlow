@@ -12,8 +12,7 @@ class Queue;
 class FenceObject
 {
  public:
-    explicit FenceObject(Queue* queue, const uint64_t initialTimelineValue)
-        : _queue(queue), _timelineValue(initialTimelineValue)
+    explicit FenceObject(Queue* queue, const uint64_t initialTimelineValue) : _queue(queue), _timelineValue(initialTimelineValue)
     {
     }
     ~FenceObject() = default;
@@ -55,7 +54,7 @@ class FenceObject
     // Returns whether queue's current fence value reach to expected one (synced)
     bool isCompleted() const;
 
-    // Returns whether queue's current fence value reach to expected one. 
+    // Returns whether queue's current fence value reach to expected one.
     // This could returns false even current fence value of queue reached to expected one.
     bool isCompletedCached() const;
 
