@@ -9,27 +9,24 @@
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocator.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/BasePipeline.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ComputePipeline.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
-#include <VoxFlow/Core/Resources/StagingBuffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceTracker.hpp>
-#include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Resources/Sampler.hpp>
+#include <VoxFlow/Core/Resources/StagingBuffer.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 
 namespace VoxFlow
 {
-CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice,
-                             VkCommandBuffer vkCommandBuffer)
-    : _logicalDevice(logicalDevice),
-      _vkCommandBuffer(vkCommandBuffer),
-      _resourceBarrierManager(this)
+CommandBuffer::CommandBuffer(LogicalDevice* logicalDevice, VkCommandBuffer vkCommandBuffer)
+    : _logicalDevice(logicalDevice), _vkCommandBuffer(vkCommandBuffer), _resourceBarrierManager(this)
 {
     // TODO(snowapril) : temporal sampler
     _sampler = new Sampler("TempSampler", logicalDevice);
@@ -45,8 +42,7 @@ CommandBuffer::~CommandBuffer()
     }
 }
 
-void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
-                                       const std::string& debugName)
+void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal, const std::string& debugName)
 {
     _debugName = debugName;
 
@@ -54,9 +50,7 @@ void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
     // will use below new allocated fence.
     _fenceToSignal = fenceToSignal;
 
-    VOX_ASSERT(_hasBegun == false,
-               "Duplicated beginning on the same CommandBuffer({})",
-               _debugName);
+    VOX_ASSERT(_hasBegun == false, "Duplicated beginning on the same CommandBuffer({})", _debugName);
 
     VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -68,8 +62,7 @@ void CommandBuffer::beginCommandBuffer(const FenceObject& fenceToSignal,
     _hasBegun = true;
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    DebugUtil::setObjectName(_logicalDevice, _vkCommandBuffer,
-                             _debugName.c_str());
+    DebugUtil::setObjectName(_logicalDevice, _vkCommandBuffer, _debugName.c_str());
 #endif
 }
 
@@ -79,14 +72,11 @@ void CommandBuffer::endCommandBuffer()
     _hasBegun = false;
 }
 
-void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
-                                    const RenderPassParams& passParams)
+void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup, const RenderPassParams& passParams)
 {
-    RenderPassCollector* renderPassCollector =
-        _logicalDevice->getRenderPassCollector();
+    RenderPassCollector* renderPassCollector = _logicalDevice->getRenderPassCollector();
 
-    const uint32_t numColorAttachments =
-        attachmentGroup.getNumColorAttachments();
+    const uint32_t numColorAttachments = attachmentGroup.getNumColorAttachments();
     const bool hasDepthStencil = attachmentGroup.hasDepthStencil();
 
     RenderTargetLayoutKey rtLayoutKey = {};
@@ -103,8 +93,7 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
 
         rtInfo._colorRenderTarget.emplace_back(textureView);
 
-        addMemoryBarrier(textureView, ResourceAccessMask::ColorAttachment,
-                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        addMemoryBarrier(textureView, ResourceAccessMask::ColorAttachment, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
     }
 
     if (hasDepthStencil)
@@ -116,8 +105,7 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
         rtInfo._depthStencilImage = textureView;
 
         addMemoryBarrier(textureView, ResourceAccessMask::DepthAttachment,
-                         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                             VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+                         VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
     }
 
     _resourceBarrierManager.commitPendingBarriers(false);
@@ -139,35 +127,23 @@ void CommandBuffer::beginRenderPass(const AttachmentGroup& attachmentGroup,
     {
         const glm::vec4& clearColorValue = passParams._clearColors[i];
         clearValues.push_back(
-            VkClearValue{ .color = VkClearColorValue{
-                              .float32 = { clearColorValue.x,
-                                           clearColorValue.y,
-                                           clearColorValue.z,
-                                           clearColorValue.w } } });
+            VkClearValue{ .color = VkClearColorValue{ .float32 = { clearColorValue.x, clearColorValue.y, clearColorValue.z, clearColorValue.w } } });
     }
 
     if (hasDepthStencil)
     {
-        clearValues.push_back(
-            VkClearValue{ .depthStencil = VkClearDepthStencilValue{
-                              .depth = passParams._clearDepth,
-                              .stencil = passParams._clearStencil } });
+        clearValues.push_back(VkClearValue{ .depthStencil = VkClearDepthStencilValue{ .depth = passParams._clearDepth, .stencil = passParams._clearStencil } });
     }
 
-    VkRenderPassBeginInfo renderPassInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .pNext = nullptr,
-        .renderPass = _boundRenderPass->get(),
-        .framebuffer = frameBuffer->get(),
-        .renderArea = { .offset = { 0U, 0U },
-                        .extent = { rtInfo._resolution.x,
-                                    rtInfo._resolution.y } },
-        .clearValueCount = static_cast<uint32_t>(clearValues.size()),
-        .pClearValues = clearValues.data()
-    };
+    VkRenderPassBeginInfo renderPassInfo = { .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                             .pNext = nullptr,
+                                             .renderPass = _boundRenderPass->get(),
+                                             .framebuffer = frameBuffer->get(),
+                                             .renderArea = { .offset = { 0U, 0U }, .extent = { rtInfo._resolution.x, rtInfo._resolution.y } },
+                                             .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+                                             .pClearValues = clearValues.data() };
 
-    vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo,
-                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(_vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     _isInRenderPassScope = true;
 }
@@ -191,8 +167,7 @@ void CommandBuffer::bindIndexBuffer(Buffer* indexBuffer)
 {
     // TODO(snowapril) : must implement details
     VkBuffer vkIndexBuffer = indexBuffer->get();
-    vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0,
-                         VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(_vkCommandBuffer, vkIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void CommandBuffer::bindPipeline(BasePipeline* pipeline)
@@ -217,8 +192,7 @@ void CommandBuffer::bindPipeline(BasePipeline* pipeline)
         }
     }
 
-    vkCmdBindPipeline(_vkCommandBuffer, _boundPipeline->getBindPoint(),
-                      _boundPipeline->get());
+    vkCmdBindPipeline(_vkCommandBuffer, _boundPipeline->getBindPoint(), _boundPipeline->get());
 }
 
 void CommandBuffer::unbindPipeline()
@@ -228,36 +202,27 @@ void CommandBuffer::unbindPipeline()
 
 void CommandBuffer::setViewport(const glm::uvec2& viewportSize)
 {
-    VkViewport viewport = { .x = 0,
-                            .y = 0,
-                            .width = static_cast<float>(viewportSize.x),
-                            .height = static_cast<float>(viewportSize.y),
-                            .minDepth = 0.0f,
-                            .maxDepth = 1.0f };
+    VkViewport viewport = {
+        .x = 0, .y = 0, .width = static_cast<float>(viewportSize.x), .height = static_cast<float>(viewportSize.y), .minDepth = 0.0f, .maxDepth = 1.0f
+    };
     vkCmdSetViewport(_vkCommandBuffer, 0, 1, &viewport);
 
-    VkRect2D scissor = { .offset = { .x = 0, .y = 0 },
-                         .extent = { .width = viewportSize.x,
-                                     .height = viewportSize.y } };
+    VkRect2D scissor = { .offset = { .x = 0, .y = 0 }, .extent = { .width = viewportSize.x, .height = viewportSize.y } };
     vkCmdSetScissor(_vkCommandBuffer, 0, 1, &scissor);
 }
 
 void CommandBuffer::makeSwapChainFinalLayout(SwapChain* swapChain, const uint32_t backBufferIndex)
 {
     const std::shared_ptr<Texture>& backBuffer = swapChain->getSwapChainImage(backBufferIndex);
-    
-    addMemoryBarrier(backBuffer->getDefaultView(), ResourceAccessMask::Present,
-                     VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+
+    addMemoryBarrier(backBuffer->getDefaultView(), ResourceAccessMask::Present, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
     _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 }
 
-void CommandBuffer::bindResourceGroup(
-    SetSlotCategory setSlotCategory,
-    std::vector<ShaderVariableBinding>&& shaderVariables)
+void CommandBuffer::bindResourceGroup(SetSlotCategory setSlotCategory, std::vector<ShaderVariableBinding>&& shaderVariables)
 {
-    std::vector<ShaderVariableBinding>& dstBindingResources =
-        _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
+    std::vector<ShaderVariableBinding>& dstBindingResources = _pendingResourceBindings[static_cast<uint32_t>(setSlotCategory)];
 
     if (dstBindingResources.empty())
     {
@@ -265,11 +230,8 @@ void CommandBuffer::bindResourceGroup(
     }
     else
     {
-        dstBindingResources.reserve(dstBindingResources.size() +
-                                    shaderVariables.size());
-        std::move(std::make_move_iterator(shaderVariables.begin()),
-                  std::make_move_iterator(shaderVariables.end()),
-                  std::back_inserter(dstBindingResources));
+        dstBindingResources.reserve(dstBindingResources.size() + shaderVariables.size());
+        std::move(std::make_move_iterator(shaderVariables.begin()), std::make_move_iterator(shaderVariables.end()), std::back_inserter(dstBindingResources));
     }
 }
 
@@ -281,8 +243,7 @@ static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, Resou
 
     if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
     {
-        if ((uint32_t(accessMask & ResourceAccessMask::VertexBuffer) > 0) ||
-            (uint32_t(accessMask & ResourceAccessMask::IndexBuffer) > 0))
+        if ((uint32_t(accessMask & ResourceAccessMask::VertexBuffer) > 0) || (uint32_t(accessMask & ResourceAccessMask::IndexBuffer) > 0))
         {
             pipelineStageFlags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
         }
@@ -296,10 +257,8 @@ static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, Resou
         }
     }
 
-    if ((uint32_t(accessMask & ResourceAccessMask::ShaderReadOnly) > 0)     ||
-        (uint32_t(accessMask & ResourceAccessMask::General) > 0)            ||
-        (uint32_t(accessMask & ResourceAccessMask::StorageBuffer) > 0)      ||
-        (uint32_t(accessMask & ResourceAccessMask::UniformBuffer) > 0))
+    if ((uint32_t(accessMask & ResourceAccessMask::ShaderReadOnly) > 0) || (uint32_t(accessMask & ResourceAccessMask::General) > 0) ||
+        (uint32_t(accessMask & ResourceAccessMask::StorageBuffer) > 0) || (uint32_t(accessMask & ResourceAccessMask::UniformBuffer) > 0))
     {
         if (uint32_t(usedStages & VK_SHADER_STAGE_VERTEX_BIT) > 0)
         {
@@ -307,14 +266,11 @@ static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, Resou
         }
         if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) > 0)
         {
-            pipelineStageFlags |=
-                VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+            pipelineStageFlags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
         }
-        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) >
-            0)
+        if (uint32_t(usedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) > 0)
         {
-            pipelineStageFlags |=
-                VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+            pipelineStageFlags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
         }
         if (uint32_t(usedStages & VK_SHADER_STAGE_GEOMETRY_BIT) > 0)
         {
@@ -330,8 +286,7 @@ static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, Resou
         }
     }
 
-    if ((uint32_t(accessMask & ResourceAccessMask::TransferSource) > 0) ||
-        uint32_t(accessMask & ResourceAccessMask::TransferDest) > 0)
+    if ((uint32_t(accessMask & ResourceAccessMask::TransferSource) > 0) || uint32_t(accessMask & ResourceAccessMask::TransferDest) > 0)
     {
         pipelineStageFlags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
@@ -344,13 +299,11 @@ static VkPipelineStageFlags evaluatePipelineStageFlags(ResourceView* view, Resou
         }
         if (uint32_t(accessMask & ResourceAccessMask::DepthAttachment) > 0)
         {
-            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
         }
         if (uint32_t(accessMask & ResourceAccessMask::StencilAttachment) > 0)
         {
-            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-                                  VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            pipelineStageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
         }
         if (uint32_t(accessMask & ResourceAccessMask::DepthReadOnly) > 0)
         {
@@ -369,24 +322,18 @@ void CommandBuffer::commitPendingResourceBindings()
 {
     // TODO(snowapril) : split update descriptor sets according to set frequency
     const PipelineLayout* pipelineLayout = _boundPipeline->getPipelineLayout();
-    
-    const PipelineLayout::ShaderVariableMap& shaderVariableMap =
-        pipelineLayout->getShaderVariableMap();
-    const PipelineLayoutDescriptor& pipelineLayoutDesc =
-        pipelineLayout->getPipelineLayoutDescriptor();
+
+    const PipelineLayout::ShaderVariableMap& shaderVariableMap = pipelineLayout->getShaderVariableMap();
+    const PipelineLayoutDescriptor& pipelineLayoutDesc = pipelineLayout->getPipelineLayoutDescriptor();
 
     for (uint32_t setIndex = 1; setIndex < MAX_NUM_SET_SLOTS; ++setIndex)
     {
-        const SetSlotCategory setSlotCategory =
-            static_cast<SetSlotCategory>(setIndex);
+        const SetSlotCategory setSlotCategory = static_cast<SetSlotCategory>(setIndex);
 
-        std::vector<ShaderVariableBinding>& bindGroup =
-            _pendingResourceBindings[setIndex];
+        std::vector<ShaderVariableBinding>& bindGroup = _pendingResourceBindings[setIndex];
 
-        DescriptorSetAllocator* setAllocator =
-            pipelineLayout->getDescSetAllocator(setSlotCategory);
-        const DescriptorSetLayoutDesc& setLayoutDesc =
-            setAllocator->getDescriptorSetLayoutDesc();
+        DescriptorSetAllocator* setAllocator = pipelineLayout->getDescSetAllocator(setSlotCategory);
+        const DescriptorSetLayoutDesc& setLayoutDesc = setAllocator->getDescriptorSetLayoutDesc();
         const size_t numDescriptors = setLayoutDesc._descriptorInfos.size();
 
         if (numDescriptors == 0ULL)
@@ -394,9 +341,7 @@ void CommandBuffer::commitPendingResourceBindings()
             continue;
         }
 
-        VkDescriptorSet pooledDescriptorSet =
-            static_cast<PooledDescriptorSetAllocator*>(setAllocator)
-                ->getOrCreatePooledDescriptorSet(_fenceToSignal);
+        VkDescriptorSet pooledDescriptorSet = static_cast<PooledDescriptorSetAllocator*>(setAllocator)->getOrCreatePooledDescriptorSet(_fenceToSignal);
 
         std::vector<VkWriteDescriptorSet> vkWrites;
         vkWrites.reserve(bindGroup.size());
@@ -411,11 +356,9 @@ void CommandBuffer::commitPendingResourceBindings()
 
         for (const ShaderVariableBinding& resourceBinding : bindGroup)
         {
-            const std::string& resourceBindingName =
-                resourceBinding._variableName;
+            const std::string& resourceBindingName = resourceBinding._variableName;
 
-            auto shaderVariableIter =
-                shaderVariableMap.find(resourceBindingName);
+            auto shaderVariableIter = shaderVariableMap.find(resourceBindingName);
             if (shaderVariableIter == shaderVariableMap.end())
             {
                 VOX_ASSERT(false,
@@ -429,11 +372,9 @@ void CommandBuffer::commitPendingResourceBindings()
 
             ResourceView* bindingResourceView = resourceBinding._view;
 
-            const VkPipelineStageFlags stageFlags = evaluatePipelineStageFlags(
-                bindingResourceView, resourceBinding._usage,
-                pipelineLayoutDesc._sets[setIndex]._stageFlags);
-            addMemoryBarrier(bindingResourceView, resourceBinding._usage,
-                             stageFlags);
+            const VkPipelineStageFlags stageFlags =
+                evaluatePipelineStageFlags(bindingResourceView, resourceBinding._usage, pipelineLayoutDesc._sets[setIndex]._stageFlags);
+            addMemoryBarrier(bindingResourceView, resourceBinding._usage, stageFlags);
 
             const VkDescriptorImageInfo* imageInfo = nullptr;
             const VkDescriptorBufferInfo* bufferInfo = nullptr;
@@ -444,8 +385,7 @@ void CommandBuffer::commitPendingResourceBindings()
             switch (descriptorInfo._descriptorCategory)
             {
                 case DescriptorCategory::CombinedImage:
-                    vkDescriptorType =
-                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    vkDescriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                     break;
                 case DescriptorCategory::UniformBuffer:
                     vkDescriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -454,55 +394,44 @@ void CommandBuffer::commitPendingResourceBindings()
                     vkDescriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
                     break;
                 default:
-                    VOX_ASSERT(false,
-                               "Unknown descriptor category must not be exist");
+                    VOX_ASSERT(false, "Unknown descriptor category must not be exist");
                     break;
             }
 
             switch (bindingResourceView->getResourceViewType())
             {
                 case ResourceViewType::BufferView:
-                    sTmpBufferInfos[currentDescriptorInfoIndex] =
-                        static_cast<BufferView*>(bindingResourceView)
-                            ->getDescriptorBufferInfo();
+                    sTmpBufferInfos[currentDescriptorInfoIndex] = static_cast<BufferView*>(bindingResourceView)->getDescriptorBufferInfo();
                     bufferInfo = &sTmpBufferInfos[currentDescriptorInfoIndex++];
                     break;
                 case ResourceViewType::ImageView:
-                    sTmpImageInfos[currentDescriptorInfoIndex] =
-                        static_cast<TextureView*>(bindingResourceView)
-                            ->getDescriptorImageInfo();
+                    sTmpImageInfos[currentDescriptorInfoIndex] = static_cast<TextureView*>(bindingResourceView)->getDescriptorImageInfo();
 
-                    sTmpImageInfos[currentDescriptorInfoIndex].imageLayout =
-                        static_cast<TextureView*>(bindingResourceView)
-                            ->getCurrentVkImageLayout();
+                    sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = static_cast<TextureView*>(bindingResourceView)->getCurrentVkImageLayout();
 
-                    if (descriptorInfo._descriptorCategory ==
-                        DescriptorCategory::CombinedImage)
+                    if (descriptorInfo._descriptorCategory == DescriptorCategory::CombinedImage)
                     {
-                        sTmpImageInfos[currentDescriptorInfoIndex].sampler =
-                            _sampler->get();
+                        sTmpImageInfos[currentDescriptorInfoIndex].sampler = _sampler->get();
                     }
 
                     imageInfo = &sTmpImageInfos[currentDescriptorInfoIndex++];
                     break;
                 case ResourceViewType::StagingBufferView:
                 default:
-                    VOX_ASSERT(false,
-                               "Unhandled resource view type");
+                    VOX_ASSERT(false, "Unhandled resource view type");
                     break;
             }
 
-            vkWrites.push_back(VkWriteDescriptorSet{
-                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .pNext = nullptr,
-                .dstSet = pooledDescriptorSet,
-                .dstBinding = static_cast<uint32_t>(binding),
-                .dstArrayElement = 0,
-                .descriptorCount = arraySize,
-                .descriptorType = vkDescriptorType,
-                .pImageInfo = imageInfo,
-                .pBufferInfo = bufferInfo,
-                .pTexelBufferView = nullptr });
+            vkWrites.push_back(VkWriteDescriptorSet{ .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                                     .pNext = nullptr,
+                                                     .dstSet = pooledDescriptorSet,
+                                                     .dstBinding = static_cast<uint32_t>(binding),
+                                                     .dstArrayElement = 0,
+                                                     .descriptorCount = arraySize,
+                                                     .descriptorType = vkDescriptorType,
+                                                     .pImageInfo = imageInfo,
+                                                     .pBufferInfo = bufferInfo,
+                                                     .pTexelBufferView = nullptr });
         }
 
         // Note(snowapril) : As vulkan validation layer require that resource
@@ -510,44 +439,30 @@ void CommandBuffer::commitPendingResourceBindings()
         // before issuing draw/dispatch), commit barrier first.
         _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
-        vkUpdateDescriptorSets(_logicalDevice->get(),
-                               static_cast<uint32_t>(vkWrites.size()),
-                               vkWrites.data(), 0, nullptr);
+        vkUpdateDescriptorSets(_logicalDevice->get(), static_cast<uint32_t>(vkWrites.size()), vkWrites.data(), 0, nullptr);
 
-        vkCmdBindDescriptorSets(
-            _vkCommandBuffer, _boundPipeline->getBindPoint(),
-            pipelineLayout->get(), static_cast<uint32_t>(setSlotCategory), 1,
-            &pooledDescriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(_vkCommandBuffer, _boundPipeline->getBindPoint(), pipelineLayout->get(), static_cast<uint32_t>(setSlotCategory), 1,
+                                &pooledDescriptorSet, 0, nullptr);
 
         bindGroup.clear();
     }
 }
 
-void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer,
-    const uint32_t dstOffset, const uint32_t srcOffset,
-    const uint32_t size)
+void CommandBuffer::uploadBuffer(Buffer* dstBuffer, StagingBuffer* srcBuffer, const uint32_t dstOffset, const uint32_t srcOffset, const uint32_t size)
 {
-    const VkBufferCopy bufferCopy = { .srcOffset = srcOffset,
-                                      .dstOffset = dstOffset,
-                                      .size = size };
+    const VkBufferCopy bufferCopy = { .srcOffset = srcOffset, .dstOffset = dstOffset, .size = size };
 
     VkBuffer srcVkBuffer = srcBuffer->get();
     VkBuffer dstVkBuffer = dstBuffer->get();
 
-    addMemoryBarrier(dstBuffer->getDefaultView(),
-                     ResourceAccessMask::TransferDest,
-                     VK_PIPELINE_STAGE_TRANSFER_BIT);
-    addMemoryBarrier(srcBuffer->getDefaultView(),
-                     ResourceAccessMask::TransferSource,
-                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+    addMemoryBarrier(dstBuffer->getDefaultView(), ResourceAccessMask::TransferDest, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    addMemoryBarrier(srcBuffer->getDefaultView(), ResourceAccessMask::TransferSource, VK_PIPELINE_STAGE_TRANSFER_BIT);
     _resourceBarrierManager.commitPendingBarriers(_isInRenderPassScope);
 
     vkCmdCopyBuffer(_vkCommandBuffer, srcVkBuffer, dstVkBuffer, 1, &bufferCopy);
 }
 
-void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
-    const uint32_t dstOffset, const uint32_t srcOffset,
-    const uint32_t size)
+void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer, const uint32_t dstOffset, const uint32_t srcOffset, const uint32_t size)
 {
     (void)dstTexture;
     (void)srcBuffer;
@@ -556,59 +471,45 @@ void CommandBuffer::uploadTexture(Texture* dstTexture, StagingBuffer* srcBuffer,
     (void)size;
 }
 
-void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount,
-                         uint32_t firstVertex, uint32_t firstInstance)
+void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
 {
     commitPendingResourceBindings();
 
-    vkCmdDraw(_vkCommandBuffer, vertexCount, instanceCount, firstVertex,
-              firstInstance);
+    vkCmdDraw(_vkCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount,
-                                uint32_t firstIndex, int32_t vertexOffset,
-                                uint32_t firstInstance)
+void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
 {
     commitPendingResourceBindings();
 
-    vkCmdDrawIndexed(_vkCommandBuffer, indexCount, instanceCount, firstIndex,
-                     vertexOffset, firstInstance);
+    vkCmdDrawIndexed(_vkCommandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
-void CommandBuffer::addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
-                                           ResourceAccessMask nextAccessMasks)
+void CommandBuffer::addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks, ResourceAccessMask nextAccessMasks)
 {
-    _resourceBarrierManager.addGlobalMemoryBarrier(prevAccessMasks,
-                                                   nextAccessMasks);
+    _resourceBarrierManager.addGlobalMemoryBarrier(prevAccessMasks, nextAccessMasks);
 }
 
-void CommandBuffer::addMemoryBarrier(ResourceView* view,
-                                     ResourceAccessMask accessMask,
-                                     VkPipelineStageFlags nextStageFlags)
+void CommandBuffer::addMemoryBarrier(ResourceView* view, ResourceAccessMask accessMask, VkPipelineStageFlags nextStageFlags)
 {
     const ResourceViewType viewType = view->getResourceViewType();
     switch (viewType)
     {
         case ResourceViewType::BufferView:
-            _resourceBarrierManager.addBufferMemoryBarrier(
-                static_cast<BufferView*>(view), accessMask, nextStageFlags);
+            _resourceBarrierManager.addBufferMemoryBarrier(static_cast<BufferView*>(view), accessMask, nextStageFlags);
             break;
         case ResourceViewType::ImageView:
-            _resourceBarrierManager.addTextureMemoryBarrier(
-                static_cast<TextureView*>(view), accessMask, nextStageFlags);
+            _resourceBarrierManager.addTextureMemoryBarrier(static_cast<TextureView*>(view), accessMask, nextStageFlags);
             break;
         case ResourceViewType::StagingBufferView:
-            _resourceBarrierManager.addStagingBufferMemoryBarrier(
-                static_cast<StagingBufferView*>(view), accessMask,
-                nextStageFlags);
+            _resourceBarrierManager.addStagingBufferMemoryBarrier(static_cast<StagingBufferView*>(view), accessMask, nextStageFlags);
             break;
         default:
             break;
     }
 }
 
-void CommandBuffer::addExecutionBarrier(VkPipelineStageFlags prevStageFlags,
-                                        VkPipelineStageFlags nextStageFlags)
+void CommandBuffer::addExecutionBarrier(VkPipelineStageFlags prevStageFlags, VkPipelineStageFlags nextStageFlags)
 {
     _resourceBarrierManager.addExecutionBarrier(prevStageFlags, nextStageFlags);
 }

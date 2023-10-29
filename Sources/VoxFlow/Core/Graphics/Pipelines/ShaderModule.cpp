@@ -1,47 +1,37 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
-#include <VoxFlow/Core/Utils/VertexFormat.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+#include <VoxFlow/Core/Utils/VertexFormat.hpp>
 #include <spirv-cross/spirv_common.hpp>
 #include <spirv-cross/spirv_cross.hpp>
 
 namespace VoxFlow
 {
-ShaderModule::ShaderModule(PipelineStreamingContext* pipelineStreamingContext,
-                           const ShaderPathInfo& shaderPath)
-    : _pipelineStreamingContext(pipelineStreamingContext),
-      _logicalDevice(_pipelineStreamingContext->getLogicalDevice()),
-      _shaderFilePath(shaderPath)
+ShaderModule::ShaderModule(PipelineStreamingContext* pipelineStreamingContext, const ShaderPathInfo& shaderPath)
+    : _pipelineStreamingContext(pipelineStreamingContext), _logicalDevice(_pipelineStreamingContext->getLogicalDevice()), _shaderFilePath(shaderPath)
 {
     std::vector<unsigned int> spirvBinary;
     const bool compileResult = _pipelineStreamingContext->loadSpirvBinary(spirvBinary, shaderPath);
-    VOX_ASSERT(compileResult, "Failed to load spirv binary for path : {}",
-               shaderPath.path);
+    VOX_ASSERT(compileResult, "Failed to load spirv binary for path : {}", shaderPath.path);
 
     if (compileResult == false)
         return;
 
-    const VkShaderModuleCreateInfo moduleInfo = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .codeSize = spirvBinary.size() * sizeof(unsigned int),
-        .pCode = spirvBinary.data()
-    };
-    VK_ASSERT(vkCreateShaderModule(_logicalDevice->get(), &moduleInfo, nullptr,
-                                   &_shaderModule));
+    const VkShaderModuleCreateInfo moduleInfo = { .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+                                                  .pNext = nullptr,
+                                                  .flags = 0,
+                                                  .codeSize = spirvBinary.size() * sizeof(unsigned int),
+                                                  .pCode = spirvBinary.data() };
+    VK_ASSERT(vkCreateShaderModule(_logicalDevice->get(), &moduleInfo, nullptr, &_shaderModule));
 
-    _stageFlagBits =
-        ShaderUtil::ConvertToShaderStageFlag(_shaderFilePath.shaderStage);
+    _stageFlagBits = ShaderUtil::ConvertToShaderStageFlag(_shaderFilePath.shaderStage);
 
-    const bool reflectionResult = reflectShaderLayoutBindings(
-        &_reflectionDataGroup, std::move(spirvBinary), _stageFlagBits);
-    VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}",
-               _shaderFilePath.path);
+    const bool reflectionResult = reflectShaderLayoutBindings(&_reflectionDataGroup, std::move(spirvBinary), _stageFlagBits);
+    VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}", _shaderFilePath.path);
 }
 
 ShaderModule::~ShaderModule()
@@ -206,8 +196,7 @@ static VkFormat convertSpirvImageFormat(spv::ImageFormat imageFormat)
     }
 }
 
-VertexFormatBaseType convertToBaseType(
-    const spirv_cross::SPIRType::BaseType& spirBaseType)
+VertexFormatBaseType convertToBaseType(const spirv_cross::SPIRType::BaseType& spirBaseType)
 {
     using namespace spirv_cross;
     VertexFormatBaseType baseType = VertexFormatBaseType::Unknown;
@@ -237,8 +226,8 @@ VertexFormatBaseType convertToBaseType(
     return baseType;
 }
 
-bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflectionDataGroup,
-    std::vector<uint32_t>&& spirvCodes, VkShaderStageFlagBits shaderStageBits)
+bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflectionDataGroup, std::vector<uint32_t>&& spirvCodes,
+                                               VkShaderStageFlagBits shaderStageBits)
 {
     // Note(snowapril) : sample codes from Khronos/SPIRV-Cross Wiki.
     //                   https://github.com/KhronosGroup/SPIRV-Cross/wiki/Reflection-API-user-guide
@@ -247,37 +236,26 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
     spirv_cross::Compiler compiler(std::move(spirvCodes));
 
     // Querying statically accessed resources
-    std::unordered_set<spirv_cross::VariableID> activeVariableSet =
-        compiler.get_active_interface_variables();
-    spirv_cross::ShaderResources shaderResources =
-        compiler.get_shader_resources(activeVariableSet);
+    std::unordered_set<spirv_cross::VariableID> activeVariableSet = compiler.get_active_interface_variables();
+    spirv_cross::ShaderResources shaderResources = compiler.get_shader_resources(activeVariableSet);
     compiler.set_enabled_interface_variables(std::move(activeVariableSet));
 
     bool isBindless = false;
     for (const spirv_cross::Resource& resource : shaderResources.sampled_images)
     {
-        const uint32_t set =
-            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        const uint32_t binding =
-            compiler.get_decoration(resource.id, spv::DecorationBinding);
-        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
-                   MAX_NUM_SET_SLOTS);
+        const uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}", MAX_NUM_SET_SLOTS);
 
-        const spirv_cross::SPIRType& resourceType =
-            compiler.get_type(resource.type_id);
+        const spirv_cross::SPIRType& resourceType = compiler.get_type(resource.type_id);
 
-        const uint32_t count =
-            getSpirTypeSize(resourceType, isBindless);
-        VOX_ASSERT(
-            (isBindless == false) ||
-                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
-            "Bindless resource must use set = {}",
-            static_cast<uint32_t>(SetSlotCategory::Bindless));
+        const uint32_t count = getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT((isBindless == false) || (set == static_cast<uint32_t>(SetSlotCategory::Bindless)), "Bindless resource must use set = {}",
+                   static_cast<uint32_t>(SetSlotCategory::Bindless));
 
-        //const std::string& blockName = compiler.get_name(resource.base_type_id);
+        // const std::string& blockName = compiler.get_name(resource.base_type_id);
 
-        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
-                      resource.name, set, binding, count);
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})", resource.name, set, binding, count);
 
         if (resourceType.image.dim == spv::DimBuffer)
         {
@@ -285,176 +263,119 @@ bool ShaderModule::reflectShaderLayoutBindings(ShaderReflectionDataGroup* reflec
         }
         else
         {
-            VkFormat imageFormat =
-                convertSpirvImageFormat(resourceType.image.format);
+            VkFormat imageFormat = convertSpirvImageFormat(resourceType.image.format);
             (void)imageFormat;
 
-            reflectionDataGroup->_descriptors.emplace(
-                DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                                DescriptorCategory::CombinedImage, count,
-                                binding },
-                resource.name);
+            reflectionDataGroup->_descriptors.emplace(DescriptorInfo{ static_cast<SetSlotCategory>(set), DescriptorCategory::CombinedImage, count, binding },
+                                                      resource.name);
         }
     }
 
-    for (const spirv_cross::Resource& resource :
-         shaderResources.uniform_buffers)
+    for (const spirv_cross::Resource& resource : shaderResources.uniform_buffers)
     {
-        const uint32_t set =
-            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        const uint32_t binding =
-            compiler.get_decoration(resource.id, spv::DecorationBinding);
-        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
-                   MAX_NUM_SET_SLOTS);
+        const uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}", MAX_NUM_SET_SLOTS);
 
-        const spirv_cross::SPIRType& resourceType =
-            compiler.get_type(resource.type_id);
+        const spirv_cross::SPIRType& resourceType = compiler.get_type(resource.type_id);
 
-        const uint32_t count =
-            getSpirTypeSize(resourceType, isBindless);
-        VOX_ASSERT(
-            (isBindless == false) ||
-                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
-            "Bindless resource must use set = {}",
-            static_cast<uint32_t>(SetSlotCategory::Bindless));
+        const uint32_t count = getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT((isBindless == false) || (set == static_cast<uint32_t>(SetSlotCategory::Bindless)), "Bindless resource must use set = {}",
+                   static_cast<uint32_t>(SetSlotCategory::Bindless));
 
-        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
-                      resource.name, set, binding, count);
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})", resource.name, set, binding, count);
 
         uint32_t totalSize = 0;
         for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
         {
             // auto& memberType = compiler.get_type(resourceType.member_types[i]);
-            size_t memberSize =
-                compiler.get_declared_struct_member_size(resourceType, i);
+            size_t memberSize = compiler.get_declared_struct_member_size(resourceType, i);
             size_t offset = compiler.type_struct_member_offset(resourceType, i);
-            const std::string& memberName =
-                compiler.get_member_name(resourceType.self, i);
+            const std::string& memberName = compiler.get_member_name(resourceType.self, i);
 
-            spdlog::debug("\t\t member({} : size({}), offset({})", memberName,
-                          memberSize, offset);
+            spdlog::debug("\t\t member({} : size({}), offset({})", memberName, memberSize, offset);
             totalSize += static_cast<uint32_t>(memberSize);
         }
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        reflectionDataGroup->_descriptors.emplace(
-            DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                            DescriptorCategory::UniformBuffer, count, binding },
-            resource.name);
+        reflectionDataGroup->_descriptors.emplace(DescriptorInfo{ static_cast<SetSlotCategory>(set), DescriptorCategory::UniformBuffer, count, binding },
+                                                  resource.name);
     }
 
-    for (const spirv_cross::Resource& resource :
-         shaderResources.storage_buffers)
+    for (const spirv_cross::Resource& resource : shaderResources.storage_buffers)
     {
-        const uint32_t set =
-            compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        const uint32_t binding =
-            compiler.get_decoration(resource.id, spv::DecorationBinding);
-        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}",
-                   MAX_NUM_SET_SLOTS);
+        const uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        const uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        VOX_ASSERT(set < MAX_NUM_SET_SLOTS, "Set number must be under {}", MAX_NUM_SET_SLOTS);
 
-        const spirv_cross::SPIRType& resourceType =
-            compiler.get_type(resource.type_id);
+        const spirv_cross::SPIRType& resourceType = compiler.get_type(resource.type_id);
 
-        const uint32_t count =
-            getSpirTypeSize(resourceType, isBindless);
-        VOX_ASSERT(
-            (isBindless == false) ||
-                (set == static_cast<uint32_t>(SetSlotCategory::Bindless)),
-            "Bindless resource must use set = {}",
-            static_cast<uint32_t>(SetSlotCategory::Bindless));
+        const uint32_t count = getSpirTypeSize(resourceType, isBindless);
+        VOX_ASSERT((isBindless == false) || (set == static_cast<uint32_t>(SetSlotCategory::Bindless)), "Bindless resource must use set = {}",
+                   static_cast<uint32_t>(SetSlotCategory::Bindless));
 
-        spdlog::debug("\t {} (set : {}, binding : {}, count : {})",
-                      resource.name, set, binding, count);
+        spdlog::debug("\t {} (set : {}, binding : {}, count : {})", resource.name, set, binding, count);
 
         uint32_t totalSize = 0;
         for (uint32_t i = 0; i < resourceType.member_types.size(); ++i)
         {
             // auto& memberType = compiler.get_type(resourceType.member_types[i]);
-            size_t memberSize =
-                compiler.get_declared_struct_member_size(resourceType, i);
+            size_t memberSize = compiler.get_declared_struct_member_size(resourceType, i);
             size_t offset = compiler.type_struct_member_offset(resourceType, i);
-            const std::string& memberName =
-                compiler.get_member_name(resourceType.self, i);
+            const std::string& memberName = compiler.get_member_name(resourceType.self, i);
 
-            spdlog::debug("\t\t member({} : size({}), offset({})", memberName,
-                          memberSize, offset);
+            spdlog::debug("\t\t member({} : size({}), offset({})", memberName, memberSize, offset);
             totalSize += static_cast<uint32_t>(memberSize);
         }
         const std::string& blockName = compiler.get_name(resource.base_type_id);
         spdlog::debug("\t Block : {}, totalSize : {}", blockName, totalSize);
 
-        reflectionDataGroup->_descriptors.emplace(
-            DescriptorInfo{ static_cast<SetSlotCategory>(set),
-                            DescriptorCategory::StorageBuffer, count, binding },
-            resource.name);
+        reflectionDataGroup->_descriptors.emplace(DescriptorInfo{ static_cast<SetSlotCategory>(set), DescriptorCategory::StorageBuffer, count, binding },
+                                                  resource.name);
     }
 
     if (shaderStageBits == VK_SHADER_STAGE_VERTEX_BIT)
     {
-        for (const spirv_cross::Resource& attribute :
-             shaderResources.stage_inputs)
+        for (const spirv_cross::Resource& attribute : shaderResources.stage_inputs)
         {
-            auto location =
-                compiler.get_decoration(attribute.id, spv::DecorationLocation);
+            auto location = compiler.get_decoration(attribute.id, spv::DecorationLocation);
 
-            auto binding =
-                compiler.get_decoration(attribute.id, spv::DecorationBinding);
+            auto binding = compiler.get_decoration(attribute.id, spv::DecorationBinding);
 
-            const spirv_cross::SPIRType& resourceType =
-                compiler.get_type(attribute.type_id);
+            const spirv_cross::SPIRType& resourceType = compiler.get_type(attribute.type_id);
 
-            const uint32_t size = static_cast<uint32_t>(resourceType.width *
-                                                        resourceType.vecsize);
-            VOX_ASSERT(resourceType.columns == 1,
-                       "Matrix should not be used in stage input/output");
+            const uint32_t size = static_cast<uint32_t>(resourceType.width * resourceType.vecsize);
+            VOX_ASSERT(resourceType.columns == 1, "Matrix should not be used in stage input/output");
 
-            VertexFormatBaseType baseType =
-                convertToBaseType(resourceType.basetype);
+            VertexFormatBaseType baseType = convertToBaseType(resourceType.basetype);
 
-            reflectionDataGroup->_vertexInputLayouts.push_back(
-                { ._location = location,
-                  ._binding = binding,
-                  ._stride = (size >> 3),
-                  ._baseType = baseType });
+            reflectionDataGroup->_vertexInputLayouts.push_back({ ._location = location, ._binding = binding, ._stride = (size >> 3), ._baseType = baseType });
         }
-        std::sort(reflectionDataGroup->_vertexInputLayouts.begin(),
-                  reflectionDataGroup->_vertexInputLayouts.end(),
-                  [](const auto& lhs, const auto& rhs) {
-                      return lhs._location <= rhs._location;
-                  });
+        std::sort(reflectionDataGroup->_vertexInputLayouts.begin(), reflectionDataGroup->_vertexInputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) { return lhs._location <= rhs._location; });
     }
-    
+
     if (shaderStageBits == VK_SHADER_STAGE_FRAGMENT_BIT)
     {
-        for (const spirv_cross::Resource& attribute :
-             shaderResources.stage_outputs)
+        for (const spirv_cross::Resource& attribute : shaderResources.stage_outputs)
         {
-            auto location =
-                compiler.get_decoration(attribute.id, spv::DecorationLocation);
+            auto location = compiler.get_decoration(attribute.id, spv::DecorationLocation);
 
-            const spirv_cross::SPIRType& resourceType =
-                compiler.get_type(attribute.type_id);
+            const spirv_cross::SPIRType& resourceType = compiler.get_type(attribute.type_id);
 
-            VkFormat imageFormat =
-                convertSpirvImageFormat(resourceType.image.format);
+            VkFormat imageFormat = convertSpirvImageFormat(resourceType.image.format);
 
-            reflectionDataGroup->_fragmentOutputLayouts.push_back(
-                { ._location = location, ._format = imageFormat });
+            reflectionDataGroup->_fragmentOutputLayouts.push_back({ ._location = location, ._format = imageFormat });
         }
-        std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(),
-                  reflectionDataGroup->_fragmentOutputLayouts.end(),
-                  [](const auto& lhs, const auto& rhs) {
-                      return lhs._location <= rhs._location;
-                  });
+        std::sort(reflectionDataGroup->_fragmentOutputLayouts.begin(), reflectionDataGroup->_fragmentOutputLayouts.end(),
+                  [](const auto& lhs, const auto& rhs) { return lhs._location <= rhs._location; });
     }
 
     if (!shaderResources.push_constant_buffers.empty())
     {
-        reflectionDataGroup->_pushConstantSize = static_cast<uint32_t>(
-            compiler.get_declared_struct_size(compiler.get_type(
-                shaderResources.push_constant_buffers.front().base_type_id)));
+        reflectionDataGroup->_pushConstantSize =
+            static_cast<uint32_t>(compiler.get_declared_struct_size(compiler.get_type(shaderResources.push_constant_buffers.front().base_type_id)));
     }
 
     reflectionDataGroup->_stageFlagBit = shaderStageBits;

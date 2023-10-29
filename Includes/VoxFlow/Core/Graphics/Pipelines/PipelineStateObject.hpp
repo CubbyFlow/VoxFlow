@@ -4,9 +4,9 @@
 #define VOXEL_FLOW_PIPELINE_STATE_OBJECT_HPP
 
 #include <volk/volk.h>
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
+#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <vector>
 
 namespace VoxFlow
@@ -40,7 +40,6 @@ struct StencilOperationState
     uint32_t compareMask = 0xff;
     uint32_t writeMask = 0xff;
     uint32_t reference = 0xff;
-
 };
 
 struct DepthStencilCreation
@@ -72,16 +71,12 @@ struct BlendState
     VkBlendFactor destinationAlpha = VK_BLEND_FACTOR_ONE;
     VkBlendOp alphaOperation = VK_BLEND_OP_ADD;
 
-    VkColorComponentFlags colorMasks =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    VkColorComponentFlags colorMasks = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
     bool blendEnabled = false;
     bool separateBlend = false;
 
-    BlendState& setColor(VkBlendFactor sourceColor_,
-        VkBlendFactor destinationColor_,
-        VkBlendOp colorOperation_)
+    BlendState& setColor(VkBlendFactor sourceColor_, VkBlendFactor destinationColor_, VkBlendOp colorOperation_)
     {
         sourceColor = sourceColor_;
         destinationColor = destinationColor_;
@@ -90,9 +85,7 @@ struct BlendState
         return *this;
     }
 
-    BlendState& setAlpha(VkBlendFactor sourceAlpha_,
-        VkBlendFactor destinationAlpha_,
-        VkBlendOp alphaOperation_)
+    BlendState& setAlpha(VkBlendFactor sourceAlpha_, VkBlendFactor destinationAlpha_, VkBlendOp alphaOperation_)
     {
         sourceAlpha = sourceAlpha_;
         destinationAlpha = destinationAlpha_;
@@ -105,7 +98,6 @@ struct BlendState
         colorMasks = value;
         return *this;
     }
-
 };
 
 struct BlendStateCreation
@@ -114,7 +106,7 @@ struct BlendStateCreation
     uint32_t activeStates = 0;
 
     BlendStateCreation& reset()
-    { 
+    {
         activeStates = 0;
         return *this;
     }

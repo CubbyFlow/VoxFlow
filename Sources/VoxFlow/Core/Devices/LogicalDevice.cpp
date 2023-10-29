@@ -5,10 +5,10 @@
 #include <VoxFlow/Core/Devices/PhysicalDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
-#include <VoxFlow/Core/Resources/Buffer.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetAllocatorPool.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
+#include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
@@ -19,29 +19,20 @@
 
 namespace VoxFlow
 {
-LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
-                             Instance* instance,
-                             const LogicalDeviceType deviceType)
-    : _physicalDevice(physicalDevice),
-      _instance(instance),
-      _deviceType(deviceType)
+LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice, Instance* instance, const LogicalDeviceType deviceType)
+    : _physicalDevice(physicalDevice), _instance(instance), _deviceType(deviceType)
 {
-    const std::vector<VkLayerProperties> layerProperties =
-        physicalDevice->getPossibleLayers();
+    const std::vector<VkLayerProperties> layerProperties = physicalDevice->getPossibleLayers();
 
     std::vector<const char*> usedLayers;
     // As instance layers are same with device layers, we can use it again
-    VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties,
-                                        ctx.instanceLayers));
+    VK_ASSERT(DecisionMaker::pickLayers(usedLayers, layerProperties, ctx.instanceLayers));
 
-    const std::vector<VkExtensionProperties> extensionProperties =
-        physicalDevice->getPossibleExtensions();
+    const std::vector<VkExtensionProperties> extensionProperties = physicalDevice->getPossibleExtensions();
 
     std::vector<const char*> usedExtensions;
     std::vector<void*> featureStructs;
-    VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties,
-                                            ctx.deviceExtensions,
-                                            featureStructs));
+    VK_ASSERT(DecisionMaker::pickExtensions(usedExtensions, extensionProperties, ctx.deviceExtensions, featureStructs));
 
     const auto queueFamilies = physicalDevice->getQueueFamilyProperties();
 
@@ -61,18 +52,14 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
         for (const auto& queueFamily : queueFamilies)
         {
-            if ((queueFamily.queueCount >= requiredQueue.queueCount) &&
-                (queueFamily.queueFlags && requiredQueue.flag))
+            if ((queueFamily.queueCount >= requiredQueue.queueCount) && (queueFamily.queueFlags && requiredQueue.flag))
             {
                 familyIndex = index;
                 queueFlags = queueFamily.queueFlags;
             }
 
             if (familyIndex.has_value() &&
-                std::find(requiredQueueFamilyIndices.begin(),
-                          requiredQueueFamilyIndices.end(),
-                          familyIndex.value()) ==
-                    requiredQueueFamilyIndices.end())
+                std::find(requiredQueueFamilyIndices.begin(), requiredQueueFamilyIndices.end(), familyIndex.value()) == requiredQueueFamilyIndices.end())
             {
                 break;
             }
@@ -81,21 +68,19 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
 
         if (familyIndex.has_value() == false)
         {
-            spdlog::error("Failed to find required queue [{}] in this device.",
-                          requiredQueue.queueName);
+            spdlog::error("Failed to find required queue [{}] in this device.", requiredQueue.queueName);
             std::abort();
         }
         else
         {
             requiredQueueFlags.push_back(queueFlags.value());
             requiredQueueFamilyIndices.push_back(familyIndex.value());
-            queueInfos.push_back(
-                { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                  .pNext = nullptr,
-                  .flags = 0,
-                  .queueFamilyIndex = familyIndex.value(),
-                  .queueCount = requiredQueue.queueCount,
-                  .pQueuePriorities = &requiredQueue.priority });
+            queueInfos.push_back({ .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                   .pNext = nullptr,
+                                   .flags = 0,
+                                   .queueFamilyIndex = familyIndex.value(),
+                                   .queueCount = requiredQueue.queueCount,
+                                   .pQueuePriorities = &requiredQueue.priority });
         }
     }
 
@@ -119,35 +104,30 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     features12.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
     pNextChain = &features12;
 
-    [[maybe_unused]] const VkDeviceCreateInfo deviceInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = pNextChain,
-        .flags = 0,
-        .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
-        .pQueueCreateInfos = queueInfos.data(),
-        .enabledLayerCount = static_cast<uint32_t>(usedLayers.size()),
-        .ppEnabledLayerNames = usedLayers.data(),
-        .enabledExtensionCount = static_cast<uint32_t>(usedExtensions.size()),
-        .ppEnabledExtensionNames = usedExtensions.data(),
-        .pEnabledFeatures = nullptr
-    };
+    [[maybe_unused]] const VkDeviceCreateInfo deviceInfo = { .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                                                             .pNext = pNextChain,
+                                                             .flags = 0,
+                                                             .queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size()),
+                                                             .pQueueCreateInfos = queueInfos.data(),
+                                                             .enabledLayerCount = static_cast<uint32_t>(usedLayers.size()),
+                                                             .ppEnabledLayerNames = usedLayers.data(),
+                                                             .enabledExtensionCount = static_cast<uint32_t>(usedExtensions.size()),
+                                                             .ppEnabledExtensionNames = usedExtensions.data(),
+                                                             .pEnabledFeatures = nullptr };
 
-    VK_ASSERT(
-        vkCreateDevice(physicalDevice->get(), &deviceInfo, nullptr, &_device));
+    VK_ASSERT(vkCreateDevice(physicalDevice->get(), &deviceInfo, nullptr, &_device));
 
     std::unordered_map<uint32_t, uint32_t> queueIndicesPerFamily;
 
     for (size_t i = 0; i < ctx.requiredQueues.size(); ++i)
     {
         VkQueue queueHandle;
-        vkGetDeviceQueue(_device, requiredQueueFamilyIndices[i], 0,
-                         &queueHandle);
+        vkGetDeviceQueue(_device, requiredQueueFamilyIndices[i], 0, &queueHandle);
 
         VOX_ASSERT(queueHandle != VK_NULL_HANDLE, "Failed to get device queue");
         if (queueHandle != VK_NULL_HANDLE)
         {
-            std::unordered_map<uint32_t, uint32_t>::iterator findIt =
-                queueIndicesPerFamily.find(requiredQueueFamilyIndices[i]);
+            std::unordered_map<uint32_t, uint32_t>::iterator findIt = queueIndicesPerFamily.find(requiredQueueFamilyIndices[i]);
 
             uint32_t queueIndex = 0U;
             if (findIt != queueIndicesPerFamily.end())
@@ -156,13 +136,10 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
             }
             else
             {
-                queueIndicesPerFamily.insert(
-                    std::make_pair(requiredQueueFamilyIndices[i], queueIndex));
+                queueIndicesPerFamily.insert(std::make_pair(requiredQueueFamilyIndices[i], queueIndex));
             }
 
-            Queue* queue = new Queue(ctx.requiredQueues[i].queueName, this,
-                                     requiredQueueFlags[i], queueHandle,
-                                     requiredQueueFamilyIndices[i], queueIndex);
+            Queue* queue = new Queue(ctx.requiredQueues[i].queueName, this, requiredQueueFlags[i], queueHandle, requiredQueueFamilyIndices[i], queueIndex);
 
             VOX_ASSERT(queue != nullptr, "Failed to allocate queue");
 
@@ -179,20 +156,16 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     volkLoadDevice(_device);
 
     DeviceRemoveTracker::get()->addLogicalDeviceToTrack(this);
-    _deviceDefaultResourceMemoryPool =
-        new RenderResourceMemoryPool(this, _physicalDevice, _instance); 
+    _deviceDefaultResourceMemoryPool = new RenderResourceMemoryPool(this, _physicalDevice, _instance);
 
-    VOX_ASSERT(
-        _deviceDefaultResourceMemoryPool->initialize(),
-        "Failed to initialize device-default render resource memory pool");
+    VOX_ASSERT(_deviceDefaultResourceMemoryPool->initialize(), "Failed to initialize device-default render resource memory pool");
 
     _renderPassCollector = new RenderPassCollector(this);
     _descriptorSetAllocatorPool = new DescriptorSetAllocatorPool(this);
 
     initializeCommandStreams();
 
-    _pipelineStreamingContext = std::make_unique<PipelineStreamingContext>(
-        this, RESOURCES_DIR "Shaders/");
+    _pipelineStreamingContext = std::make_unique<PipelineStreamingContext>(this, RESOURCES_DIR "Shaders/");
 }
 
 LogicalDevice::~LogicalDevice()
@@ -201,8 +174,7 @@ LogicalDevice::~LogicalDevice()
     release();
 }
 
-LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept
-    : _device(other._device), _queueMap(std::move(other._queueMap))
+LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept : _device(other._device), _queueMap(std::move(other._queueMap))
 {
     // Do nothing
 }
@@ -224,14 +196,11 @@ Queue* LogicalDevice::getQueuePtr(const std::string& queueName)
     return iter->second;
 }
 
-std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(
-    const char* title, const glm::ivec2 resolution)
+std::shared_ptr<SwapChain> LogicalDevice::addSwapChain(const char* title, const glm::ivec2 resolution)
 {
-    std::shared_ptr<SwapChain> swapChain = std::make_shared<SwapChain>(
-        _instance, _physicalDevice, this, _mainQueue, title, resolution);
+    std::shared_ptr<SwapChain> swapChain = std::make_shared<SwapChain>(_instance, _physicalDevice, this, _mainQueue, title, resolution);
 
-    VOX_ASSERT(swapChain->create(), "Failed to create swapchain (name : {})",
-               title);
+    VOX_ASSERT(swapChain->create(), "Failed to create swapchain (name : {})", title);
 
     _swapChains.push_back(swapChain);
 
@@ -242,25 +211,17 @@ void LogicalDevice::initializeCommandStreams()
 {
     _commandJobSystem = std::make_unique<CommandJobSystem>(this);
 
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Graphics },
-        getQueuePtr("MainGraphics"));
+    _commandJobSystem->createCommandStream(CommandStreamKey{ ._cmdStreamName = MAIN_GRAPHICS_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Graphics },
+                                           getQueuePtr("MainGraphics"));
 
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Compute },
-        getQueuePtr("AsyncCompute"));
+    _commandJobSystem->createCommandStream(CommandStreamKey{ ._cmdStreamName = ASYNC_COMPUTE_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Compute },
+                                           getQueuePtr("AsyncCompute"));
 
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
-        getQueuePtr("AsyncUpload"));
+    _commandJobSystem->createCommandStream(CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Transfer },
+                                           getQueuePtr("AsyncUpload"));
 
-    _commandJobSystem->createCommandStream(
-        CommandStreamKey{ ._cmdStreamName = IMMEDIATE_UPLOAD_STREAM_NAME,
-                          ._cmdStreamUsage = CommandStreamUsage::Transfer },
-        getQueuePtr("ImmediateUpload"));
+    _commandJobSystem->createCommandStream(CommandStreamKey{ ._cmdStreamName = IMMEDIATE_UPLOAD_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Transfer },
+                                           getQueuePtr("ImmediateUpload"));
 }
 
 void LogicalDevice::releaseDedicatedResources()
@@ -284,14 +245,12 @@ void LogicalDevice::releaseDedicatedResources()
         delete _descriptorSetAllocatorPool;
     }
 
-    std::for_each(
-        _queueMap.begin(), _queueMap.end(),
-        [](std::unordered_map<std::string, Queue*>::value_type& queue) {
-            if (queue.second != nullptr)
-            {
-                delete queue.second;
-            }
-        });
+    std::for_each(_queueMap.begin(), _queueMap.end(), [](std::unordered_map<std::string, Queue*>::value_type& queue) {
+        if (queue.second != nullptr)
+        {
+            delete queue.second;
+        }
+    });
 }
 
 void LogicalDevice::release()

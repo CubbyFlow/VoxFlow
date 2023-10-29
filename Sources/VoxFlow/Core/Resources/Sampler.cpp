@@ -1,12 +1,11 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Resources/Sampler.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
+#include <VoxFlow/Core/Resources/Sampler.hpp>
 
 namespace VoxFlow
 {
-Sampler::Sampler(std::string_view&& debugName, LogicalDevice* logicalDevice)
-    : RenderResource(std::move(debugName), logicalDevice, nullptr)
+Sampler::Sampler(std::string_view&& debugName, LogicalDevice* logicalDevice) : RenderResource(std::move(debugName), logicalDevice, nullptr)
 {
 }
 
@@ -16,7 +15,7 @@ Sampler::~Sampler()
 }
 
 bool Sampler::initialize()
-{ 
+{
     // TODO(snowapril) : implement various type of samplers
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -27,8 +26,7 @@ bool Sampler::initialize()
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable = VK_FALSE;
 
-    VK_ASSERT(vkCreateSampler(_logicalDevice->get(), &samplerInfo, nullptr,
-                              &_vkSampler));
+    VK_ASSERT(vkCreateSampler(_logicalDevice->get(), &samplerInfo, nullptr, &_vkSampler));
 
 #if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _vkSampler, _debugName.c_str());

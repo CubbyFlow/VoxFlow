@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_STAGING_BUFFER_HPP
 #define VOXEL_FLOW_STAGING_BUFFER_HPP
 
-#include <vma/include/vk_mem_alloc.h>
 #include <volk/volk.h>
+#include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
 #include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
@@ -22,9 +22,7 @@ class StagingBufferView;
 class StagingBuffer : public RenderResource
 {
  public:
-    explicit StagingBuffer(std::string_view&& debugName,
-                           LogicalDevice* logicalDevice,
-                           RenderResourceMemoryPool* renderResourceMemoryPool);
+    explicit StagingBuffer(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     ~StagingBuffer() override;
 
  public:
@@ -38,12 +36,9 @@ class StagingBuffer : public RenderResource
         return _size;
     }
 
-    [[nodiscard]] inline std::shared_ptr<StagingBufferView> getView(
-        const uint32_t viewIndex) const
+    [[nodiscard]] inline std::shared_ptr<StagingBufferView> getView(const uint32_t viewIndex) const
     {
-        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedBufferViews.size()),
-                   "Given Index ({}), Num Buffer Views ({})", viewIndex,
-                   _ownedBufferViews.size());
+        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedBufferViews.size()), "Given Index ({}), Num Buffer Views ({})", viewIndex, _ownedBufferViews.size());
         return _ownedBufferViews[viewIndex];
     }
 
@@ -59,8 +54,7 @@ class StagingBuffer : public RenderResource
     void release();
 
     // Create buffer view and return its index for given buffer view info
-    std::optional<uint32_t> createStagingBufferView(
-        const BufferViewInfo& viewInfo);
+    std::optional<uint32_t> createStagingBufferView(const BufferViewInfo& viewInfo);
 
     // Get default created view that is pointing whole buffer
     [[nodiscard]] inline StagingBufferView* getDefaultView() const
@@ -90,8 +84,7 @@ class StagingBuffer : public RenderResource
 class StagingBufferView : public ResourceView
 {
  public:
-    explicit StagingBufferView(std::string&& debugName, LogicalDevice* logicalDevice,
-                        RenderResource* ownerResource);
+    explicit StagingBufferView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource);
     ~StagingBufferView();
 
  public:

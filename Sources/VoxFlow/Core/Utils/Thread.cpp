@@ -19,8 +19,7 @@ void Thread::SetThreadName(const char* threadName)
     wchar_t threadNameWide[128];
     std::mbstowcs(threadNameWide, threadName, std::strlen(threadName) + 1);
     HRESULT hr = SetThreadDescription(GetCurrentThread(), threadNameWide);
-    VOX_ASSERT(SUCCEEDED(hr), "Failed to initialize thread name {}",
-               threadName);
+    VOX_ASSERT(SUCCEEDED(hr), "Failed to initialize thread name {}", threadName);
 #else
     (void)threadName;  // TODO(snowapril)
 #endif

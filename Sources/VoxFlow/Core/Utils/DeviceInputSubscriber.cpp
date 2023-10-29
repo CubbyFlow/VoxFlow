@@ -1,9 +1,9 @@
 // Author : snowapril
 
+#include <GLFW/glfw3.h>
 #include <VoxFlow/Core/Utils/DeviceInputSubscriber.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <vector>
-#include <GLFW/glfw3.h>
 
 namespace
 {
@@ -11,8 +11,7 @@ std::vector<GLFWwindow*> gGlfwWindows;
 VoxFlow::DeviceInputSubscriber* gDeviceInputRegistrator = nullptr;
 }  // namespace
 
-void deviceKeyInputCallback(GLFWwindow* window, int key, int scancode,
-                            int action, int mod)
+void deviceKeyInputCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 {
     using namespace VoxFlow;
 
@@ -46,11 +45,9 @@ void deviceKeyInputCallback(GLFWwindow* window, int key, int scancode,
     if (gDeviceInputRegistrator != nullptr)
     {
         const auto iter = std::find(gGlfwWindows.begin(), gGlfwWindows.end(), window);
-        VOX_ASSERT(iter != gGlfwWindows.end(),
-                   "Iternal logic error releated to device input registrator");
+        VOX_ASSERT(iter != gGlfwWindows.end(), "Iternal logic error releated to device input registrator");
 
-        const auto windowIndex =
-            static_cast<uint32_t>(std::distance(gGlfwWindows.begin(), iter));
+        const auto windowIndex = static_cast<uint32_t>(std::distance(gGlfwWindows.begin(), iter));
 
         gDeviceInputRegistrator->broadcastKeyInput(windowIndex, keyInputType, isReleased);
     }
@@ -79,8 +76,7 @@ void DeviceInputSubscriber::addObserveTargetWindow(GLFWwindow* window)
 
 void DeviceInputSubscriber::removeObserveTargetWindow(GLFWwindow* window)
 {
-    auto iter = std::find(gGlfwWindows.begin(), gGlfwWindows.end(),
-                  window);
+    auto iter = std::find(gGlfwWindows.begin(), gGlfwWindows.end(), window);
 
     if (iter != gGlfwWindows.end())
     {
@@ -88,20 +84,16 @@ void DeviceInputSubscriber::removeObserveTargetWindow(GLFWwindow* window)
     }
     else
     {
-        VOX_ASSERT(false, "This GLFWwindow({}) has never been registered",
-                   fmt::ptr(window));
+        VOX_ASSERT(false, "This GLFWwindow({}) has never been registered", fmt::ptr(window));
     }
 }
 
-void DeviceInputSubscriber::registerDeviceKeyCallback(
-    const uint32_t swapChainBits, DeviceKeyInputCallback&& callback)
+void DeviceInputSubscriber::registerDeviceKeyCallback(const uint32_t swapChainBits, DeviceKeyInputCallback&& callback)
 {
     _deviceKeyInputCallbacks.emplace_back(swapChainBits, std::move(callback));
 }
 
-void DeviceInputSubscriber::broadcastKeyInput(uint32_t windowIndex,
-                                               DeviceKeyInputType key,
-                                               bool isReleased)
+void DeviceInputSubscriber::broadcastKeyInput(uint32_t windowIndex, DeviceKeyInputType key, bool isReleased)
 {
     for (const auto& callback : _deviceKeyInputCallbacks)
     {

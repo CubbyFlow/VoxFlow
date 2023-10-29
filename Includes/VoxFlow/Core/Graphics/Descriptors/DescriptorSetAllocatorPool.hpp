@@ -7,9 +7,9 @@
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
-#include <mutex>
 
 namespace VoxFlow
 {
@@ -20,9 +20,7 @@ class ShaderModule;
 class DescriptorSetAllocatorPool : private NonCopyable
 {
  public:
-    using ContainerType =
-        std::unordered_map<DescriptorSetLayoutDesc,
-                           std::shared_ptr<DescriptorSetAllocator>>;
+    using ContainerType = std::unordered_map<DescriptorSetLayoutDesc, std::shared_ptr<DescriptorSetAllocator>>;
 
  public:
     explicit DescriptorSetAllocatorPool(LogicalDevice* logicalDevice);
@@ -33,8 +31,7 @@ class DescriptorSetAllocatorPool : private NonCopyable
  public:
     // Get or create new descriptor set allocator for given descriptor set
     // layout description
-    std::shared_ptr<DescriptorSetAllocator> getOrCreateDescriptorSetAllocator(
-        const DescriptorSetLayoutDesc& descSetLayout);
+    std::shared_ptr<DescriptorSetAllocator> getOrCreateDescriptorSetAllocator(const DescriptorSetLayoutDesc& descSetLayout);
 
     // Get bindless descriptor set allocator
     std::shared_ptr<DescriptorSetAllocator> getBindlessDescriptorSetAllocator();

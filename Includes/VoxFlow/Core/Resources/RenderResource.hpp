@@ -4,9 +4,9 @@
 #define VOXEL_FLOW_RENDER_RESOURCE_HPP
 
 #include <vma/include/vk_mem_alloc.h>
+#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <VoxFlow/Core/Utils/FenceObject.hpp>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -29,8 +29,7 @@ enum class RenderResourceType : uint8_t
 class RenderResource : private NonCopyable
 {
  public:
-    RenderResource(std::string_view&& debugName, LogicalDevice* logicalDevice,
-                   RenderResourceMemoryPool* renderResourceMemoryPool);
+    RenderResource(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     virtual ~RenderResource(){};
     RenderResource(RenderResource&&) = default;
     RenderResource& operator=(RenderResource&&) = default;

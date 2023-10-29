@@ -20,26 +20,19 @@ class ComputePipeline;
 class PipelineStreamingContext : NonCopyable
 {
  public:
-    explicit PipelineStreamingContext(LogicalDevice* logicalDevice,
-                                      const std::string& shaderRootPath);
+    explicit PipelineStreamingContext(LogicalDevice* logicalDevice, const std::string& shaderRootPath);
     ~PipelineStreamingContext() override;
     PipelineStreamingContext(PipelineStreamingContext&& other) noexcept;
-    PipelineStreamingContext& operator=(
-        PipelineStreamingContext&& other) noexcept;
+    PipelineStreamingContext& operator=(PipelineStreamingContext&& other) noexcept;
 
  public:
-    std::shared_ptr<GraphicsPipeline> createGraphicsPipeline(
-        std::vector<std::string>&& shaderPaths);
+    std::shared_ptr<GraphicsPipeline> createGraphicsPipeline(std::vector<std::string>&& shaderPaths);
 
-    std::shared_ptr<ComputePipeline> createComputePipeline(
-        std::string&& shaderPath);
+    std::shared_ptr<ComputePipeline> createComputePipeline(std::string&& shaderPath);
 
-    bool loadSpirvBinary(std::vector<uint32_t>& outSpirvBinary,
-                         const ShaderPathInfo& pathInfo,
-                         const bool skipShaderCacheExport = false);
+    bool loadSpirvBinary(std::vector<uint32_t>& outSpirvBinary, const ShaderPathInfo& pathInfo, const bool skipShaderCacheExport = false);
 
-    void exportPipelineCache(const size_t pipelineHash,
-                             std::vector<uint8_t>&& pipelineCacheBinary);
+    void exportPipelineCache(const size_t pipelineHash, std::vector<uint8_t>&& pipelineCacheBinary);
 
     [[nodiscard]] inline LogicalDevice* getLogicalDevice()
     {
@@ -48,10 +41,8 @@ class PipelineStreamingContext : NonCopyable
 
  private:
     ShaderPathInfo getShaderPathInfo(const std::string& path);
-    void getPipelineCacheIfExist(const std::string& pipelineCachePath,
-                                 std::vector<uint8_t>& outCacheData);
-    void exportShaderCache(const ShaderPathInfo& pathInfo,
-                           const std::vector<uint32_t>& spirvBinary);
+    void getPipelineCacheIfExist(const std::string& pipelineCachePath, std::vector<uint8_t>& outCacheData);
+    void exportShaderCache(const ShaderPathInfo& pathInfo, const std::vector<uint32_t>& spirvBinary);
 
  private:
     LogicalDevice* _logicalDevice;

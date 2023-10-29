@@ -21,7 +21,7 @@ class VoxEditor
  public:
     void runEditorLoop();
 
-private:
+ private:
     void processKeyInput(DeviceKeyInputType key, const bool isReleased);
 
  protected:

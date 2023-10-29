@@ -4,12 +4,12 @@
 #define VOXEL_FLOW_PIPELINE_LAYOUT_HPP
 
 #include <volk/volk.h>
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineLayoutDescriptor.hpp>
+#include <VoxFlow/Core/Utils/NonCopyable.hpp>
+#include <array>
 #include <memory>
 #include <vector>
-#include <array>
 
 namespace VoxFlow
 {
@@ -49,8 +49,7 @@ class PipelineLayout : NonCopyable
     /**
      * @return shader variables used from this pipeline layout
      */
-    [[nodiscard]] const ShaderVariableMap& getShaderVariableMap()
-        const
+    [[nodiscard]] const ShaderVariableMap& getShaderVariableMap() const
     {
         return _shaderVariableMap;
     }
@@ -59,8 +58,7 @@ class PipelineLayout : NonCopyable
      * @return pipeline layout descriptor combined with all shader modules
      * inserted
      */
-    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor()
-        const
+    [[nodiscard]] const PipelineLayoutDescriptor& getPipelineLayoutDescriptor() const
     {
         return _combinedPipelineLayoutDesc;
     }
@@ -70,12 +68,11 @@ class PipelineLayout : NonCopyable
      * Combine given shader layout bindings into descriptor set layouts with conflict resolved.
      * The shader resource binding declared in different shader module can be resolved by this process.
      * Get descriptor set allocator from the pool which match to each combined descriptor set layout
-     * 
+     *
      * @param setLayoutBindings shader layout binding which match to reflections of each shader module
      * @return whether pipeline layout creation is success or not
      */
-    bool initialize(const std::vector<const ShaderReflectionDataGroup*>&
-                        combinedReflectionDataGroups);
+    bool initialize(const std::vector<const ShaderReflectionDataGroup*>& combinedReflectionDataGroups);
 
  protected:
     /**

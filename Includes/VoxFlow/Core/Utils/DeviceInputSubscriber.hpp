@@ -4,8 +4,8 @@
 #define VOXEL_FLOW_DEVICE_INPUT_REGISTRATOR_HPP
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <functional>
 #include <bitset>
+#include <functional>
 
 struct GLFWwindow;
 
@@ -29,8 +29,7 @@ enum class DeviceKeyInputType : uint32_t
     Count = Undefined
 };
 
-using DeviceKeyInputCallback =
-    std::function<void(DeviceKeyInputType key, bool isReleased)>;
+using DeviceKeyInputCallback = std::function<void(DeviceKeyInputType key, bool isReleased)>;
 
 class DeviceInputSubscriber : NonCopyable
 {
@@ -41,23 +40,19 @@ class DeviceInputSubscriber : NonCopyable
     static constexpr uint32_t sMaxAvailableNumWindows = 32U;
 
     template <typename InputType>
-    using DeviceInputRegistration =
-        std::pair<std::bitset<sMaxAvailableNumWindows>, InputType>;
+    using DeviceInputRegistration = std::pair<std::bitset<sMaxAvailableNumWindows>, InputType>;
 
  public:
     void addObserveTargetWindow(GLFWwindow* window);
     void removeObserveTargetWindow(GLFWwindow* window);
 
-    void registerDeviceKeyCallback(const uint32_t targetWindowBits,
-                                   DeviceKeyInputCallback&& callback);
+    void registerDeviceKeyCallback(const uint32_t targetWindowBits, DeviceKeyInputCallback&& callback);
 
-public:
-    void broadcastKeyInput(uint32_t windowIndex, DeviceKeyInputType key,
-                           bool isReleased);
+ public:
+    void broadcastKeyInput(uint32_t windowIndex, DeviceKeyInputType key, bool isReleased);
 
  private:
-    std::vector<DeviceInputRegistration<DeviceKeyInputCallback>>
-        _deviceKeyInputCallbacks;
+    std::vector<DeviceInputRegistration<DeviceKeyInputCallback>> _deviceKeyInputCallbacks;
 };
 }  // namespace VoxFlow
 

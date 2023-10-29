@@ -3,20 +3,20 @@
 #ifndef VOXEL_FLOW_FRAME_GRAPH_HPP
 #define VOXEL_FLOW_FRAME_GRAPH_HPP
 
-#include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
+#include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphPass.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
-#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
-#include <VoxFlow/Core/FrameGraph/BlackBoard.hpp>
+#include <VoxFlow/Core/FrameGraph/ResourceHandle.hpp>
+#include <VoxFlow/Core/FrameGraph/TypeTraits.hpp>
 #include <VoxFlow/Core/Utils/FenceObject.hpp>
+#include <functional>
+#include <istream>
 #include <string>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
-#include <istream>
-#include <functional>
 
 namespace VoxFlow
 {
@@ -44,28 +44,21 @@ class FrameGraphBuilder
     FrameGraphBuilder& operator=(FrameGraphBuilder&&) = delete;
 
  private:
-    FrameGraphBuilder(FrameGraph* frameGraph, PassNode* passNode)
-        : _frameGraph(frameGraph), _currentPassNode(passNode)
+    FrameGraphBuilder(FrameGraph* frameGraph, PassNode* passNode) : _frameGraph(frameGraph), _currentPassNode(passNode)
     {
     }
 
  public:
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] ResourceHandle allocate(
-        std::string&& resourceName,
-        typename ResourceDataType::Descriptor&& initArgs);
+    [[nodiscard]] ResourceHandle allocate(std::string&& resourceName, typename ResourceDataType::Descriptor&& initArgs);
 
     template <ResourceConcept ResourceDataType>
-    ResourceHandle read(ResourceHandle id,
-                        typename ResourceDataType::Usage usage);
+    ResourceHandle read(ResourceHandle id, typename ResourceDataType::Usage usage);
 
     template <ResourceConcept ResourceDataType>
-    ResourceHandle write(ResourceHandle id,
-                         typename ResourceDataType::Usage usage);
+    ResourceHandle write(ResourceHandle id, typename ResourceDataType::Usage usage);
 
-    [[nodiscard]] uint32_t declareRenderPass(
-        std::string_view&& passName,
-        typename FrameGraphRenderPass::Descriptor&& initArgs);
+    [[nodiscard]] uint32_t declareRenderPass(std::string_view&& passName, typename FrameGraphRenderPass::Descriptor&& initArgs);
 
     inline void setSideEffectPass()
     {
@@ -97,28 +90,19 @@ class FrameGraph : private NonCopyable
 
  public:
     template <typename PassDataType, typename SetupPhase, typename ExecutePhase>
-    const PassDataType& addCallbackPass(std::string_view&& passName,
-                                        SetupPhase&& setup,
-                                        ExecutePhase&& execute);
+    const PassDataType& addCallbackPass(std::string_view&& passName, SetupPhase&& setup, ExecutePhase&& execute);
 
     template <typename SetupPhase, typename ExecutePhase>
-    void addCallbackPass(std::string_view&& passName, SetupPhase&& setup,
-                         ExecutePhase&& execute);
+    void addCallbackPass(std::string_view&& passName, SetupPhase&& setup, ExecutePhase&& execute);
 
     template <typename SetupPhase>
-    void addPresentPass(std::string_view&& passName, SetupPhase&& setup,
-                        SwapChain* swapChain, const FrameContext& frameContext);
+    void addPresentPass(std::string_view&& passName, SetupPhase&& setup, SwapChain* swapChain, const FrameContext& frameContext);
 
     template <ResourceConcept ResourceDataType>
-    [[nodiscard]] ResourceHandle create(
-        std::string&& resourceName,
-        typename ResourceDataType::Descriptor&& resourceDescArgs);
+    [[nodiscard]] ResourceHandle create(std::string&& resourceName, typename ResourceDataType::Descriptor&& resourceDescArgs);
 
-    [[nodiscard]] ResourceHandle importRenderTarget(
-        std::string&& resourceName,
-        FrameGraphTexture::Descriptor&& resourceDescArgs,
-        typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc,
-        TextureView* textureView);
+    [[nodiscard]] ResourceHandle importRenderTarget(std::string&& resourceName, FrameGraphTexture::Descriptor&& resourceDescArgs,
+                                                    typename FrameGraphRenderPass::ImportedDescriptor&& importedDesc, TextureView* textureView);
 
     // Compile given frame graph
     bool compile();
@@ -130,8 +114,7 @@ class FrameGraph : private NonCopyable
     void clear();
 
     //
-    void reset(CommandStream* cmdStream,
-               RenderResourceAllocator* renderResourceAllocator);
+    void reset(CommandStream* cmdStream, RenderResourceAllocator* renderResourceAllocator);
 
     /**
      * Dump compiled graph as graphviz text into given string stream
@@ -176,10 +159,9 @@ class FrameGraph : private NonCopyable
     }
 
     template <ResourceConcept ResourceDataType>
-    const typename ResourceDataType::Descriptor getResourceDescriptor(
-        ResourceHandle id) const;
+    const typename ResourceDataType::Descriptor getResourceDescriptor(ResourceHandle id) const;
 
-private:
+ private:
     const ResourceSlot& getResourceSlot(ResourceHandle id) const
     {
         return _resourceSlots[id.get()];
@@ -200,17 +182,13 @@ private:
  private:
     friend class FrameGraphBuilder;
 
-    ResourceHandle readInternal(
-        ResourceHandle id, [[maybe_unused]] PassNode* passNode,
-        std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
-    ResourceHandle writeInternal(
-        ResourceHandle id, PassNode* passNode,
-        std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
+    ResourceHandle readInternal(ResourceHandle id, [[maybe_unused]] PassNode* passNode, std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
+    ResourceHandle writeInternal(ResourceHandle id, PassNode* passNode, std::function<bool(ResourceNode*, VirtualResource*)>&& connect);
 
  private:
     std::vector<ResourceSlot> _resourceSlots;
     std::vector<PassNode*> _passNodes;
-    std::vector<PassNode*>::iterator _passNodeLast; 
+    std::vector<PassNode*>::iterator _passNodeLast;
     std::vector<ResourceNode*> _resourceNodes;
     std::vector<VirtualResource*> _resources;
 
@@ -226,7 +204,7 @@ private:
     RenderResourceAllocator* _renderResourceAllocator = nullptr;
     FenceObject _lastSubmitFence = FenceObject::Default();
 };
-}
+}  // namespace RenderGraph
 }  // namespace VoxFlow
 
 #endif

@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_SHADER_UTIL_HPP
 #define VOXEL_FLOW_SHADER_UTIL_HPP
 
-#include <glslang_c_shader_types.h>
 #include <volk/volk.h>
+#include <glslang_c_shader_types.h>
 #include <string_view>
 #include <vector>
 
@@ -20,20 +20,17 @@ class GlslangUtil
     /**
      * @return glslang stage flag from given filename extension
      */
-    [[nodiscard]] static glslang_stage_t GlslangStageFromFilename(
-        const std::string_view filename);
+    [[nodiscard]] static glslang_stage_t GlslangStageFromFilename(const std::string_view filename);
 
     /**
      * @return glslang stage flag that match to given vulkan stage flag
      */
-    [[nodiscard]] static glslang_stage_t VulkanStageToGlslangStage(
-        VkShaderStageFlagBits vkStage);
+    [[nodiscard]] static glslang_stage_t VulkanStageToGlslangStage(VkShaderStageFlagBits vkStage);
 
     /**
      * @return vulkan stage flag that match to given glslang stage flag
      */
-    [[nodiscard]] static VkShaderStageFlagBits GlslangStageToVulkanStage(
-        glslang_stage_t glslangStage);
+    [[nodiscard]] static VkShaderStageFlagBits GlslangStageToVulkanStage(glslang_stage_t glslangStage);
 
     /**
      * Read given filename as glsl shader file and return its texts to dst
@@ -42,8 +39,7 @@ class GlslangUtil
      * @param dst destination of shader file text read operation
      * @return whether file open is successful or not
      */
-    [[nodiscard]] static bool ReadShaderFile(const char* filename,
-                                             std::vector<char>* dst);
+    [[nodiscard]] static bool ReadShaderFile(const char* filename, std::vector<char>* dst);
 
     /**
      * Compile given shader text with glslangValidator into SPIR-V binary
@@ -53,9 +49,7 @@ class GlslangUtil
      * pointer
      * @return whether spir-v compilation is successful or not
      */
-    [[nodiscard]] static bool CompileShader(
-        glslang_stage_t stage, const char* shaderSource,
-        std::vector<unsigned int>* pSpirvBinary);
+    [[nodiscard]] static bool CompileShader(glslang_stage_t stage, const char* shaderSource, std::vector<unsigned int>* pSpirvBinary);
 };
 
 enum class ShaderFileType : uint8_t
@@ -89,14 +83,11 @@ struct ShaderPathInfo
 class ShaderUtil
 {
  public:
-    [[nodiscard]] static VkShaderStageFlagBits ConvertToShaderStageFlag(
-        const ShaderStage stage);
+    [[nodiscard]] static VkShaderStageFlagBits ConvertToShaderStageFlag(const ShaderStage stage);
 
-    [[nodiscard]] static std::string ConvertToShaderFileExtension(
-        const ShaderStage stage);
+    [[nodiscard]] static std::string ConvertToShaderFileExtension(const ShaderStage stage);
 
-    [[nodiscard]] static bool ReadSpirvBinary(const char* filename,
-                                              std::vector<uint32_t>* dst);
+    [[nodiscard]] static bool ReadSpirvBinary(const char* filename, std::vector<uint32_t>* dst);
 };
 }  // namespace VoxFlow
 

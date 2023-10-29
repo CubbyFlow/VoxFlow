@@ -121,9 +121,7 @@ class DependencyGraph : private NonCopyable
     EdgeContainer getIncomingEdges(NodeID id);
     EdgeContainer getOutgoingEdges(NodeID id);
 
-    template <typename ResourceEdgeType, typename... Args,
-              std::enable_if_t<std::is_base_of_v<Edge, ResourceEdgeType>,
-                               bool> = true>
+    template <typename ResourceEdgeType, typename... Args, std::enable_if_t<std::is_base_of_v<Edge, ResourceEdgeType>, bool> = true>
     DependencyGraph::Edge* link(NodeID fromID, NodeID toID, Args... args)
     {
         Node* fromNode = getNode(fromID);

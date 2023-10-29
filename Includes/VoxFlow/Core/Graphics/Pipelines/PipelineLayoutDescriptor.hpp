@@ -56,22 +56,19 @@ struct PipelineLayoutDescriptor
 template <>
 struct std::hash<VoxFlow::VertexInputLayout>
 {
-    std::size_t operator()(
-        VoxFlow::VertexInputLayout const& inputLayout) const noexcept;
+    std::size_t operator()(VoxFlow::VertexInputLayout const& inputLayout) const noexcept;
 };
 
 template <>
 struct std::hash<VoxFlow::FragmentOutputLayout>
 {
-    std::size_t operator()(
-        VoxFlow::FragmentOutputLayout const& outputLayout) const noexcept;
+    std::size_t operator()(VoxFlow::FragmentOutputLayout const& outputLayout) const noexcept;
 };
 
 template <>
 struct std::hash<VoxFlow::PipelineLayoutDescriptor>
 {
-    std::size_t operator()(
-        VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept;
+    std::size_t operator()(VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept;
 };
 
 #endif

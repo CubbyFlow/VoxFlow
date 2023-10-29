@@ -18,17 +18,13 @@ class Buffer;
 class RenderResourceAllocator : private NonCopyable
 {
  public:
-    explicit RenderResourceAllocator(
-        LogicalDevice* logicalDevice,
-        RenderResourceMemoryPool* renderResourceMemoryPool);
+    explicit RenderResourceAllocator(LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     ~RenderResourceAllocator();
 
  public:
-    std::shared_ptr<Texture> allocateTexture(const TextureInfo& textureInfo,
-                                             std::string&& debugName);
+    std::shared_ptr<Texture> allocateTexture(const TextureInfo& textureInfo, std::string&& debugName);
 
-    std::shared_ptr<Buffer> allocateBuffer(const BufferInfo& bufferInfo,
-                                           std::string&& debugName);
+    std::shared_ptr<Buffer> allocateBuffer(const BufferInfo& bufferInfo, std::string&& debugName);
 
  protected:
  private:

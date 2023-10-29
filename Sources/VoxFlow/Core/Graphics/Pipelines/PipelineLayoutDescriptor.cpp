@@ -9,24 +9,15 @@ namespace VoxFlow
 VkFormat VertexInputLayout::getVkFormat() const
 {
     constexpr VkFormat FORMAT_TABLE[] = {
-        VK_FORMAT_R16_SFLOAT,       VK_FORMAT_R16G16_SFLOAT,
-        VK_FORMAT_R16G16B16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT,
-        VK_FORMAT_R32_SFLOAT,       VK_FORMAT_R32G32_SFLOAT,
-        VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT,
-        VK_FORMAT_R64_SFLOAT,       VK_FORMAT_R64G64_SFLOAT,
-        VK_FORMAT_R64G64B64_SFLOAT, VK_FORMAT_R64G64B64A64_SFLOAT,
-        VK_FORMAT_R16_SINT,         VK_FORMAT_R16G16_SINT,
-        VK_FORMAT_R16G16B16_SINT,   VK_FORMAT_R16G16B16A16_SINT,
-        VK_FORMAT_R32_SINT,         VK_FORMAT_R32G32_SINT,
-        VK_FORMAT_R32G32B32_SINT,   VK_FORMAT_R32G32B32A32_SINT,
-        VK_FORMAT_R64_SINT,         VK_FORMAT_R64G64_SINT,
-        VK_FORMAT_R64G64B64_SINT,   VK_FORMAT_R64G64B64A64_SINT,
-        VK_FORMAT_R16_UINT,         VK_FORMAT_R16G16_UINT,
-        VK_FORMAT_R16G16B16_UINT,   VK_FORMAT_R16G16B16A16_UINT,
-        VK_FORMAT_R32_UINT,         VK_FORMAT_R32G32_UINT,
-        VK_FORMAT_R32G32B32_UINT,   VK_FORMAT_R32G32B32A32_UINT,
-        VK_FORMAT_R64_UINT,         VK_FORMAT_R64G64_UINT,
-        VK_FORMAT_R64G64B64_UINT,   VK_FORMAT_R64G64B64A64_UINT,
+        VK_FORMAT_R16_SFLOAT, VK_FORMAT_R16G16_SFLOAT, VK_FORMAT_R16G16B16_SFLOAT, VK_FORMAT_R16G16B16A16_SFLOAT,
+        VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT,
+        VK_FORMAT_R64_SFLOAT, VK_FORMAT_R64G64_SFLOAT, VK_FORMAT_R64G64B64_SFLOAT, VK_FORMAT_R64G64B64A64_SFLOAT,
+        VK_FORMAT_R16_SINT,   VK_FORMAT_R16G16_SINT,   VK_FORMAT_R16G16B16_SINT,   VK_FORMAT_R16G16B16A16_SINT,
+        VK_FORMAT_R32_SINT,   VK_FORMAT_R32G32_SINT,   VK_FORMAT_R32G32B32_SINT,   VK_FORMAT_R32G32B32A32_SINT,
+        VK_FORMAT_R64_SINT,   VK_FORMAT_R64G64_SINT,   VK_FORMAT_R64G64B64_SINT,   VK_FORMAT_R64G64B64A64_SINT,
+        VK_FORMAT_R16_UINT,   VK_FORMAT_R16G16_UINT,   VK_FORMAT_R16G16B16_UINT,   VK_FORMAT_R16G16B16A16_UINT,
+        VK_FORMAT_R32_UINT,   VK_FORMAT_R32G32_UINT,   VK_FORMAT_R32G32B32_UINT,   VK_FORMAT_R32G32B32A32_UINT,
+        VK_FORMAT_R64_UINT,   VK_FORMAT_R64G64_UINT,   VK_FORMAT_R64G64B64_UINT,   VK_FORMAT_R64G64B64A64_UINT,
     };
     static_assert((sizeof(FORMAT_TABLE) / sizeof(VkFormat)) == 36);
 
@@ -76,20 +67,17 @@ VkFormat VertexInputLayout::getVkFormat() const
     return resultFormat;
 }
 
-ShaderReflectionDataGroup::ShaderReflectionDataGroup(
-    const ShaderReflectionDataGroup& rhs)
+ShaderReflectionDataGroup::ShaderReflectionDataGroup(const ShaderReflectionDataGroup& rhs)
 {
     operator=(rhs);
 }
 
-ShaderReflectionDataGroup::ShaderReflectionDataGroup(
-    ShaderReflectionDataGroup&& rhs)
+ShaderReflectionDataGroup::ShaderReflectionDataGroup(ShaderReflectionDataGroup&& rhs)
 {
     operator=(std::move(rhs));
 }
 
-ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
-    const ShaderReflectionDataGroup& rhs)
+ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(const ShaderReflectionDataGroup& rhs)
 {
     if (this != &rhs)
     {
@@ -101,8 +89,7 @@ ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
     return *this;
 }
 
-ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
-    ShaderReflectionDataGroup&& rhs)
+ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(ShaderReflectionDataGroup&& rhs)
 {
     if (this != &rhs)
     {
@@ -116,8 +103,7 @@ ShaderReflectionDataGroup& ShaderReflectionDataGroup::operator=(
 
 }  // namespace VoxFlow
 
-std::size_t std::hash<VoxFlow::VertexInputLayout>::operator()(
-    VoxFlow::VertexInputLayout const& inputLayout) const noexcept
+std::size_t std::hash<VoxFlow::VertexInputLayout>::operator()(VoxFlow::VertexInputLayout const& inputLayout) const noexcept
 {
     uint32_t seed = 0;
 
@@ -128,8 +114,7 @@ std::size_t std::hash<VoxFlow::VertexInputLayout>::operator()(
     return seed;
 }
 
-std::size_t std::hash<VoxFlow::FragmentOutputLayout>::operator()(
-    VoxFlow::FragmentOutputLayout const& outputLayout) const noexcept
+std::size_t std::hash<VoxFlow::FragmentOutputLayout>::operator()(VoxFlow::FragmentOutputLayout const& outputLayout) const noexcept
 {
     uint32_t seed = 0;
 
@@ -139,8 +124,7 @@ std::size_t std::hash<VoxFlow::FragmentOutputLayout>::operator()(
     return seed;
 }
 
-std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(
-    VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept
+std::size_t std::hash<VoxFlow::PipelineLayoutDescriptor>::operator()(VoxFlow::PipelineLayoutDescriptor const& shaderLayout) const noexcept
 {
     uint32_t seed = 0;
 

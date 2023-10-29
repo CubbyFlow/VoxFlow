@@ -7,8 +7,7 @@
 
 namespace VoxFlow
 {
-DeviceQueryContext::DeviceQueryContext(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+DeviceQueryContext::DeviceQueryContext(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
 {
 }
 
@@ -22,8 +21,7 @@ DeviceQueryContext::DeviceQueryContext(DeviceQueryContext&& context) noexcept
     operator=(std::move(context));
 }
 
-DeviceQueryContext& DeviceQueryContext::operator=(
-    DeviceQueryContext&& context) noexcept
+DeviceQueryContext& DeviceQueryContext::operator=(DeviceQueryContext&& context) noexcept
 {
     if (this != &context)
     {
@@ -47,8 +45,7 @@ bool DeviceQueryContext::initialize(DeviceQueryMode queryMode)
             queryType = VK_QUERY_TYPE_TIMESTAMP;
             break;
         default:
-            VOX_ASSERT(false, "Unknown query mode is given : {}",
-                       static_cast<uint32_t>(_queryMode));
+            VOX_ASSERT(false, "Unknown query mode is given : {}", static_cast<uint32_t>(_queryMode));
             return false;
     }
 
@@ -61,30 +58,23 @@ bool DeviceQueryContext::initialize(DeviceQueryMode queryMode)
         .pipelineStatistics = 0,
     };
 
-    VK_ASSERT(vkCreateQueryPool(_logicalDevice->get(), &createInfo, nullptr,
-                                &_vkQueryPool));
+    VK_ASSERT(vkCreateQueryPool(_logicalDevice->get(), &createInfo, nullptr, &_vkQueryPool));
     if (_vkQueryPool == VK_NULL_HANDLE)
     {
         return false;
     }
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-    std::string queryPoolDebugName = fmt::format(
-        "QueryPool_QueryMode({})", static_cast<uint32_t>(_queryMode));
-    DebugUtil::setObjectName(_logicalDevice, _vkQueryPool,
-                             queryPoolDebugName.c_str());
+    std::string queryPoolDebugName = fmt::format("QueryPool_QueryMode({})", static_cast<uint32_t>(_queryMode));
+    DebugUtil::setObjectName(_logicalDevice, _vkQueryPool, queryPoolDebugName.c_str());
 #endif
 
     const PhysicalDevice* physicalDevice = _logicalDevice->getPhysicalDevice();
-    _timestampPeriod =
-        physicalDevice->getPhysicalDeviceProperties().limits.timestampPeriod;
+    _timestampPeriod = physicalDevice->getPhysicalDeviceProperties().limits.timestampPeriod;
 
-    _queryDataBuffer =
-        new Buffer("QueryResultBuffer", _logicalDevice,
-                   _logicalDevice->getDeviceDefaultResourceMemoryPool());
-    if (_queryDataBuffer->makeAllocationResident(BufferInfo{
-            ._size = sizeof(uint64_t) * kMaxQueryCount,
-            ._usage = BufferUsage::CopyDst | BufferUsage::Readback }) == false)
+    _queryDataBuffer = new Buffer("QueryResultBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    if (_queryDataBuffer->makeAllocationResident(
+            BufferInfo{ ._size = sizeof(uint64_t) * kMaxQueryCount, ._usage = BufferUsage::CopyDst | BufferUsage::Readback }) == false)
     {
         return false;
     }
@@ -113,8 +103,7 @@ void DeviceQueryContext::beginTimestampQuery(VkCommandBuffer vkCommandBuffer)
 
     VOX_ASSERT((_numTimestamps % 2) == 0, "begin and end call must be in pair");
 
-    vkCmdWriteTimestamp(vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                        _vkQueryPool, _numTimestamps);
+    vkCmdWriteTimestamp(vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, _vkQueryPool, _numTimestamps);
     _numTimestamps++;
 }
 
@@ -127,8 +116,7 @@ void DeviceQueryContext::endTimestampQuery(VkCommandBuffer vkCommandBuffer)
 
     VOX_ASSERT((_numTimestamps % 2) == 1, "begin and end call must be in pair");
 
-    vkCmdWriteTimestamp(vkCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                        _vkQueryPool, _numTimestamps);
+    vkCmdWriteTimestamp(vkCommandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, _vkQueryPool, _numTimestamps);
     _numTimestamps++;
 }
 

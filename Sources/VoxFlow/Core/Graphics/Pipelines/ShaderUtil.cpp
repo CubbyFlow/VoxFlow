@@ -117,8 +117,7 @@ constexpr TBuiltInResource GetDefaultGlslangResource()
              .limits = limits };
 }
 
-glslang_stage_t GlslangUtil::GlslangStageFromFilename(
-    const std::string_view filename)
+glslang_stage_t GlslangUtil::GlslangStageFromFilename(const std::string_view filename)
 {
     if (filename.find(".vert") != std::string_view::npos)
         return GLSLANG_STAGE_VERTEX;
@@ -137,8 +136,7 @@ glslang_stage_t GlslangUtil::GlslangStageFromFilename(
     return GLSLANG_STAGE_VERTEX;
 }
 
-glslang_stage_t GlslangUtil::VulkanStageToGlslangStage(
-    VkShaderStageFlagBits vkStage)
+glslang_stage_t GlslangUtil::VulkanStageToGlslangStage(VkShaderStageFlagBits vkStage)
 {
     switch (vkStage)
     {
@@ -155,14 +153,12 @@ glslang_stage_t GlslangUtil::VulkanStageToGlslangStage(
         case VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT:
             return GLSLANG_STAGE_TESSEVALUATION;
         default:
-            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
-                       static_cast<uint32_t>(vkStage));
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}", static_cast<uint32_t>(vkStage));
             return GLSLANG_STAGE_VERTEX;
     }
 }
 
-VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(
-    glslang_stage_t glslangStage)
+VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(glslang_stage_t glslangStage)
 {
     switch (glslangStage)
     {
@@ -179,8 +175,7 @@ VkShaderStageFlagBits GlslangUtil::GlslangStageToVulkanStage(
         case GLSLANG_STAGE_TESSEVALUATION:
             return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         default:
-            VOX_ASSERT(false, "Unknown shader stage flags bits : {}",
-                       static_cast<uint32_t>(glslangStage));
+            VOX_ASSERT(false, "Unknown shader stage flags bits : {}", static_cast<uint32_t>(glslangStage));
             return VK_SHADER_STAGE_VERTEX_BIT;
     }
 }
@@ -204,8 +199,7 @@ bool GlslangUtil::ReadShaderFile(const char* filename, std::vector<char>* dst)
     return true;
 }
 
-bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
-                                std::vector<unsigned int>* pSpirvBinary)
+bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource, std::vector<unsigned int>* pSpirvBinary)
 {
     constexpr TBuiltInResource defaultResource = GetDefaultGlslangResource();
 
@@ -221,40 +215,31 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
         .default_profile = GLSLANG_NO_PROFILE,
         .force_default_version_and_profile = false,
         .forward_compatible = false,
-        .messages =
-            GLSLANG_MSG_DEBUG_INFO_BIT,  // TODO(snowapril) : must expose this
-                                         // bits to command line arguments
-        .resource =
-            reinterpret_cast<const glslang_resource_t*>(&defaultResource),
+        .messages = GLSLANG_MSG_DEBUG_INFO_BIT,  // TODO(snowapril) : must expose this
+                                                 // bits to command line arguments
+        .resource = reinterpret_cast<const glslang_resource_t*>(&defaultResource),
     };
 
     glslang_shader_t* shader = glslang_shader_create(&input);
 
     if (!glslang_shader_preprocess(shader, &input))
     {
-        spdlog::error("[Glslang] GLSL preprocessing failed\n{}\n{}",
-                      glslang_shader_get_info_log(shader),
-                      glslang_shader_get_info_debug_log(shader));
+        spdlog::error("[Glslang] GLSL preprocessing failed\n{}\n{}", glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
         return false;
     }
 
     if (!glslang_shader_parse(shader, &input))
     {
-        spdlog::error("[Glslang] GLSL parsing failed\n{}\n{}",
-                      glslang_shader_get_info_log(shader),
-                      glslang_shader_get_info_debug_log(shader));
+        spdlog::error("[Glslang] GLSL parsing failed\n{}\n{}", glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
         return false;
     }
 
     glslang_program_t* program = glslang_program_create();
     glslang_program_add_shader(program, shader);
 
-    if (!glslang_program_link(
-            program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
+    if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT))
     {
-        spdlog::error("[Glslang] GLSL linking failed\n{}\n{}",
-                      glslang_shader_get_info_log(shader),
-                      glslang_shader_get_info_debug_log(shader));
+        spdlog::error("[Glslang] GLSL linking failed\n{}\n{}", glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
         return false;
     }
 
@@ -264,8 +249,7 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
     glslang_program_SPIRV_get(program, pSpirvBinary->data());
 
     {
-        if (const char* spirvMessages =
-                glslang_program_SPIRV_get_messages(program))
+        if (const char* spirvMessages = glslang_program_SPIRV_get_messages(program))
         {
             spdlog::error("[Glslang] {}", spirvMessages);
         }
@@ -276,8 +260,7 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
     return true;
 }
 
-VkShaderStageFlagBits ShaderUtil::ConvertToShaderStageFlag(
-    const ShaderStage stage)
+VkShaderStageFlagBits ShaderUtil::ConvertToShaderStageFlag(const ShaderStage stage)
 {
     switch (stage)
     {
@@ -327,11 +310,9 @@ std::string ShaderUtil::ConvertToShaderFileExtension(const ShaderStage stage)
     }
 }
 
-bool ShaderUtil::ReadSpirvBinary(const char* filename,
-                                 std::vector<uint32_t>* dst)
+bool ShaderUtil::ReadSpirvBinary(const char* filename, std::vector<uint32_t>* dst)
 {
-    std::ifstream file(
-        filename, std::ios::in | std::ios::ate | std::ios::binary);
+    std::ifstream file(filename, std::ios::in | std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
         spdlog::error("Failed to find shader file {}", filename);

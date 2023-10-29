@@ -17,30 +17,21 @@ class BufferView;
 class ResourceBarrierManager : private NonCopyable
 {
  public:
-    ResourceBarrierManager(CommandBuffer* commandBuffer)
-        : _commandBuffer(commandBuffer)
+    ResourceBarrierManager(CommandBuffer* commandBuffer) : _commandBuffer(commandBuffer)
     {
     }
     ~ResourceBarrierManager() = default;
 
  public:
-    void addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks,
-                                ResourceAccessMask nextAccessMasks);
+    void addGlobalMemoryBarrier(ResourceAccessMask prevAccessMasks, ResourceAccessMask nextAccessMasks);
 
-    void addTextureMemoryBarrier(TextureView* textureView,
-                                 ResourceAccessMask accessMask,
-                                 VkPipelineStageFlags nextStageFlags);
+    void addTextureMemoryBarrier(TextureView* textureView, ResourceAccessMask accessMask, VkPipelineStageFlags nextStageFlags);
 
-    void addBufferMemoryBarrier(BufferView* bufferView,
-                                ResourceAccessMask accessMask,
-                                VkPipelineStageFlags nextStageFlags);
+    void addBufferMemoryBarrier(BufferView* bufferView, ResourceAccessMask accessMask, VkPipelineStageFlags nextStageFlags);
 
-    void addStagingBufferMemoryBarrier(StagingBufferView* stagingBufferView,
-                                       ResourceAccessMask accessMask,
-                                       VkPipelineStageFlags nextStageFlags);
+    void addStagingBufferMemoryBarrier(StagingBufferView* stagingBufferView, ResourceAccessMask accessMask, VkPipelineStageFlags nextStageFlags);
 
-    void addExecutionBarrier(VkPipelineStageFlags prevStageFlags,
-                             VkPipelineStageFlags nextStageFlags);
+    void addExecutionBarrier(VkPipelineStageFlags prevStageFlags, VkPipelineStageFlags nextStageFlags);
 
     void commitPendingBarriers(const bool inRenderPassScope);
 
@@ -52,8 +43,7 @@ class ResourceBarrierManager : private NonCopyable
 
         inline bool isValid() const
         {
-            return (_srcAccessFlags != VK_ACCESS_NONE) ||
-                   (_dstAccessFlags != VK_ACCESS_NONE);
+            return (_srcAccessFlags != VK_ACCESS_NONE) || (_dstAccessFlags != VK_ACCESS_NONE);
         }
 
         inline void reset()
@@ -91,8 +81,7 @@ class ResourceBarrierManager : private NonCopyable
 
         inline bool isValid() const
         {
-            return (_srcStageFlags != VK_PIPELINE_STAGE_NONE) ||
-                   (_dstStageFlags != VK_PIPELINE_STAGE_NONE);
+            return (_srcStageFlags != VK_PIPELINE_STAGE_NONE) || (_dstStageFlags != VK_PIPELINE_STAGE_NONE);
         }
 
         inline void reset()

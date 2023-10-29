@@ -14,8 +14,7 @@ class ShaderModule;
 class ComputePipeline : public BasePipeline
 {
  public:
-    explicit ComputePipeline(PipelineStreamingContext* pipelineStreamingContext,
-                             const ShaderPathInfo& shaderPath);
+    explicit ComputePipeline(PipelineStreamingContext* pipelineStreamingContext, const ShaderPathInfo& shaderPath);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;
@@ -24,10 +23,11 @@ class ComputePipeline : public BasePipeline
     {
         return VK_PIPELINE_BIND_POINT_COMPUTE;
     }
-public:
+
+ public:
     /**
-    * Create compute pipeline with owned shader modules
-    */
+     * Create compute pipeline with owned shader modules
+     */
     bool initialize();
 };
 }  // namespace VoxFlow

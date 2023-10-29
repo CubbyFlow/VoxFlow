@@ -5,9 +5,7 @@
 
 namespace VoxFlow
 {
-RenderResource::RenderResource(
-    std::string_view&& debugName, LogicalDevice* logicalDevice,
-    RenderResourceMemoryPool* renderResourceMemoryPool)
+RenderResource::RenderResource(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool)
     : _debugName(std::move(debugName)),
       _logicalDevice(logicalDevice),
       _renderResourceMemoryPool(renderResourceMemoryPool),

@@ -10,9 +10,7 @@ namespace VoxFlow
 namespace RenderGraph
 {
 template <typename PassDataType, typename ExecutePhase>
-FrameGraphPass<PassDataType, ExecutePhase>::FrameGraphPass(
-    ExecutePhase&& executePhase)
-    : _executionPhaseLambda(std::move(executePhase))
+FrameGraphPass<PassDataType, ExecutePhase>::FrameGraphPass(ExecutePhase&& executePhase) : _executionPhaseLambda(std::move(executePhase))
 {
 }
 template <typename PassDataType, typename ExecutePhase>

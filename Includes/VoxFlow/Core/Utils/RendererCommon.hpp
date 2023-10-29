@@ -4,16 +4,16 @@
 #define VOXEL_FLOW_RENDERER_COMMON_HPP
 
 #include <volk/volk.h>
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
-#include <VoxFlow/Core/Utils/HashUtil.hpp>
-#include <vector>
-#include <string>
-#include <optional>
-#include <functional>
 #include <VoxFlow/Core/Utils/BitwiseOperators.hpp>
+#include <VoxFlow/Core/Utils/HashUtil.hpp>
+#include <functional>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -41,37 +41,37 @@ struct FrameContext
 
 enum class BufferUsage : uint32_t
 {
-    ConstantBuffer      = 0x00000001,
-    RwStructuredBuffer  = 0x00000002,
-    VertexBuffer        = 0x00000004,
-    IndexBuffer         = 0x00000008,
-    IndirectCommand     = 0x00000010,
-    CopyDst             = 0x00000020,
-    CopySrc             = 0x00000040,
-    Readback            = 0x00000080,
-    Upload              = 0x00000100,
-    Unknown             = 0,
+    ConstantBuffer = 0x00000001,
+    RwStructuredBuffer = 0x00000002,
+    VertexBuffer = 0x00000004,
+    IndexBuffer = 0x00000008,
+    IndirectCommand = 0x00000010,
+    CopyDst = 0x00000020,
+    CopySrc = 0x00000040,
+    Readback = 0x00000080,
+    Upload = 0x00000100,
+    Unknown = 0,
 };
 IMPL_BITWISE_OPERATORS(BufferUsage, uint32_t);
 
-enum class ResourceAccessMask : uint32_t 
+enum class ResourceAccessMask : uint32_t
 {
-    Undefined           = 0x00000001,
-    TransferSource      = 0x00000002,
-    TransferDest        = 0x00000004,
-    VertexBuffer        = 0x00000008,
-    IndexBuffer         = 0x00000010,
-    ColorAttachment     = 0x00000020,
-    DepthAttachment     = 0x00000040,
-    StencilAttachment   = 0x00000080,
-    DepthReadOnly       = 0x00000100,
-    StencilReadOnly     = 0x00000200,
-    ShaderReadOnly      = 0x00000400,
-    General             = 0x00000800,
-    StorageBuffer       = 0x00001000,
-    UniformBuffer       = 0x00002000,
-    Present             = 0x00004000,
-    IndirectBuffer      = 0x00008000,
+    Undefined = 0x00000001,
+    TransferSource = 0x00000002,
+    TransferDest = 0x00000004,
+    VertexBuffer = 0x00000008,
+    IndexBuffer = 0x00000010,
+    ColorAttachment = 0x00000020,
+    DepthAttachment = 0x00000040,
+    StencilAttachment = 0x00000080,
+    DepthReadOnly = 0x00000100,
+    StencilReadOnly = 0x00000200,
+    ShaderReadOnly = 0x00000400,
+    General = 0x00000800,
+    StorageBuffer = 0x00001000,
+    UniformBuffer = 0x00002000,
+    Present = 0x00004000,
+    IndirectBuffer = 0x00008000,
 };
 IMPL_BITWISE_OPERATORS(ResourceAccessMask, uint32_t);
 
@@ -89,14 +89,14 @@ struct BufferViewInfo
 
 enum class TextureUsage : uint32_t
 {
-    RenderTarget    = 0x00000001,
-    DepthStencil    = 0x00000010,
-    Sampled         = 0x00000100,
-    Storage         = 0x00001000,
-    CopySrc         = 0x00010000,
-    CopyDst         = 0x00100000,
-    BackBuffer      = 0x01000000,
-    Unknown         = 0,
+    RenderTarget = 0x00000001,
+    DepthStencil = 0x00000010,
+    Sampled = 0x00000100,
+    Storage = 0x00001000,
+    CopySrc = 0x00010000,
+    CopyDst = 0x00100000,
+    BackBuffer = 0x01000000,
+    Unknown = 0,
 };
 IMPL_BITWISE_OPERATORS(TextureUsage, uint32_t);
 

@@ -10,17 +10,16 @@
 namespace VoxFlow
 {
 // #ifdef VOXFLOW_DEBUG
-#define VK_ASSERT(returnCode)                                                 \
-    do                                                                        \
-    {                                                                         \
-        if (!static_cast<bool>(returnCode == VK_SUCCESS))                     \
-        {                                                                     \
-            spdlog::error("Vulkan Error ({}) at {}:{}.",                      \
-                          getVkResultString(returnCode), __FILE__, __LINE__); \
-            if (returnCode == VK_ERROR_DEVICE_LOST)                           \
-                DeviceRemoveTracker::get()->onDeviceRemoved();                \
-            std::abort();                                                     \
-        }                                                                     \
+#define VK_ASSERT(returnCode)                                                                                \
+    do                                                                                                       \
+    {                                                                                                        \
+        if (!static_cast<bool>(returnCode == VK_SUCCESS))                                                    \
+        {                                                                                                    \
+            spdlog::error("Vulkan Error ({}) at {}:{}.", getVkResultString(returnCode), __FILE__, __LINE__); \
+            if (returnCode == VK_ERROR_DEVICE_LOST)                                                          \
+                DeviceRemoveTracker::get()->onDeviceRemoved();                                               \
+            std::abort();                                                                                    \
+        }                                                                                                    \
     } while (false)
 
 template <typename... Args>

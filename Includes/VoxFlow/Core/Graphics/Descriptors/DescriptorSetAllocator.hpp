@@ -19,8 +19,7 @@ class CommandBuffer;
 class DescriptorSetAllocator : private NonCopyable
 {
  protected:
-    explicit DescriptorSetAllocator(LogicalDevice* logicalDevice,
-                                    const bool isBindless);
+    explicit DescriptorSetAllocator(LogicalDevice* logicalDevice, const bool isBindless);
 
  public:
     ~DescriptorSetAllocator() override;
@@ -33,14 +32,12 @@ class DescriptorSetAllocator : private NonCopyable
     }
 
     // Get descriptor set layout description for this allocator
-    [[nodiscard]] inline DescriptorSetLayoutDesc getDescriptorSetLayoutDesc()
-        const
+    [[nodiscard]] inline DescriptorSetLayoutDesc getDescriptorSetLayoutDesc() const
     {
         return _setLayoutDesc;
     }
 
-    bool initialize(const DescriptorSetLayoutDesc& setLayout,
-                    const uint32_t numSets);
+    bool initialize(const DescriptorSetLayoutDesc& setLayout, const uint32_t numSets);
 
  private:
     void release();
@@ -67,14 +64,12 @@ class PooledDescriptorSetAllocator final : public DescriptorSetAllocator
     explicit PooledDescriptorSetAllocator(LogicalDevice* logicalDevice);
     ~PooledDescriptorSetAllocator() override;
     PooledDescriptorSetAllocator(PooledDescriptorSetAllocator&& other) noexcept;
-    PooledDescriptorSetAllocator& operator=(
-        PooledDescriptorSetAllocator&& other) noexcept;
+    PooledDescriptorSetAllocator& operator=(PooledDescriptorSetAllocator&& other) noexcept;
 
     // Get or create pooled descriptor set with predefined descriptor set layout
     // binding infos. Allocated descriptor set will be reused when the given
     // fence object is completed.
-    [[nodiscard]] VkDescriptorSet getOrCreatePooledDescriptorSet(
-        const FenceObject& fenceObject);
+    [[nodiscard]] VkDescriptorSet getOrCreatePooledDescriptorSet(const FenceObject& fenceObject);
 };
 
 class BindlessDescriptorSetAllocator final : public DescriptorSetAllocator
@@ -82,14 +77,11 @@ class BindlessDescriptorSetAllocator final : public DescriptorSetAllocator
  public:
     explicit BindlessDescriptorSetAllocator(LogicalDevice* logicalDevice);
     ~BindlessDescriptorSetAllocator() override;
-    BindlessDescriptorSetAllocator(
-        BindlessDescriptorSetAllocator&& other) noexcept;
-    BindlessDescriptorSetAllocator& operator=(
-        BindlessDescriptorSetAllocator&& other) noexcept;
+    BindlessDescriptorSetAllocator(BindlessDescriptorSetAllocator&& other) noexcept;
+    BindlessDescriptorSetAllocator& operator=(BindlessDescriptorSetAllocator&& other) noexcept;
 
     // Allocate bindless descriptor set which will be used forever.
-    [[nodiscard]] VkDescriptorSet getBindlessDescriptorSet(
-        const uint32_t setIndex, const FenceObject& fenceObject);
+    [[nodiscard]] VkDescriptorSet getBindlessDescriptorSet(const uint32_t setIndex, const FenceObject& fenceObject);
 };
 }  // namespace VoxFlow
 

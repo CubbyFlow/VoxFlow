@@ -16,9 +16,7 @@ class Instance;
 class RenderResourceMemoryPool : private NonCopyable
 {
  public:
-    explicit RenderResourceMemoryPool(LogicalDevice* logicalDevice,
-                                      PhysicalDevice* physicalDevice,
-                                      Instance* instance);
+    explicit RenderResourceMemoryPool(LogicalDevice* logicalDevice, PhysicalDevice* physicalDevice, Instance* instance);
     ~RenderResourceMemoryPool();
 
  public:

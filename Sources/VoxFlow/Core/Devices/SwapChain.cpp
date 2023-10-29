@@ -13,9 +13,8 @@
 
 namespace VoxFlow
 {
-SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
-                     LogicalDevice* logicalDevice, Queue* presentSupportQueue,
-                     std::string&& titleName, const glm::uvec2 resolution) noexcept
+SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, Queue* presentSupportQueue, std::string&& titleName,
+                     const glm::uvec2 resolution) noexcept
     : _instance(instance),
       _physicalDevice(physicalDevice),
       _queue(presentSupportQueue),
@@ -25,44 +24,32 @@ SwapChain::SwapChain(Instance* instance, PhysicalDevice* physicalDevice,
 {
     // TODO(snowapril) : check glfwGetPhysicalDevicePresentationSupport
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    _window = glfwCreateWindow(resolution.x, resolution.y, titleName.c_str(),
-                               nullptr,
-                               nullptr);
+    _window = glfwCreateWindow(resolution.x, resolution.y, titleName.c_str(), nullptr, nullptr);
 
     // TODO(snowapril) : move callback registration other place
-    glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode,
-                                   int action, int mods) {
+    glfwSetKeyCallback(_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         (void)scancode;
         (void)mods;
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
     });
 
-    VK_ASSERT(
-        glfwCreateWindowSurface(_instance->get(), _window, nullptr, &_surface));
+    VK_ASSERT(glfwCreateWindowSurface(_instance->get(), _window, nullptr, &_surface));
 
-    const std::vector<VkSurfaceFormatKHR> surfaceFormatList = {
-        { VK_FORMAT_R8G8B8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
-        { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR }
-    };
+    const std::vector<VkSurfaceFormatKHR> surfaceFormatList = { { VK_FORMAT_R8G8B8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR },
+                                                                { VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR } };
 
     uint32_t numFormats{ 0 };
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(
-        _physicalDevice->get(), _surface, &numFormats, nullptr));
+    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice->get(), _surface, &numFormats, nullptr));
 
     std::vector<VkSurfaceFormatKHR> deviceSurfaceFormats(numFormats);
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(
-        _physicalDevice->get(), _surface, &numFormats,
-        deviceSurfaceFormats.data()));
+    VK_ASSERT(vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice->get(), _surface, &numFormats, deviceSurfaceFormats.data()));
 
     for (const VkSurfaceFormatKHR& deviceSurfaceFormat : deviceSurfaceFormats)
     {
-        for (const VkSurfaceFormatKHR& preferredSurfaceFormat :
-             surfaceFormatList)
+        for (const VkSurfaceFormatKHR& preferredSurfaceFormat : surfaceFormatList)
         {
-            if ((deviceSurfaceFormat.format == preferredSurfaceFormat.format) &&
-                (deviceSurfaceFormat.colorSpace ==
-                 preferredSurfaceFormat.colorSpace))
+            if ((deviceSurfaceFormat.format == preferredSurfaceFormat.format) && (deviceSurfaceFormat.colorSpace == preferredSurfaceFormat.colorSpace))
             {
                 _surfaceFormat = deviceSurfaceFormat.format;
                 _colorSpace = deviceSurfaceFormat.colorSpace;
@@ -103,10 +90,7 @@ SwapChain& SwapChain::operator=(SwapChain&& other) noexcept
 
 std::optional<uint32_t> SwapChain::acquireNextImageIndex()
 {
-    VK_ASSERT(vkAcquireNextImageKHR(_logicalDevice->get(), _swapChain,
-                                    UINT64_MAX,
-                                    _backBufferReadySemaphores[_frameIndex],
-                                    VK_NULL_HANDLE, &_backBufferIndex));
+    VK_ASSERT(vkAcquireNextImageKHR(_logicalDevice->get(), _swapChain, UINT64_MAX, _backBufferReadySemaphores[_frameIndex], VK_NULL_HANDLE, &_backBufferIndex));
 
     // TODO(snowapril) : need handling out-of-date or not-ready situation.
     return { _backBufferIndex };
@@ -120,8 +104,7 @@ bool SwapChain::create(const bool vsync)
     querySwapChainCapability(swapChainCreateInfo, vsync);
     swapChainCreateInfo.oldSwapchain = oldSwapChain;
 
-    VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo,
-                                   nullptr, &_swapChain));
+    VK_ASSERT(vkCreateSwapchainKHR(_logicalDevice->get(), &swapChainCreateInfo, nullptr, &_swapChain));
 
     if (_swapChain == VK_NULL_HANDLE)
     {
@@ -131,7 +114,7 @@ bool SwapChain::create(const bool vsync)
 
 #if defined(VK_DEBUG_NAME_ENABLED)
     DebugUtil::setObjectName(_logicalDevice, _swapChain, _titleName.c_str());
-#endif // VK_DEBUG_NAME_ENABLED
+#endif  // VK_DEBUG_NAME_ENABLED
 
     if (oldSwapChain != VK_NULL_HANDLE)
     {
@@ -140,33 +123,26 @@ bool SwapChain::create(const bool vsync)
     }
 
     uint32_t numSwapChainImages;
-    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
-                            &numSwapChainImages, nullptr);
-    
+    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain, &numSwapChainImages, nullptr);
+
     std::vector<VkImage> vkSwapChainImages(numSwapChainImages);
-    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain,
-                            &numSwapChainImages, vkSwapChainImages.data());
+    vkGetSwapchainImagesKHR(_logicalDevice->get(), _swapChain, &numSwapChainImages, vkSwapChainImages.data());
 
     // Create Textures from queried swapChain images
     _swapChainImages.reserve(numSwapChainImages);
     for (uint32_t i = 0; i < numSwapChainImages; ++i)
     {
-        auto swapChainImage = std::make_shared<Texture>(
-            fmt::format("{}_Image({})", _titleName, i), _logicalDevice,
-            nullptr);
+        auto swapChainImage = std::make_shared<Texture>(fmt::format("{}_Image({})", _titleName, i), _logicalDevice, nullptr);
 
-        TextureInfo surfaceInfo = { ._extent = glm::uvec3(_resolution, 1),
-                                    ._format = _surfaceFormat,
-                                    ._imageType = VK_IMAGE_TYPE_2D,
-                                    ._usage = TextureUsage::RenderTarget };
+        TextureInfo surfaceInfo = {
+            ._extent = glm::uvec3(_resolution, 1), ._format = _surfaceFormat, ._imageType = VK_IMAGE_TYPE_2D, ._usage = TextureUsage::RenderTarget
+        };
 
-        swapChainImage->initializeFromSwapChain(surfaceInfo,
-                                                vkSwapChainImages[i]);
+        swapChainImage->initializeFromSwapChain(surfaceInfo, vkSwapChainImages[i]);
 
         TextureViewInfo surfaceViewInfo = { ._viewType = VK_IMAGE_VIEW_TYPE_2D,
                                             ._format = _surfaceFormat,
-                                            ._aspectFlags =
-                                                VK_IMAGE_ASPECT_COLOR_BIT,
+                                            ._aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT,
                                             ._baseMipLevel = 0,
                                             ._levelCount = 1,
                                             ._baseArrayLayer = 0,
@@ -181,38 +157,25 @@ bool SwapChain::create(const bool vsync)
     if (numSwapChainImages != _presentSemaphores.size())
     {
         LogicalDevice* logicalDevice = _logicalDevice;
-        auto recreateSemaphores =
-            [logicalDevice, this](const uint32_t numSwapChainImages,
-                            std::vector<VkSemaphore>& targetSemaphores) {
-                for (uint32_t i = numSwapChainImages;
-                     i < targetSemaphores.size(); ++i)
-                {
-                    vkDestroySemaphore(logicalDevice->get(),
-                                       targetSemaphores[i], nullptr);
-                }
+        auto recreateSemaphores = [logicalDevice, this](const uint32_t numSwapChainImages, std::vector<VkSemaphore>& targetSemaphores) {
+            for (uint32_t i = numSwapChainImages; i < targetSemaphores.size(); ++i)
+            {
+                vkDestroySemaphore(logicalDevice->get(), targetSemaphores[i], nullptr);
+            }
 
-                const uint32_t oldNumSemaphores =
-                    static_cast<uint32_t>(targetSemaphores.size());
-                targetSemaphores.resize(numSwapChainImages);
-                for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
-                {
-                    const VkSemaphoreCreateInfo semaphoreInfo = {
-                        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-                        .pNext = nullptr,
-                        .flags = 0
-                    };
-                    vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo,
-                                      nullptr, &targetSemaphores[i]);
+            const uint32_t oldNumSemaphores = static_cast<uint32_t>(targetSemaphores.size());
+            targetSemaphores.resize(numSwapChainImages);
+            for (uint32_t i = oldNumSemaphores; i < numSwapChainImages; ++i)
+            {
+                const VkSemaphoreCreateInfo semaphoreInfo = { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, .pNext = nullptr, .flags = 0 };
+                vkCreateSemaphore(logicalDevice->get(), &semaphoreInfo, nullptr, &targetSemaphores[i]);
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-                    std::string swapChainSemaphoreDebugName =
-                        fmt::format("{}_SwapChain_Semaphore_{}", _titleName, i);
-                    DebugUtil::setObjectName(
-                        _logicalDevice, targetSemaphores[i],
-                        swapChainSemaphoreDebugName.c_str());
+                std::string swapChainSemaphoreDebugName = fmt::format("{}_SwapChain_Semaphore_{}", _titleName, i);
+                DebugUtil::setObjectName(_logicalDevice, targetSemaphores[i], swapChainSemaphoreDebugName.c_str());
 #endif
-                }
-            };
+            }
+        };
 
         recreateSemaphores(numSwapChainImages, _backBufferReadySemaphores);
         recreateSemaphores(numSwapChainImages, _presentSemaphores);
@@ -221,24 +184,18 @@ bool SwapChain::create(const bool vsync)
     return true;
 }
 
-void SwapChain::querySwapChainCapability(
-    VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync)
+void SwapChain::querySwapChainCapability(VkSwapchainCreateInfoKHR& swapChainCreateInfo, const bool vsync)
 {
     VkSurfaceCapabilitiesKHR surfaceCaps = {};
-    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        _physicalDevice->get(), _surface, &surfaceCaps));
+    VK_ASSERT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice->get(), _surface, &surfaceCaps));
 
     uint32_t numPresentModes = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->get(), _surface,
-                                              &numPresentModes, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->get(), _surface, &numPresentModes, nullptr);
 
     std::vector<VkPresentModeKHR> supportedPresentModes(numPresentModes);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->get(), _surface,
-                                              &numPresentModes,
-                                              supportedPresentModes.data());
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->get(), _surface, &numPresentModes, supportedPresentModes.data());
 
-    if (surfaceCaps.currentExtent.width == UINT32_MAX ||
-        surfaceCaps.currentExtent.height == UINT32_MAX)
+    if (surfaceCaps.currentExtent.width == UINT32_MAX || surfaceCaps.currentExtent.height == UINT32_MAX)
     {
         surfaceCaps.currentExtent.width = _resolution.x;
         surfaceCaps.currentExtent.height = _resolution.y;
@@ -249,10 +206,7 @@ void SwapChain::querySwapChainCapability(
         _resolution.y = surfaceCaps.currentExtent.height;
     }
 
-    const VkExtent2D swapchainExtent{
-        .width = static_cast<uint32_t>(_resolution.x),
-        .height = static_cast<uint32_t>(_resolution.y)
-    };
+    const VkExtent2D swapchainExtent{ .width = static_cast<uint32_t>(_resolution.x), .height = static_cast<uint32_t>(_resolution.y) };
 
     VkPresentModeKHR resultPresentMode = VK_PRESENT_MODE_FIFO_KHR;
     if (vsync == false)
@@ -280,13 +234,11 @@ void SwapChain::querySwapChainCapability(
     uint32_t numDesiredSwapChainImages = surfaceCaps.minImageCount + 1;
     if ((surfaceCaps.maxImageCount > 0))
     {
-        numDesiredSwapChainImages =
-            glm::min(numDesiredSwapChainImages, surfaceCaps.maxImageCount);
+        numDesiredSwapChainImages = glm::min(numDesiredSwapChainImages, surfaceCaps.maxImageCount);
     }
 
     VkSurfaceTransformFlagBitsKHR preTransform;
-    if (surfaceCaps.supportedTransforms ==
-        VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
+    if (surfaceCaps.supportedTransforms == VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
     {
         preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     }
@@ -295,8 +247,7 @@ void SwapChain::querySwapChainCapability(
         preTransform = surfaceCaps.currentTransform;
     }
 
-    VkCompositeAlphaFlagBitsKHR compositeAlpha =
-        VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
     VkCompositeAlphaFlagBitsKHR compositeAlphaList[] = {
         VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
@@ -314,27 +265,25 @@ void SwapChain::querySwapChainCapability(
         }
     }
 
-    swapChainCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .surface = _surface,
-        .minImageCount = numDesiredSwapChainImages,
-        .imageFormat = _surfaceFormat,
-        .imageColorSpace = _colorSpace,
-        .imageExtent = swapchainExtent,
-        .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-        .preTransform = preTransform,
-        .compositeAlpha = compositeAlpha,
-        .presentMode = resultPresentMode,
-        .clipped = VK_TRUE,  // Allow presentation engine discard rendering
-                             // outside of the surface,
-        .oldSwapchain = VK_NULL_HANDLE
-    };
+    swapChainCreateInfo = { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+                            .pNext = nullptr,
+                            .flags = 0,
+                            .surface = _surface,
+                            .minImageCount = numDesiredSwapChainImages,
+                            .imageFormat = _surfaceFormat,
+                            .imageColorSpace = _colorSpace,
+                            .imageExtent = swapchainExtent,
+                            .imageArrayLayers = 1,
+                            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                            .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                            .queueFamilyIndexCount = 0,
+                            .pQueueFamilyIndices = nullptr,
+                            .preTransform = preTransform,
+                            .compositeAlpha = compositeAlpha,
+                            .presentMode = resultPresentMode,
+                            .clipped = VK_TRUE,  // Allow presentation engine discard rendering
+                                                 // outside of the surface,
+                            .oldSwapchain = VK_NULL_HANDLE };
 
     if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
     {
@@ -351,8 +300,7 @@ void SwapChain::release()
 {
     for (VkSemaphore& backBufferReadySemaphore : _backBufferReadySemaphores)
     {
-        vkDestroySemaphore(_logicalDevice->get(), backBufferReadySemaphore,
-                           nullptr);
+        vkDestroySemaphore(_logicalDevice->get(), backBufferReadySemaphore, nullptr);
     }
     _backBufferReadySemaphores.clear();
 
@@ -401,18 +349,14 @@ void SwapChain::prepareForNextFrame()
     _frameIndex = (_frameIndex + 1) % FRAME_BUFFER_COUNT;
 }
 
-void SwapChain::addWaitSemaphores(const uint32_t frameIndex,
-    VkSemaphore timelineSemaphore,
-    const uint64_t waitingValue)
+void SwapChain::addWaitSemaphores(const uint32_t frameIndex, VkSemaphore timelineSemaphore, const uint64_t waitingValue)
 {
-    SemaphoreWaitInfo& waitInfo =
-        _waitSemaphoreInfos[frameIndex];
+    SemaphoreWaitInfo& waitInfo = _waitSemaphoreInfos[frameIndex];
 
     std::lock_guard<std::mutex> scopeLockGuard(waitInfo._waitInfoMutex);
 
     waitInfo._waitSemaphores.push_back(timelineSemaphore);
-    waitInfo._waitingSemaphoreValues.push_back(
-        waitingValue);
+    waitInfo._waitingSemaphoreValues.push_back(waitingValue);
 }
 
 void SwapChain::waitForGpuComplete(const uint32_t frameIndex)
@@ -423,17 +367,13 @@ void SwapChain::waitForGpuComplete(const uint32_t frameIndex)
 
     if (waitInfo._waitSemaphores.empty() == false)
     {
-        VkSemaphoreWaitInfo vkWaitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
-            .pNext = nullptr,
-            .flags = 0,
-            .semaphoreCount =
-                static_cast<uint32_t>(waitInfo._waitSemaphores.size()),
-            .pSemaphores = waitInfo._waitSemaphores.data(),
-            .pValues = waitInfo._waitingSemaphoreValues.data()
-        };
-        VK_ASSERT(vkWaitSemaphoresKHR(_logicalDevice->get(), &vkWaitInfo,
-                                      UINT64_MAX));
+        VkSemaphoreWaitInfo vkWaitInfo = { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
+                                           .pNext = nullptr,
+                                           .flags = 0,
+                                           .semaphoreCount = static_cast<uint32_t>(waitInfo._waitSemaphores.size()),
+                                           .pSemaphores = waitInfo._waitSemaphores.data(),
+                                           .pValues = waitInfo._waitingSemaphoreValues.data() };
+        VK_ASSERT(vkWaitSemaphoresKHR(_logicalDevice->get(), &vkWaitInfo, UINT64_MAX));
 
         waitInfo._waitSemaphores.clear();
         waitInfo._waitingSemaphoreValues.clear();

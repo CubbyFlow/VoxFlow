@@ -5,8 +5,8 @@
 
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <atomic>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 namespace VoxFlow
 {
@@ -16,7 +16,6 @@ class HandleAllocator : private NonCopyable
  public:
     HandleAllocator();
     ~HandleAllocator();
-
 
  private:
     std::unordered_map<HandleBase::HandleID, void*> _handleArena;

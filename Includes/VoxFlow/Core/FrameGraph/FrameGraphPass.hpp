@@ -3,12 +3,12 @@
 #ifndef VOXEL_FLOW_FRAME_GRAPH_PASS_HPP
 #define VOXEL_FLOW_FRAME_GRAPH_PASS_HPP
 
-#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/DependencyGraph.hpp>
+#include <VoxFlow/Core/FrameGraph/FrameGraphRenderPass.hpp>
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
-#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPassParams.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderTargetGroup.hpp>
+#include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -36,8 +36,7 @@ class FrameGraphPassBase : private NonCopyable
     explicit FrameGraphPassBase();
     ~FrameGraphPassBase();
 
-    virtual void execute(const FrameGraphResources* resources,
-                         CommandStream* cmdStream) = 0;
+    virtual void execute(const FrameGraphResources* resources, CommandStream* cmdStream) = 0;
 };
 
 template <typename PassDataType, typename ExecutePhase>
@@ -56,8 +55,7 @@ class FrameGraphPass : public FrameGraphPassBase
         return _resourceData;
     }
 
-    void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) final
+    void execute(const FrameGraphResources* resources, CommandStream* cmdStream) final
     {
         std::invoke(_executionPhaseLambda, resources, _resourceData, cmdStream);
     }
@@ -70,14 +68,12 @@ class FrameGraphPass : public FrameGraphPassBase
 class PassNode : public DependencyGraph::Node
 {
  public:
-    explicit PassNode(
-        FrameGraph* ownerFrameGraph, std::string_view&& passName);
+    explicit PassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName);
     ~PassNode() override;
     PassNode(PassNode&& passNode);
     PassNode& operator=(PassNode&& passNode);
 
-    virtual void execute(const FrameGraphResources* resources,
-                         CommandStream* cmdStream) = 0;
+    virtual void execute(const FrameGraphResources* resources, CommandStream* cmdStream) = 0;
 
     void setSideEffectPass()
     {
@@ -132,15 +128,12 @@ struct RenderPassData
 class RenderPassNode final : public PassNode
 {
  public:
-    explicit RenderPassNode(FrameGraph* ownerFrameGraph,
-                            std::string_view&& passName,
-                      std::unique_ptr<FrameGraphPassBase>&& pass);
+    explicit RenderPassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName, std::unique_ptr<FrameGraphPassBase>&& pass);
     ~RenderPassNode() override;
     RenderPassNode(RenderPassNode&& passNode);
     RenderPassNode& operator=(RenderPassNode&& passNode);
 
-    void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) final;
+    void execute(const FrameGraphResources* resources, CommandStream* cmdStream) final;
 
     /**
      * @param frameGraph owner frameGraph of this node
@@ -149,10 +142,8 @@ class RenderPassNode final : public PassNode
      * @param descriptor render pass descriptor to declare
      * @return resource handle of created render pass data
      */
-    [[nodiscard]] uint32_t declareRenderPass(
-        FrameGraph* frameGraph, FrameGraphBuilder* builder,
-        std::string_view&& name,
-        typename FrameGraphRenderPass::Descriptor&& descriptor);
+    [[nodiscard]] uint32_t declareRenderPass(FrameGraph* frameGraph, FrameGraphBuilder* builder, std::string_view&& name,
+                                             typename FrameGraphRenderPass::Descriptor&& descriptor);
 
     /**
      * @param render pass id of render pass data to return
@@ -164,7 +155,7 @@ class RenderPassNode final : public PassNode
     }
 
     /**
-     * 
+     *
      */
     void resolve(FrameGraph* frameGraph) final;
 
@@ -177,16 +168,12 @@ class RenderPassNode final : public PassNode
 class PresentPassNode final : public PassNode
 {
  public:
-    explicit PresentPassNode(FrameGraph* ownerFrameGraph,
-                             std::string_view&& passName,
-                             SwapChain* swapChainToPresent,
-                             const FrameContext& frameContext);
+    explicit PresentPassNode(FrameGraph* ownerFrameGraph, std::string_view&& passName, SwapChain* swapChainToPresent, const FrameContext& frameContext);
     ~PresentPassNode() final;
     PresentPassNode(PresentPassNode&& passNode);
     PresentPassNode& operator=(PresentPassNode&& passNode);
 
-    void execute(const FrameGraphResources* resources,
-                 CommandStream* cmdStream) final;
+    void execute(const FrameGraphResources* resources, CommandStream* cmdStream) final;
 
     void resolve(FrameGraph* frameGraph) final
     {

@@ -1,16 +1,14 @@
 // Author : snowapril
 
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
-#include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/FrameBuffer.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
+#include <VoxFlow/Core/Graphics/RenderPass/RenderPassCollector.hpp>
 
 namespace VoxFlow
 {
 
-RenderPassCollector::RenderPassCollector(LogicalDevice* logicalDevice)
-    : _logicalDevice(logicalDevice)
+RenderPassCollector::RenderPassCollector(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
 {
-
 }
 
 RenderPassCollector::~RenderPassCollector()
@@ -23,8 +21,7 @@ RenderPassCollector::RenderPassCollector(RenderPassCollector&& other) noexcept
     operator=(std::move(other));
 }
 
-RenderPassCollector& RenderPassCollector::operator=(
-    RenderPassCollector&& other) noexcept
+RenderPassCollector& RenderPassCollector::operator=(RenderPassCollector&& other) noexcept
 {
     if (&other != this)
     {
@@ -34,8 +31,7 @@ RenderPassCollector& RenderPassCollector::operator=(
     return *this;
 }
 
-RenderPass* RenderPassCollector::getOrCreateRenderPass(
-    RenderTargetLayoutKey layoutKey)
+RenderPass* RenderPassCollector::getOrCreateRenderPass(RenderTargetLayoutKey layoutKey)
 {
     auto it = _renderPassCollection.find(layoutKey);
 
@@ -56,8 +52,7 @@ RenderPass* RenderPassCollector::getOrCreateRenderPass(
     return it->second.get();
 }
 
-FrameBuffer* RenderPassCollector::getOrCreateFrameBuffer(
-    RenderTargetsInfo rtInfo)
+FrameBuffer* RenderPassCollector::getOrCreateFrameBuffer(RenderTargetsInfo rtInfo)
 {
     auto it = _frameBufferCollection.find(rtInfo);
 

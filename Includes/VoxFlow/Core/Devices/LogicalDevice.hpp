@@ -32,8 +32,7 @@ class PipelineStreamingContext;
 class LogicalDevice : NonCopyable
 {
  public:
-    LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
-                  Instance* instance, const LogicalDeviceType deviceType);
+    LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice, Instance* instance, const LogicalDeviceType deviceType);
     ~LogicalDevice() override;
     LogicalDevice(LogicalDevice&& other) noexcept;
     LogicalDevice& operator=(LogicalDevice&& other) noexcept;
@@ -77,8 +76,7 @@ class LogicalDevice : NonCopyable
      * @return descriptor set allocator pool which manage set and pool laid in
      * each layout
      */
-    [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool()
-        const
+    [[nodiscard]] DescriptorSetAllocatorPool* getDescriptorSetAllocatorPool() const
     {
         return _descriptorSetAllocatorPool;
     }
@@ -89,19 +87,15 @@ class LogicalDevice : NonCopyable
      * @param resolution window resolution to create
      * @return swapchain wrappging class instance
      */
-    std::shared_ptr<SwapChain> addSwapChain(const char* title,
-                                            const glm::ivec2 resolution);
+    std::shared_ptr<SwapChain> addSwapChain(const char* title, const glm::ivec2 resolution);
 
     /**
      * @param swapChainIndex swapchain index to querying
      * @return swapchain ref-counted instance matched to given index
      */
-    [[nodiscard]] inline const std::shared_ptr<SwapChain>& getSwapChain(
-        const uint32_t swapChainIndex) const
+    [[nodiscard]] inline const std::shared_ptr<SwapChain>& getSwapChain(const uint32_t swapChainIndex) const
     {
-        VOX_ASSERT(swapChainIndex < _swapChains.size(),
-                   "Given Index({}), Num SwapChains({})", swapChainIndex,
-                   _swapChains.size());
+        VOX_ASSERT(swapChainIndex < _swapChains.size(), "Given Index({}), Num SwapChains({})", swapChainIndex, _swapChains.size());
         return _swapChains[swapChainIndex];
     }
 

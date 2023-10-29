@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_TEXTURE_HPP
 #define VOXEL_FLOW_TEXTURE_HPP
 
-#include <vma/include/vk_mem_alloc.h>
 #include <volk/volk.h>
+#include <vma/include/vk_mem_alloc.h>
 #include <VoxFlow/Core/Resources/RenderResource.hpp>
 #include <VoxFlow/Core/Resources/ResourceView.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -23,14 +23,12 @@ extern bool hasDepthAspect(VkFormat vkFormat);
 extern bool hasStencilAspect(VkFormat vkFormat);
 extern VkImageAspectFlags convertToImageAspectFlags(VkFormat vkFormat);
 extern VkImageType convertToImageType(glm::uvec3 imageType);
-extern VkImageViewType convertToImageViewType(VkImageType vkImageType,
-                                              glm::uvec3 extent);
+extern VkImageViewType convertToImageViewType(VkImageType vkImageType, glm::uvec3 extent);
 
 class Texture final : public RenderResource
 {
  public:
-    explicit Texture(std::string_view&& debugName, LogicalDevice* logicalDevice,
-                     RenderResourceMemoryPool* renderResourceMemoryPool);
+    explicit Texture(std::string_view&& debugName, LogicalDevice* logicalDevice, RenderResourceMemoryPool* renderResourceMemoryPool);
     ~Texture();
 
  public:
@@ -39,11 +37,9 @@ class Texture final : public RenderResource
         return _vkImage;
     }
 
-    [[nodiscard]] inline std::shared_ptr<TextureView> getView(
-        const uint32_t viewIndex) const
+    [[nodiscard]] inline std::shared_ptr<TextureView> getView(const uint32_t viewIndex) const
     {
-        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedTextureViews.size()),
-                   "Given Index ({}), Num Image Views ({})", viewIndex,
+        VOX_ASSERT(viewIndex < static_cast<uint32_t>(_ownedTextureViews.size()), "Given Index ({}), Num Image Views ({})", viewIndex,
                    _ownedTextureViews.size());
         return _ownedTextureViews[viewIndex];
     }
@@ -69,8 +65,7 @@ class Texture final : public RenderResource
 
     // Create texture instance from swapchain image which should be separated
     // from others
-    bool initializeFromSwapChain(const TextureInfo& swapChainSurfaceInfo,
-                                 VkImage swapChainImage);
+    bool initializeFromSwapChain(const TextureInfo& swapChainSurfaceInfo, VkImage swapChainImage);
 
     // Create image view and return its index for given image view info
     std::optional<uint32_t> createTextureView(const TextureViewInfo& viewInfo);
@@ -90,8 +85,7 @@ class Texture final : public RenderResource
 class TextureView : public ResourceView
 {
  public:
-    explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice,
-                         RenderResource* ownerResource);
+    explicit TextureView(std::string&& debugName, LogicalDevice* logicalDevice, RenderResource* ownerResource);
     ~TextureView();
 
  public:

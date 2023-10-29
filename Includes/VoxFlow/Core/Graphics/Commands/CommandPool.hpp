@@ -35,11 +35,9 @@ class CommandPool : private NonCopyable
  private:
     struct CommandBufferComparator
     {
-        bool operator()(const std::shared_ptr<CommandBuffer>& lhs,
-                        const std::shared_ptr<CommandBuffer>& rhs)
+        bool operator()(const std::shared_ptr<CommandBuffer>& lhs, const std::shared_ptr<CommandBuffer>& rhs)
         {
-            return lhs->getFenceToSignal().getFenceValue() >
-                   rhs->getFenceToSignal().getFenceValue();
+            return lhs->getFenceToSignal().getFenceValue() > rhs->getFenceToSignal().getFenceValue();
         }
     };
 
@@ -47,10 +45,7 @@ class CommandPool : private NonCopyable
     LogicalDevice* _logicalDevice = nullptr;
     Queue* _ownerQueue = nullptr;
     VkCommandPool _commandPool = VK_NULL_HANDLE;
-    std::priority_queue<std::shared_ptr<CommandBuffer>,
-                        std::vector<std::shared_ptr<CommandBuffer>>,
-                        CommandBufferComparator>
-        _freedCommandBuffers;
+    std::priority_queue<std::shared_ptr<CommandBuffer>, std::vector<std::shared_ptr<CommandBuffer>>, CommandBufferComparator> _freedCommandBuffers;
 };
 }  // namespace VoxFlow
 

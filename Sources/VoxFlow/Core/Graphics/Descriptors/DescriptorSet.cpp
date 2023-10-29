@@ -8,8 +8,7 @@ namespace VoxFlow
 
 }  // namespace VoxFlow
 
-std::size_t std::hash<VoxFlow::DescriptorInfo>::operator()(
-    VoxFlow::DescriptorInfo const& info) const noexcept
+std::size_t std::hash<VoxFlow::DescriptorInfo>::operator()(VoxFlow::DescriptorInfo const& info) const noexcept
 {
     uint32_t seed = 0;
 
@@ -21,8 +20,7 @@ std::size_t std::hash<VoxFlow::DescriptorInfo>::operator()(
     return seed;
 }
 
-std::size_t std::hash<VoxFlow::DescriptorSetLayoutDesc>::operator()(
-    VoxFlow::DescriptorSetLayoutDesc const& setLayout) const noexcept
+std::size_t std::hash<VoxFlow::DescriptorSetLayoutDesc>::operator()(VoxFlow::DescriptorSetLayoutDesc const& setLayout) const noexcept
 {
     uint32_t seed = 0;
 

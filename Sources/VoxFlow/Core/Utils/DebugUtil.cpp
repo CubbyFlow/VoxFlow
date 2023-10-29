@@ -7,10 +7,8 @@
 namespace VoxFlow
 {
 uint64_t DebugUtil::NumValidationErrorDetected = 0;
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-    VkDebugUtilsMessageTypeFlagsEXT flags,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT flags,
+                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* userData)
 {
     (void)flags;
     (void)userData;
@@ -30,8 +28,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtil::DebugCallback(
             spdlog::error("[Vulkan Validation] {}", pCallbackData->pMessage);
             break;
         default:
-            assert(severity <
-                   VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT);
+            assert(severity < VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT);
             break;
     }
 
@@ -57,21 +54,15 @@ void DebugUtil::DebugBreak()
 }
 
 #if defined(VK_DEBUG_NAME_ENABLED)
-void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object,
-                              const char* name,
-                              VkObjectType type)
+void DebugUtil::setObjectName(LogicalDevice* logicalDevice, uint64_t object, const char* name, VkObjectType type)
 {
     // static PFN_vkSetDebugUtilsObjectNameEXT setObjectName =
     const VkDebugUtilsObjectNameInfoEXT nameInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-        .pNext = nullptr,
-        .objectType = type,
-        .objectHandle = object,
-        .pObjectName = name
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT, .pNext = nullptr, .objectType = type, .objectHandle = object, .pObjectName = name
     };
     vkSetDebugUtilsObjectNameEXT(logicalDevice->get(), &nameInfo);
 }
-#endif 
+#endif
 
 DeviceRemoveTracker* DeviceRemoveTracker::get()
 {

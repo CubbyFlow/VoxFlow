@@ -21,8 +21,7 @@ class PipelineCache;
 class BasePipeline : NonCopyable
 {
  public:
-    explicit BasePipeline(PipelineStreamingContext* pipelineStreamingContext,
-                          std::vector<ShaderPathInfo>&& shaderFilePaths);
+    explicit BasePipeline(PipelineStreamingContext* pipelineStreamingContext, std::vector<ShaderPathInfo>&& shaderFilePaths);
     ~BasePipeline() override;
     BasePipeline(BasePipeline&& other) noexcept;
     BasePipeline& operator=(BasePipeline&& other) noexcept;

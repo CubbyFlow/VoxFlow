@@ -34,12 +34,8 @@ void ChromeTracer::endTrace(const char* traceFilePath)
     for (const EventDescriptor& desc : tmpEventDescriptors)
     {
         const char* eventTypeString = nullptr;
-        auto timePoint =
-            std::chrono::time_point_cast<std::chrono::microseconds>(
-                desc._timeStamp);
-        auto timeStamp = std::chrono::duration_cast<std::chrono::microseconds>(
-                             timePoint.time_since_epoch())
-                             .count();
+        auto timePoint = std::chrono::time_point_cast<std::chrono::microseconds>(desc._timeStamp);
+        auto timeStamp = std::chrono::duration_cast<std::chrono::microseconds>(timePoint.time_since_epoch()).count();
 
         switch (desc._eventType)
         {
@@ -59,10 +55,7 @@ void ChromeTracer::endTrace(const char* traceFilePath)
         oss << desc._threadId;
         uint32_t threadId = std::stoi(oss.str());
 
-        events.push_back(nlohmann::json({ { "name", desc._name },
-                                          { "ph", eventTypeString },
-                                          { "ts", timeStamp },
-                                          { "tid", threadId } }));
+        events.push_back(nlohmann::json({ { "name", desc._name }, { "ph", eventTypeString }, { "ts", timeStamp }, { "tid", threadId } }));
     }
 
     _json["traceEvents"] = events;
@@ -78,8 +71,7 @@ void ChromeTracer::endTrace(const char* traceFilePath)
     _json.clear();
 }
 
-ChromeTracer::ScopedChromeTracing ChromeTracer::createScopedTracingHandle(
-    const char* eventName)
+ChromeTracer::ScopedChromeTracing ChromeTracer::createScopedTracingHandle(const char* eventName)
 {
     return ChromeTracer::ScopedChromeTracing(this, eventName);
 }
@@ -90,15 +82,11 @@ void ChromeTracer::addTraceEvent(EventType eventType, const char* eventName)
     {
         std::lock_guard<std::mutex> scopeLock(_mutex);
         _eventDescriptors.push_back(
-            { ._name = eventName,
-              ._eventType = eventType,
-              ._timeStamp = std::chrono::system_clock::now(),
-              ._threadId = std::this_thread::get_id() });
+            { ._name = eventName, ._eventType = eventType, ._timeStamp = std::chrono::system_clock::now(), ._threadId = std::this_thread::get_id() });
     }
 }
 
-ChromeTracer::ScopedChromeTracing::ScopedChromeTracing(
-    ChromeTracer* ownerTracer, const char* eventName)
+ChromeTracer::ScopedChromeTracing::ScopedChromeTracing(ChromeTracer* ownerTracer, const char* eventName)
     : _ownerTracer(ownerTracer), _eventName(std::move(eventName))
 {
     _ownerTracer->addTraceEvent(EventType::DurationBegin, _eventName);

@@ -8,18 +8,18 @@
 namespace VoxFlow
 {
 
-constexpr const char* MAIN_GRAPHICS_STREAM_NAME     = "MainGraphicsStream";
-constexpr const char* ASYNC_UPLOAD_STREAM_NAME      = "AsyncUploadStream";
-constexpr const char* ASYNC_COMPUTE_STREAM_NAME     = "AsyncComputeStream";
-constexpr const char* IMMEDIATE_UPLOAD_STREAM_NAME  = "ImmediateUploadStream";
+constexpr const char* MAIN_GRAPHICS_STREAM_NAME = "MainGraphicsStream";
+constexpr const char* ASYNC_UPLOAD_STREAM_NAME = "AsyncUploadStream";
+constexpr const char* ASYNC_COMPUTE_STREAM_NAME = "AsyncComputeStream";
+constexpr const char* IMMEDIATE_UPLOAD_STREAM_NAME = "ImmediateUploadStream";
 
-enum class CommandStreamUsage : uint8_t 
+enum class CommandStreamUsage : uint8_t
 {
-    Graphics    = 0,
-    Compute     = 1,
-    Transfer    = 2,
-    Count       = 4,
-    Undefined   = 5,
+    Graphics = 0,
+    Compute = 1,
+    Transfer = 2,
+    Count = 4,
+    Undefined = 5,
 };
 
 struct CommandStreamKey
@@ -30,8 +30,7 @@ struct CommandStreamKey
 
 inline bool operator==(const CommandStreamKey& lhs, const CommandStreamKey& rhs)
 {
-    return (lhs._cmdStreamName == rhs._cmdStreamName) &&
-           (lhs._cmdStreamUsage == rhs._cmdStreamUsage);
+    return (lhs._cmdStreamName == rhs._cmdStreamName) && (lhs._cmdStreamUsage == rhs._cmdStreamUsage);
 }
 
 }  // namespace VoxFlow
@@ -39,8 +38,7 @@ inline bool operator==(const CommandStreamKey& lhs, const CommandStreamKey& rhs)
 template <>
 struct std::hash<VoxFlow::CommandStreamKey>
 {
-    std::size_t operator()(
-        VoxFlow::CommandStreamKey const& streamKey) const noexcept;
+    std::size_t operator()(VoxFlow::CommandStreamKey const& streamKey) const noexcept;
 };
 
 #endif

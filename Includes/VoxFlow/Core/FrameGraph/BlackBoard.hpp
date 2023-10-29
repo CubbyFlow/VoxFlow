@@ -48,8 +48,7 @@ class BlackBoard : private NonCopyable
     }
     ResourceHandle& operator[](std::string_view name)
     {
-        auto [iter, _] =
-            _handleContainer.insert_or_assign(name, INVALID_RESOURCE_HANDLE);
+        auto [iter, _] = _handleContainer.insert_or_assign(name, INVALID_RESOURCE_HANDLE);
         return iter->second;
     }
 

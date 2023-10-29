@@ -35,8 +35,7 @@ class RenderDevice final : private NonCopyable
         return _physicalDevice;
     }
 
-    [[nodiscard]] inline LogicalDevice* getLogicalDevice(
-        const LogicalDeviceType deviceType) const
+    [[nodiscard]] inline LogicalDevice* getLogicalDevice(const LogicalDeviceType deviceType) const
     {
         return _logicalDevices.at(static_cast<uint32_t>(deviceType)).get();
     }

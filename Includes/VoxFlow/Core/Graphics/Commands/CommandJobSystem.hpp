@@ -42,22 +42,19 @@ enum class CommandJobType
 class CommandStream final : private NonCopyable
 {
  public:
-    using CommandPoolStorage =
-        std::unordered_map<std::thread::id, std::unique_ptr<CommandPool>>;
-    using CommandBufferStorage =
-        std::unordered_map<std::thread::id, std::shared_ptr<CommandBuffer>>;
+    using CommandPoolStorage = std::unordered_map<std::thread::id, std::unique_ptr<CommandPool>>;
+    using CommandBufferStorage = std::unordered_map<std::thread::id, std::shared_ptr<CommandBuffer>>;
 
  public:
     explicit CommandStream(LogicalDevice* logicalDevice, Queue* queue);
     ~CommandStream();
 
-    FenceObject flush(SwapChain* swapChain, const FrameContext* frameContext,
-                      const bool waitAllCompletion);
+    FenceObject flush(SwapChain* swapChain, const FrameContext* frameContext, const bool waitAllCompletion);
 
     template <typename... CommandJobArgs>
     void addJob(CommandJobType jobType, CommandJobArgs&&... args);
 
-private:
+ private:
     CommandBuffer* getOrAllocateCommandBuffer();
     CommandPool* getOrAllocateCommandPool();
 

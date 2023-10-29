@@ -3,8 +3,8 @@
 #ifndef VOXEL_FLOW_VERTEX_FORMAT_HPP
 #define VOXEL_FLOW_VERTEX_FORMAT_HPP
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 namespace VoxFlow
 {
@@ -88,8 +88,7 @@ enum class VertexFormat : uint32_t
 
     //! Position (3D), normal (3D), texture coordinates (2D), color in RGBA
     //! (4D), and tangent coordinates (4D).
-    Position3Normal3TexCoord2Color4Tangent4 =
-        Position3Normal3TexCoord2Color4 | Tangent4,
+    Position3Normal3TexCoord2Color4Tangent4 = Position3Normal3TexCoord2Color4 | Tangent4,
 };
 
 //! Bit-wise operator for two vertex formats
