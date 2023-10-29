@@ -1,8 +1,9 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
 #include <VoxFlow/Core/Utils/VertexFormat.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <spirv-cross/spirv_common.hpp>
@@ -10,25 +11,19 @@
 
 namespace VoxFlow
 {
-
-ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
-                           const std::string& shaderFilePath)
-    : _logicalDevice(logicalDevice), _shaderFilePath(shaderFilePath)
+ShaderModule::ShaderModule(PipelineStreamingContext* pipelineStreamingContext,
+                           const ShaderPathInfo& shaderPath)
+    : _pipelineStreamingContext(pipelineStreamingContext),
+      _logicalDevice(_pipelineStreamingContext->getLogicalDevice()),
+      _shaderFilePath(shaderPath)
 {
-    // TODO(snowapril) : move compilation process to external management class
-    std::vector<char> shaderSource;
-    VOX_ASSERT(
-        GlslangUtil::ReadShaderFile(shaderFilePath.c_str(), &shaderSource),
-        "Failed to read shader file : {}", shaderFilePath);
-
-    const glslang_stage_t glslangStage =
-        GlslangUtil::GlslangStageFromFilename(shaderFilePath);
     std::vector<unsigned int> spirvBinary;
-    VOX_ASSERT(GlslangUtil::CompileShader(glslangStage, shaderSource.data(),
-                                          &spirvBinary),
-               " Failed to compile shader file : {}", shaderFilePath);
+    const bool compileResult = _pipelineStreamingContext->loadSpirvBinary(spirvBinary, shaderPath);
+    VOX_ASSERT(compileResult, "Failed to load spirv binary for path : {}",
+               shaderPath.path);
 
-    _stageFlagBits = GlslangUtil::GlslangStageToVulkanStage(glslangStage);
+    if (compileResult == false)
+        return;
 
     const VkShaderModuleCreateInfo moduleInfo = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -40,9 +35,13 @@ ShaderModule::ShaderModule(LogicalDevice* logicalDevice,
     VK_ASSERT(vkCreateShaderModule(_logicalDevice->get(), &moduleInfo, nullptr,
                                    &_shaderModule));
 
+    _stageFlagBits =
+        ShaderUtil::ConvertToShaderStageFlag(_shaderFilePath.shaderStage);
+
     const bool reflectionResult = reflectShaderLayoutBindings(
         &_reflectionDataGroup, std::move(spirvBinary), _stageFlagBits);
-    VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}", _shaderFilePath);
+    VOX_ASSERT(reflectionResult, "Failed to reflect shader module {}",
+               _shaderFilePath.path);
 }
 
 ShaderModule::~ShaderModule()
@@ -59,7 +58,7 @@ ShaderModule& ShaderModule::operator=(ShaderModule&& other) noexcept
 {
     if (this != &other)
     {
-        _logicalDevice = other._logicalDevice;
+        _pipelineStreamingContext = other._pipelineStreamingContext;
         _shaderModule = other._shaderModule;
         _reflectionDataGroup = std::move(other._reflectionDataGroup);
         _shaderFilePath = other._shaderFilePath;

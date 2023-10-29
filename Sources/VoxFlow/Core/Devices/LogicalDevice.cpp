@@ -192,7 +192,7 @@ LogicalDevice::LogicalDevice(const Context& ctx, PhysicalDevice* physicalDevice,
     initializeCommandStreams();
 
     _pipelineStreamingContext = std::make_unique<PipelineStreamingContext>(
-        this, RESOURCES_DIR "/Shaders");
+        this, RESOURCES_DIR "Shaders/");
 }
 
 LogicalDevice::~LogicalDevice()

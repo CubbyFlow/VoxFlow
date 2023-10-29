@@ -3,7 +3,7 @@
 #include <ResourceLimits.h>
 #include <glslang_c_interface.h>
 #include <spdlog/spdlog.h>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <fstream>
 
@@ -273,6 +273,78 @@ bool GlslangUtil::CompileShader(glslang_stage_t stage, const char* shaderSource,
 
     glslang_program_delete(program);
     glslang_shader_delete(shader);
+    return true;
+}
+
+VkShaderStageFlagBits ShaderUtil::ConvertToShaderStageFlag(
+    const ShaderStage stage)
+{
+    switch (stage)
+    {
+        case ShaderStage::Vertex:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderStage::TessControl:
+            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderStage::TessEvaludation:
+            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderStage::Geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderStage::Fragment:
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::Compute:
+            return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::Mesh:
+            return VK_SHADER_STAGE_MESH_BIT_NV;
+        case ShaderStage::Undefined:
+        default:
+            VOX_ASSERT(false, "Unknown shader stage");
+            return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+    }
+}
+
+std::string ShaderUtil::ConvertToShaderFileExtension(const ShaderStage stage)
+{
+    switch (stage)
+    {
+        case ShaderStage::Vertex:
+            return "vert";
+        case ShaderStage::TessControl:
+            return "tesc";
+        case ShaderStage::TessEvaludation:
+            return "tese";
+        case ShaderStage::Geometry:
+            return "geom";
+        case ShaderStage::Fragment:
+            return "frag";
+        case ShaderStage::Compute:
+            return "comp";
+        case ShaderStage::Mesh:
+            return "mesh";
+        case ShaderStage::Undefined:
+        default:
+            VOX_ASSERT(false, "Unknown shader stage");
+            return "";
+    }
+}
+
+bool ShaderUtil::ReadSpirvBinary(const char* filename,
+                                 std::vector<uint32_t>* dst)
+{
+    std::ifstream file(
+        filename, std::ios::in | std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+    {
+        spdlog::error("Failed to find shader file {}", filename);
+        return false;
+    }
+
+    const size_t fileSize = file.tellg();
+    dst->resize(fileSize >> 2);
+
+    file.seekg(std::ios::beg);
+    file.read(reinterpret_cast<char*>(dst->data()), fileSize);
+
+    file.close();
     return true;
 }
 }  // namespace VoxFlow

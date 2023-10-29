@@ -2,7 +2,7 @@
 
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Graphics/RenderPass/RenderPass.hpp>
-#include <VoxFlow/Core/Graphics/Pipelines/GlslangUtil.hpp>
+#include <VoxFlow/Core/Graphics/Pipelines/ShaderUtil.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineLayout.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
@@ -11,9 +11,9 @@
 namespace VoxFlow
 {
 GraphicsPipeline::GraphicsPipeline(
-    LogicalDevice* logicalDevice,
-    std::vector<std::string>&& shaderPaths)
-    : BasePipeline(logicalDevice, std::move(shaderPaths))
+    PipelineStreamingContext* pipelineStreamingContext,
+    std::vector<ShaderPathInfo>&& shaderPaths)
+    : BasePipeline(pipelineStreamingContext, std::move(shaderPaths))
 {
 }
 

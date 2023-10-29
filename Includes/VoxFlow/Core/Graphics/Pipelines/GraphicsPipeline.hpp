@@ -19,8 +19,9 @@ class RenderPass;
 class GraphicsPipeline : public BasePipeline
 {
  public:
-    explicit GraphicsPipeline(LogicalDevice* logicalDevice,
-                              std::vector<std::string>&& shaderPaths);
+    explicit GraphicsPipeline(
+        PipelineStreamingContext* pipelineStreamingContext,
+        std::vector<ShaderPathInfo>&& shaderPaths);
     ~GraphicsPipeline() override;
     GraphicsPipeline(GraphicsPipeline&& other) noexcept;
     GraphicsPipeline& operator=(GraphicsPipeline&& other) noexcept;

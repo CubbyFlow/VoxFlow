@@ -5,12 +5,12 @@
 
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
-#include <filesystem>
 #include <memory>
 #include <vector>
 
 namespace VoxFlow
 {
+struct ShaderPathInfo;
 class LogicalDevice;
 class BasePipeline;
 class GraphicsPipeline;
@@ -28,14 +28,31 @@ class PipelineStreamingContext : NonCopyable
 
  public:
     std::shared_ptr<GraphicsPipeline> createGraphicsPipeline(
-        std::vector<const char*>&& shaderPaths);
+        std::vector<std::string>&& shaderPaths);
 
     std::shared_ptr<ComputePipeline> createComputePipeline(
-        const char* shaderPath);
+        std::string&& shaderPath);
+
+    bool loadSpirvBinary(std::vector<uint32_t>& outSpirvBinary,
+                         const ShaderPathInfo& pathInfo,
+                         const bool skipShaderCacheExport = false);
+
+    [[nodiscard]] inline LogicalDevice* getLogicalDevice()
+    {
+        return _logicalDevice;
+    }
+
+ private:
+    ShaderPathInfo getShaderPathInfo(const std::string& path);
+    bool getPipelineCacheIfExist(std::vector<uint8_t>& outCacheData);
+    void exportShaderCache(const ShaderPathInfo& pathInfo,
+                           const std::vector<uint32_t>& spirvBinary);
 
  private:
     LogicalDevice* _logicalDevice;
-    std::filesystem::path _shaderRootPath;
+    std::string _shaderRootPath;
+    std::string _shaderCachePath;
+    std::string _pipelineCachePath;
     std::vector<std::shared_ptr<BasePipeline>> _registeredPipelines;
 };
 }  // namespace VoxFlow

@@ -14,8 +14,8 @@ class ShaderModule;
 class ComputePipeline : public BasePipeline
 {
  public:
-    explicit ComputePipeline(LogicalDevice* logicalDevice,
-                             const std::string& shaderPath);
+    explicit ComputePipeline(PipelineStreamingContext* pipelineStreamingContext,
+                             const ShaderPathInfo& shaderPath);
     ~ComputePipeline() override;
     ComputePipeline(ComputePipeline&& other) noexcept;
     ComputePipeline& operator=(ComputePipeline&& other) noexcept;

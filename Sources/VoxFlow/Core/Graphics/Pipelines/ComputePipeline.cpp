@@ -8,9 +8,10 @@
 
 namespace VoxFlow
 {
-ComputePipeline::ComputePipeline(LogicalDevice* logicalDevice,
-                                 const std::string& shaderPath)
-    : BasePipeline(logicalDevice, { shaderPath })
+ComputePipeline::ComputePipeline(
+    PipelineStreamingContext* pipelineStreamingContext,
+    const ShaderPathInfo& shaderPath)
+    : BasePipeline(pipelineStreamingContext, { shaderPath })
 {
 }
 
