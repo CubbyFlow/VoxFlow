@@ -6,7 +6,7 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <glm/vec2.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 #include <optional>
 
 struct GLFWwindow;

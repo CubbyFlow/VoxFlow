@@ -7,7 +7,7 @@
 #include <VoxFlow/Core/Utils/DebugUtil.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-#include <glm/common.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 
 namespace VoxFlow
 {

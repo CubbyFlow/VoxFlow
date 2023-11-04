@@ -5,8 +5,8 @@
 #include <VoxFlow/Core/Graphics/Descriptors/DescriptorSetConfig.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ShaderModule.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 #include <algorithm>
-#include <glm/common.hpp>
 
 namespace VoxFlow
 {

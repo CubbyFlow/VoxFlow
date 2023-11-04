@@ -71,6 +71,10 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBufferContext.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/SceneObject.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/SceneObjectLoader.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/PrimitiveBufferPool.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/Material.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/BitwiseOperators.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
@@ -78,6 +82,7 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DecisionMaker.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DeviceInputSubscriber.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Logger.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/MathUtils.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/Thread.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/MemoryAllocator.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/NonCopyable.hpp
@@ -139,6 +144,10 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Resources/StagingBufferContext.cpp
     ${SRC_DIR}/Core/Resources/StagingBuffer.cpp
+    ${SRC_DIR}/Core/Scene/SceneObject.cpp
+    ${SRC_DIR}/Core/Scene/SceneObjectLoader.cpp
+    ${SRC_DIR}/Core/Scene/PrimitiveBufferPool.cpp
+    ${SRC_DIR}/Core/Scene/Material.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DeviceInputSubscriber.cpp

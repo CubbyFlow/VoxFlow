@@ -6,8 +6,8 @@
 #include <VoxFlow/Core/Utils/BitwiseOperators.hpp>
 #include <VoxFlow/Core/Utils/HashUtil.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 #include <array>
-#include <glm/vec2.hpp>
 
 namespace VoxFlow
 {

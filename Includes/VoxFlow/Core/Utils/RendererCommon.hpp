@@ -6,10 +6,8 @@
 #include <volk/volk.h>
 #include <VoxFlow/Core/Utils/BitwiseOperators.hpp>
 #include <VoxFlow/Core/Utils/HashUtil.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 #include <functional>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 #include <memory>
 #include <optional>
 #include <string>

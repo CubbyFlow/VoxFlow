@@ -8,8 +8,8 @@
 #include <VoxFlow/Core/Devices/Queue.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 #include <functional>
-#include <glm/vec2.hpp>
 #include <memory>
 #include <unordered_map>
 

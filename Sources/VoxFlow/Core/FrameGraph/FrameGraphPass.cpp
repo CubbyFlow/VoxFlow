@@ -5,7 +5,7 @@
 #include <VoxFlow/Core/FrameGraph/FrameGraphResources.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Resources/Texture.hpp>
-#include <glm/common.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 
 namespace VoxFlow
 {
