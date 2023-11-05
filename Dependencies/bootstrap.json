@@ -64,11 +64,11 @@
     }
   },
   {
-    "name": "assimp",
+    "name": "tinygltf",
     "source": {
       "type": "git",
-      "url": "https://github.com/assimp/assimp.git",
-      "revision": "a9f82dbe0b8a658003f93c7b5108ee4521458a18"
+      "url": "https://github.com/syoyo/tinygltf.git",
+      "revision": "v2.8.18"
     }
   },
   {

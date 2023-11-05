@@ -9,6 +9,7 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Editor/RenderPass/PostProcessPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Editor/RenderPass/SceneObjectPass.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Editor/RenderPass/SDFGlobalIlluminationPass.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Editor/VoxEditor.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Editor/VoxFlow.hpp
 )
@@ -17,6 +18,7 @@ set(PUBLIC_HDRS
 set(SRCS
     ${SRC_DIR}/Editor/RenderPass/PostProcessPass.cpp
     ${SRC_DIR}/Editor/RenderPass/SceneObjectPass.cpp
+    ${SRC_DIR}/Editor/RenderPass/SDFGlobalIlluminationPass.cpp
     ${SRC_DIR}/Editor/VoxEditor.cpp
     ${SRC_DIR}/Editor/VoxFlow.cpp
     ${SRC_DIR}/Editor/WinMain.cpp

@@ -7,9 +7,8 @@
 #include <VoxFlow/Core/Resources/Texture.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <VoxFlow/Core/Utils/RendererCommon.hpp>
-
 #include <GLFW/glfw3.h>
-#include <glm/common.hpp>
+#include <VoxFlow/Core/Utils/MathUtils.hpp>
 
 namespace VoxFlow
 {
