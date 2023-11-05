@@ -22,23 +22,51 @@ namespace VoxFlow
         }                                                                                                    \
     } while (false)
 
-template <typename... Args>
-void voxAssertImpl(bool expr, const char* fmt, Args... args)
-{
-    do
-    {
-        if (!static_cast<bool>(expr))
-        {
-            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__);
-            DebugUtil::DebugBreak();
-        }
+#define VOX_ASSERT(expr, msg, ...)                                           \
+    do                                                                       \
+    {                                                                        \
+        if (!static_cast<bool>(expr))                                        \
+        {                                                                    \
+            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__); \
+            DebugUtil::DebugBreak();                                         \
+        }                                                                    \
     } while (false);
-}
-
-#define VOX_ASSERT(expr, msg, ...) voxAssertImpl(expr, msg, ##__VA_ARGS__)
+#define VOX_ASSERT_RETURN_VOID(expr, msg, ...)                               \
+    do                                                                       \
+    {                                                                        \
+        if (!static_cast<bool>(expr))                                        \
+        {                                                                    \
+            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__); \
+            DebugUtil::DebugBreak();                                         \
+            return;                                                          \
+        }                                                                    \
+    } while (false);
+#define VOX_ASSERT_RETURN_BOOL(expr, msg, ...)                               \
+    do                                                                       \
+    {                                                                        \
+        if (!static_cast<bool>(expr))                                        \
+        {                                                                    \
+            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__); \
+            DebugUtil::DebugBreak();                                         \
+            return false;                                                    \
+        }                                                                    \
+    } while (false);
+#define VOX_ASSERT_RETURN_NULL(expr, msg, ...)                               \
+    do                                                                       \
+    {                                                                        \
+        if (!static_cast<bool>(expr))                                        \
+        {                                                                    \
+            spdlog::error("{} at {}:{}.", fmt, args..., __FILE__, __LINE__); \
+            DebugUtil::DebugBreak();                                         \
+            return nullptr;                                                  \
+        }                                                                    \
+    } while (false);
 // #else
 // #define VK_ASSERT(x)
 // #define VOX_ASSERT(x, msg, ...)
+// #define VOX_ASSERT_RETURN_VOID(expr, msg, ...)
+// #define VOX_ASSERT_RETURN_BOOL(expr, msg, ...)
+// #define VOX_ASSERT_RETURN_NULL(expr, msg, ...)
 // #endif
 
 }  // namespace VoxFlow

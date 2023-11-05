@@ -19,7 +19,7 @@ class SceneObjectLoader
     ~SceneObjectLoader();
 
  public:
-    std::shared_ptr<SceneObject> loadSceneObjectObj(const std::string& objPath, ResourceUploadContext* uploadContext);
+    std::shared_ptr<SceneObject> loadSceneObjectGltf(const std::string& objPath, ResourceUploadContext* uploadContext);
 };
 }  // namespace VoxFlow
 

@@ -1,6 +1,10 @@
 // Author : snowapril
 
 #include <VoxFlow/Core/Scene/SceneObjectLoader.hpp>
+#include <VoxFlow/Core/Scene/SceneObject.hpp>
+#include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
+#include <VoxFlow/Core/Resources/Texture.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -72,23 +76,16 @@ class VulkanglTFModel
     // Images may be reused by texture objects and are as such separated
     struct Image
     {
-        vks::Texture2D texture;
+        Texture* texture;
         // We also store (and create) a descriptor set that's used to access this texture from the fragment shader
         VkDescriptorSet descriptorSet;
-    };
-
-    // A glTF texture stores a reference to the image and a sampler
-    // In this sample, we are only interested in the image
-    struct Texture
-    {
-        int32_t imageIndex;
     };
 
     /*
         Model data
     */
     std::vector<Image> images;
-    std::vector<Texture> textures;
+    std::vector<int32_t> textures;
     std::vector<Material> materials;
     std::vector<Node*> nodes;
 
@@ -106,7 +103,7 @@ class VulkanglTFModel
         The following functions take a glTF input model loaded via tinyglTF and convert all required data into our own structure
     */
 
-    void loadImages(tinygltf::Model& input)
+    void loadImages(tinygltf::Model& input, ResourceUploadContext* uploadContext)
     {
         // Images can be stored inside the glTF (which is the case for the sample model), so instead of directly
         // loading them from disk, we fetch them from the glTF loader and upload the buffers
@@ -138,7 +135,11 @@ class VulkanglTFModel
                 buffer = &glTFImage.image[0];
                 bufferSize = glTFImage.image.size();
             }
-            // Load texture from image buffer
+            
+
+            images[i].texture = new Texture(glTFImage.name, )
+            uploadContext->addPendingUpload(UploadPhase::PreRender, images[i].texture, UploadData{ ._data = buffer, ._size = bufferSize, ._dstOffset = 0 });
+
             images[i].texture.fromBuffer(buffer, bufferSize, VK_FORMAT_R8G8B8A8_UNORM, glTFImage.width, glTFImage.height, vulkanDevice, copyQueue);
             if (deleteBuffer)
             {
@@ -152,7 +153,7 @@ class VulkanglTFModel
         textures.resize(input.textures.size());
         for (size_t i = 0; i < input.textures.size(); i++)
         {
-            textures[i].imageIndex = input.textures[i].source;
+            textures[i] = input.textures[i].source;
         }
     }
 
@@ -349,9 +350,9 @@ class VulkanglTFModel
                 if (primitive.indexCount > 0)
                 {
                     // Get the texture index for this primitive
-                    VulkanglTFModel::Texture texture = textures[materials[primitive.materialIndex].baseColorTextureIndex];
+                    int32_t texture = textures[materials[primitive.materialIndex].baseColorTextureIndex];
                     // Bind the descriptor for the current primitive's texture
-                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &images[texture.imageIndex].descriptorSet, 0,
+                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &images[texture].descriptorSet, 0,
                                             nullptr);
                     vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
                 }
@@ -377,5 +378,34 @@ class VulkanglTFModel
         }
     }
 };
+
+std::shared_ptr<SceneObject> SceneObjectLoader::loadSceneObjectGltf(const std::string& objPath, ResourceUploadContext* uploadContext)
+{
+    tinygltf::Model glTFInput;
+    tinygltf::TinyGLTF gltfContext;
+    std::string error, warning;
+
+#if defined(__ANDROID__)
+    // On Android all assets are packed with the apk in a compressed form, so we need to open them using the asset manager
+    // We let tinygltf handle this, by passing the asset manager of our app
+    tinygltf::asset_manager = androidApp->activity->assetManager;
+#endif
+    const bool fileLoaded = gltfContext.LoadASCIIFromFile(&glTFInput, &error, &warning, objPath);
+    VOX_ASSERT_RETURN_NULL(fileLoaded, "Failed to load gltf : {}", objPath);
+
+    VulkanglTFModel glTFModel;
+
+    glTFModel.loadImages(glTFInput);
+    glTFModel.loadMaterials(glTFInput);
+    glTFModel.loadTextures(glTFInput);
+    const tinygltf::Scene& scene = glTFInput.scenes[0];
+    for (size_t i = 0; i < scene.nodes.size(); i++)
+    {
+        const tinygltf::Node node = glTFInput.nodes[scene.nodes[i]];
+        glTFModel.loadNode(node, glTFInput, nullptr, indexBuffer, vertexBuffer);
+    }
+
+    return nullptr;
+}
 
 }  // namespace VoxFlow
