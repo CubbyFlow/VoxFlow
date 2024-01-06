@@ -37,7 +37,7 @@ RenderDevice::RenderDevice(Context deviceSetupCtx)
     LogicalDevice* mainLogicalDevice = getLogicalDevice(LogicalDeviceType::MainDevice);
     _mainSwapChain = mainLogicalDevice->addSwapChain("VoxFlow Editor", glm::ivec2(1280, 920));
 
-    _sceneRenderer = std::make_unique<SceneRenderer>(mainLogicalDevice, &_frameGraph);
+    _sceneRenderer = std::make_unique<SceneRenderer>(mainLogicalDevice);
 
     _mainCmdJobSystem = mainLogicalDevice->getCommandJobSystem();
 

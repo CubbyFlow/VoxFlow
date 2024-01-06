@@ -11,8 +11,8 @@
 
 namespace VoxFlow
 {
-SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice, RenderGraph::FrameGraph* frameGraph)
-    : _mainLogicalDevice(mainLogicalDevice), _frameGraph(frameGraph)
+SceneRenderer::SceneRenderer(LogicalDevice* mainLogicalDevice)
+    : _mainLogicalDevice(mainLogicalDevice)
 {
     _commandJobSystem = _mainLogicalDevice->getCommandJobSystem();
 
@@ -52,7 +52,7 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
 
     _currentFrameContext = frameContext;
 
-    _frameGraph->reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey), _renderResourceAllocator.get());
+    _frameGraph.reset(_commandJobSystem->getCommandStream(_renderCmdStreamKey), _renderResourceAllocator.get());
 
     SwapChain* swapChain = _mainLogicalDevice->getSwapChain(_currentFrameContext._swapChainIndex).get();
 
@@ -85,10 +85,10 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
         ._numSamples = 1,
     };
 
-    BlackBoard& blackBoard = _frameGraph->getBlackBoard();
+    BlackBoard& blackBoard = _frameGraph.getBlackBoard();
 
     ResourceHandle backBufferHandle =
-        _frameGraph->importRenderTarget("BackBuffer", std::move(backBufferDescriptor), std::move(backBufferRenderTargetDesc), backBufferView.get());
+        _frameGraph.importRenderTarget("BackBuffer", std::move(backBufferDescriptor), std::move(backBufferRenderTargetDesc), backBufferView.get());
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 
@@ -105,7 +105,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     for (auto iter = _sceneRenderPasses.begin(); iter != _sceneRenderPasses.end(); ++iter)
     {
         SceneRenderPass* pass = iter->second.get();
-        tf::Task fgTask = taskflow.emplace([this, pass]() { pass->renderScene(_frameGraph); }).name(iter->first);
+        tf::Task fgTask = taskflow.emplace([this, pass]() { pass->renderScene(&_frameGraph); }).name(iter->first);
 
         tasks.emplace(iter->first, std::move(fgTask));
     }
@@ -123,12 +123,12 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add present pass which followed by all other passes
-    ResourceHandle backBufferHandle = _frameGraph->getBlackBoard().getHandle("BackBuffer");
+    ResourceHandle backBufferHandle = _frameGraph.getBlackBoard().getHandle("BackBuffer");
 
     tf::Task presentTask =
         taskflow
             .emplace([&]() {
-                _frameGraph->addPresentPass(
+                _frameGraph.addPresentPass(
                     "PresentPass", [&](FrameGraphBuilder& builder) { builder.read<FrameGraphTexture>(backBufferHandle, TextureUsage::BackBuffer); }, swapChain,
                     _currentFrameContext);
             })
@@ -142,7 +142,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
     }
 
     // Add frame graph compilation task
-    taskflow.emplace([&]() { _frameGraph->compile(); }).name("Compilation").succeed(presentTask);
+    taskflow.emplace([&]() { _frameGraph.compile(); }).name("Compilation").succeed(presentTask);
 
     tf::Executor executor;
     return executor.run(taskflow);
@@ -151,7 +151,7 @@ tf::Future<void> SceneRenderer::resolveSceneRenderPasses(SwapChain* swapChain)
 void SceneRenderer::submitFrameGraph()
 {
     SCOPED_CHROME_TRACING("SceneRenderer::submitFrameGraph");
-    _frameGraph->execute();
+    _frameGraph.execute();
 }
 
 }  // namespace VoxFlow

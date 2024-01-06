@@ -22,7 +22,7 @@ class SwapChain;
 class SceneRenderer final : NonCopyable
 {
  public:
-    SceneRenderer(LogicalDevice* mainLogicalDevice, RenderGraph::FrameGraph* frameGraph);
+    SceneRenderer(LogicalDevice* mainLogicalDevice);
     ~SceneRenderer() override;
 
  public:
@@ -47,7 +47,7 @@ class SceneRenderer final : NonCopyable
  protected:
  private:
     LogicalDevice* _mainLogicalDevice = nullptr;
-    RenderGraph::FrameGraph* _frameGraph = nullptr;
+    RenderGraph::FrameGraph _frameGraph;
     FrameContext _currentFrameContext;
     CommandJobSystem* _commandJobSystem = nullptr;
     std::unique_ptr<RenderResourceAllocator> _renderResourceAllocator;

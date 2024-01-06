@@ -70,7 +70,6 @@ class RenderDevice final : private NonCopyable
     std::vector<std::unique_ptr<LogicalDevice>> _logicalDevices;
     std::unique_ptr<SceneRenderer> _sceneRenderer;
     Context* _deviceSetupCtx = nullptr;
-    RenderGraph::FrameGraph _frameGraph;
     FrameContext _frameContext;
     std::shared_ptr<SwapChain> _mainSwapChain;
     CommandJobSystem* _mainCmdJobSystem = nullptr;
