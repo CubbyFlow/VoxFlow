@@ -20,7 +20,7 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
     {
         const char* glfwErrorMsg = nullptr;
         glfwGetError(&glfwErrorMsg);
-        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : {}", glfwErrorMsg);
+        VOX_ASSERT(false, "Failed to initialize GLFW. LastError : {}", glfwErrorMsg);
         return;
     }
 

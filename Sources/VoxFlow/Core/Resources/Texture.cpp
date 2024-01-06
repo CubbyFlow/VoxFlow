@@ -249,8 +249,10 @@ void Texture::release()
         VmaAllocator vmaAllocator = _renderResourceMemoryPool->get();
         VkImage vkImage = _vkImage;
         VmaAllocation vmaAllocation = _allocation;
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(RenderResourceGarbage(
-            std::move(_accessedFences), [vmaAllocator, vkImage, vmaAllocation]() { vmaDestroyImage(vmaAllocator, vkImage, vmaAllocation); }));
+
+        RenderResourceGarbageCollector::Get().dispose(
+            RenderResourceGarbage{ .accessedFences = std::move(_accessedFences),
+                                   .deletionDelegate = [vmaAllocator, vkImage, vmaAllocation]() { vmaDestroyImage(vmaAllocator, vkImage, vmaAllocation); } });
 
         _vkImage = VK_NULL_HANDLE;
         _allocation = VK_NULL_HANDLE;
@@ -306,8 +308,10 @@ void TextureView::release()
     {
         VkDevice vkDevice = _logicalDevice->get();
         VkImageView vkImageView = _vkImageView;
-        RenderResourceGarbageCollector::Get().pushRenderResourceGarbage(
-            RenderResourceGarbage(std::move(_accessedFences), [vkDevice, vkImageView]() { vkDestroyImageView(vkDevice, vkImageView, nullptr); }));
+        
+        RenderResourceGarbageCollector::Get().dispose(
+            RenderResourceGarbage{ .accessedFences = std::move(_accessedFences),
+                                   .deletionDelegate = [vkDevice, vkImageView]() { vkDestroyImageView(vkDevice, vkImageView, nullptr); } });
 
         _vkImageView = VK_NULL_HANDLE;
     }
