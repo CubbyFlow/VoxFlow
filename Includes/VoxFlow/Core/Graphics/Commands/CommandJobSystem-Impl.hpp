@@ -60,44 +60,38 @@ void CommandStream::addJob(CommandJobType jobType, CommandJobArgs&&... args)
         case CommandJobType::BindPipeline:
             cmdBuffer->bindPipeline(params.getParam<BasePipeline*>(0));
             break;
-
         case CommandJobType::SetViewport:
             cmdBuffer->setViewport(params.getParam<glm::uvec2>(0));
             break;
-
         case CommandJobType::BindResourceGroup:
             cmdBuffer->bindResourceGroup(params.getParam<SetSlotCategory>(0), params.getParam<std::vector<ShaderVariableBinding>>(1));
             break;
-
         case CommandJobType::UploadBuffer:
             cmdBuffer->uploadBuffer(params.getParam<Buffer*>(0), params.getParam<StagingBuffer*>(1), params.getParam<uint32_t>(2), params.getParam<uint32_t>(3),
                                     params.getParam<uint32_t>(4));
             break;
-
         case CommandJobType::UploadTexture:
             cmdBuffer->uploadTexture(params.getParam<Texture*>(0), params.getParam<StagingBuffer*>(1), params.getParam<uint32_t>(2),
                                      params.getParam<uint32_t>(3), params.getParam<uint32_t>(4));
             break;
-
         case CommandJobType::Draw:
             cmdBuffer->draw(params.getParam<uint32_t>(0), params.getParam<uint32_t>(1), params.getParam<uint32_t>(2), params.getParam<uint32_t>(3));
             break;
-
         case CommandJobType::DrawIndexed:
             cmdBuffer->drawIndexed(params.getParam<uint32_t>(0), params.getParam<uint32_t>(1), params.getParam<uint32_t>(2), params.getParam<uint32_t>(3),
                                    params.getParam<uint32_t>(4));
             break;
-
         case CommandJobType::MakeSwapChainFinalLayout:
             cmdBuffer->makeSwapChainFinalLayout(params.getParam<SwapChain*>(0), params.getParam<uint32_t>(1));
             break;
-
         case CommandJobType::BindVertexBuffer:
             cmdBuffer->bindVertexBuffer(params.getParam<Buffer*>(0));
             break;
-
         case CommandJobType::BindIndexBuffer:
             cmdBuffer->bindIndexBuffer(params.getParam<Buffer*>(0));
+            break;
+        default:
+            VOX_ASSERT(false, "Unknown CommandJobType({})", static_cast<uint32_t>(jobType));
             break;
     }
 }

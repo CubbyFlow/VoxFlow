@@ -4,6 +4,7 @@
 #define VOXEL_FLOW_SCENE_OBJECT_PASS_HPP
 
 #include <VoxFlow/Core/FrameGraph/Resource.hpp>
+#include <VoxFlow/Core/Scene/SceneObjectCollection.hpp>
 #include <VoxFlow/Core/Renderer/SceneRenderPass.hpp>
 #include <VoxFlow/Core/Utils/NonCopyable.hpp>
 #include <memory>
@@ -43,6 +44,7 @@ class SceneObjectPass : public SceneRenderPass
     std::shared_ptr<GraphicsPipeline> _sceneObjectPipeline;
     std::unique_ptr<Buffer> _cubeVertexBuffer;
     std::unique_ptr<Buffer> _cubeIndexBuffer;
+    std::unique_ptr<SceneObjectCollection> _sceneObjectCollection;
     LogicalDevice* _logicalDevice = nullptr;
 };
 }  // namespace VoxFlow

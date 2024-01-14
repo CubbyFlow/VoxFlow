@@ -71,6 +71,10 @@ set(PUBLIC_HDRS
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceGarbageCollector.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/RenderResourceMemoryPool.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Resources/StagingBufferContext.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/Material.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/SceneObject.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/SceneObjectCollection.hpp
+    ${PUBLIC_HDR_DIR}/VoxFlow/Core/Scene/SceneObjectLoader.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/BitwiseOperators.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/ChromeTracer.hpp
     ${PUBLIC_HDR_DIR}/VoxFlow/Core/Utils/DebugUtil.hpp
@@ -139,6 +143,9 @@ set(SRCS
     ${SRC_DIR}/Core/Resources/RenderResourceMemoryPool.cpp
     ${SRC_DIR}/Core/Resources/StagingBufferContext.cpp
     ${SRC_DIR}/Core/Resources/StagingBuffer.cpp
+    ${SRC_DIR}/Core/Scene/SceneObject.cpp
+    ${SRC_DIR}/Core/Scene/SceneObjectCollection.cpp
+    ${SRC_DIR}/Core/Scene/SceneObjectLoader.cpp
     ${SRC_DIR}/Core/Utils/ChromeTracer.cpp
     ${SRC_DIR}/Core/Utils/DecisionMaker.cpp
     ${SRC_DIR}/Core/Utils/DeviceInputSubscriber.cpp
@@ -196,6 +203,7 @@ target_link_libraries(${target}
     SPIRV
     assimp
     spirv-cross-core
+    fastgltf
     VulkanMemoryAllocator
 )
 

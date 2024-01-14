@@ -67,28 +67,25 @@ void SceneRenderer::beginFrameGraph(const FrameContext& frameContext)
     std::shared_ptr<TextureView> backBufferView = currentBackBuffer->getView(backBufferViewIndex.value());
 
     using namespace RenderGraph;
-    auto backBufferDescriptor = FrameGraphTexture::Descriptor{
-        ._width = backBufferInfo._extent.x,
-        ._height = backBufferInfo._extent.y,
-        ._depth = backBufferInfo._extent.z,
-        ._level = 0,
-        ._sampleCounts = 1,
-        ._format = backBufferInfo._format,
-    };
-
-    auto backBufferRenderTargetDesc = FrameGraphRenderPass::ImportedDescriptor{
-        ._attachmentSlot = AttachmentMaskFlags::All,
-        ._viewportSize = glm::uvec2(backBufferInfo._extent.x, backBufferInfo._extent.y),
-        ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-        ._clearFlags = AttachmentMaskFlags::All,
-        ._writableAttachment = AttachmentMaskFlags::All,
-        ._numSamples = 1,
-    };
-
     BlackBoard& blackBoard = _frameGraph.getBlackBoard();
-
-    ResourceHandle backBufferHandle =
-        _frameGraph.importRenderTarget("BackBuffer", std::move(backBufferDescriptor), std::move(backBufferRenderTargetDesc), backBufferView.get());
+    ResourceHandle backBufferHandle = _frameGraph.importRenderTarget("BackBuffer",
+        FrameGraphTexture::Descriptor{
+            ._width = backBufferInfo._extent.x,
+            ._height = backBufferInfo._extent.y,
+            ._depth = backBufferInfo._extent.z,
+            ._level = 0,
+            ._sampleCounts = 1,
+            ._format = backBufferInfo._format,
+        },
+        FrameGraphRenderPass::ImportedDescriptor{
+            ._attachmentSlot = AttachmentMaskFlags::All,
+            ._viewportSize = glm::uvec2(backBufferInfo._extent.x, backBufferInfo._extent.y),
+            ._clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+            ._clearFlags = AttachmentMaskFlags::All,
+            ._writableAttachment = AttachmentMaskFlags::All,
+            ._numSamples = 1,
+        },
+        backBufferView.get());
     blackBoard["BackBuffer"] = backBufferHandle;
 }
 

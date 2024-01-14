@@ -5,6 +5,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
+#include <VoxFlow/Core/Scene/SceneObjectLoader.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -55,6 +56,11 @@ bool SceneObjectPass::initialize()
     _cubeIndexBuffer = std::make_unique<Buffer>("CubeIndexBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeIndexBuffer->makeAllocationResident(
         BufferInfo{ ._size = cubeIndices.size() * sizeof(uint32_t), ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+
+    _sceneObjectCollection = std::make_unique<SceneObjectCollection>();
+
+    SceneObjectLoader loader;
+    loader.loadSceneObject(RESOURCES_DIR "/Scenes/Sponza/Sponza.gltf", _sceneObjectCollection.get());
 
     return true;
 }

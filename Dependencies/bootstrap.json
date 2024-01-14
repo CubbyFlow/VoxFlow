@@ -52,7 +52,7 @@
     "source": {
       "type": "git",
       "url": "https://github.com/ocornut/imgui.git",
-      "revision": "v1.87"
+      "revision": "v1.90.1"
     }
   },
   {
@@ -165,6 +165,14 @@
       "type": "git",
       "url": "https://github.com/jarro2783/cxxopts",
       "revision": "v3.1.1"
+    }
+  },
+  {
+    "name": "fastgltf",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/spnda/fastgltf",
+      "revision": "v0.6.1"
     }
   }
 ]
