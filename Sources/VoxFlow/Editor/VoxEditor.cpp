@@ -1,6 +1,5 @@
 // Author : snowapril
 
-#include <GLFW/glfw3.h>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
@@ -10,6 +9,7 @@
 #include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
 #include <VoxFlow/Editor/VoxEditor.hpp>
 #include <chrono>
+#include <GLFW/glfw3.h>
 
 namespace VoxFlow
 {
