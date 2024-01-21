@@ -13,48 +13,15 @@ namespace VoxFlow
 {
 struct RenderResourceGarbage
 {
-    std::vector<FenceObject> _accessedFences;
-    std::function<void()> _deletionDelegate;
-
-    RenderResourceGarbage() = default;
-    RenderResourceGarbage(std::vector<FenceObject>&& accessedFences, std::function<void()>&& deletionDelegate)
-        : _accessedFences(std::move(accessedFences)), _deletionDelegate(std::move(deletionDelegate))
-    {
-    }
-    ~RenderResourceGarbage() = default;
-    RenderResourceGarbage(const RenderResourceGarbage& rhs)
-    {
-        operator=(rhs);
-    }
-    RenderResourceGarbage(RenderResourceGarbage&& rhs)
-    {
-        operator=(std::move(rhs));
-    }
-    RenderResourceGarbage& operator=(const RenderResourceGarbage& rhs)
-    {
-        if (this != &rhs)
-        {
-            _accessedFences = rhs._accessedFences;
-            _deletionDelegate = rhs._deletionDelegate;
-        }
-        return *this;
-    }
-    RenderResourceGarbage& operator=(RenderResourceGarbage&& rhs)
-    {
-        if (this != &rhs)
-        {
-            _accessedFences.swap(rhs._accessedFences);
-            _deletionDelegate.swap(rhs._deletionDelegate);
-        }
-        return *this;
-    }
+    std::vector<FenceObject> accessedFences;
+    std::function<void()> deletionDelegate;
 };
 
 class RenderResourceGarbageCollector : private Thread
 {
  public:
     // Push render resource garbage (buffer, texture, or etc..) to the queue
-    void pushRenderResourceGarbage(RenderResourceGarbage&& garbage);
+    void dispose(RenderResourceGarbage&& garbage);
 
     // Get global instance of render resource garbage collector
     static RenderResourceGarbageCollector& Get();

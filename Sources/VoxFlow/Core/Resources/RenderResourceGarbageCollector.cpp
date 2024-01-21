@@ -8,7 +8,7 @@
 namespace VoxFlow
 {
 
-void RenderResourceGarbageCollector::pushRenderResourceGarbage(RenderResourceGarbage&& garbage)
+void RenderResourceGarbageCollector::dispose(RenderResourceGarbage&& garbage)
 {
     std::lock_guard<std::mutex> scopedLock(_garbageCollectionLock);
     _garbageCollection.emplace_back(std::move(garbage));
@@ -40,7 +40,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
         RenderResourceGarbage& resourceGarbage = sTmpGarbageCollection[i];
 
         bool isUsingResource = false;
-        for (const FenceObject& accessedFence : resourceGarbage._accessedFences)
+        for (const FenceObject& accessedFence : resourceGarbage.accessedFences)
         {
             isUsingResource |= (accessedFence.isCompleted() == false);
             if (isUsingResource)
@@ -51,7 +51,7 @@ void RenderResourceGarbageCollector::processRenderResourceGarbage()
 
         if (isUsingResource == false)
         {
-            std::invoke(resourceGarbage._deletionDelegate);
+            std::invoke(resourceGarbage.deletionDelegate);
             std::swap(resourceGarbage, sTmpGarbageCollection[numGarbages - 1]);
             ++numDeletedResources;
             --numGarbages;

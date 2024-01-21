@@ -104,6 +104,11 @@ class LogicalDevice : NonCopyable
         return _physicalDevice;
     }
 
+    inline const Instance* getInstance() const
+    {
+        return _instance;
+    }
+
     inline CommandJobSystem* getCommandJobSystem() const
     {
         return _commandJobSystem.get();

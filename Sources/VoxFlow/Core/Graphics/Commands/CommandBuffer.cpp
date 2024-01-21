@@ -408,7 +408,8 @@ void CommandBuffer::commitPendingResourceBindings()
                     sTmpImageInfos[currentDescriptorInfoIndex] = static_cast<TextureView*>(bindingResourceView)->getDescriptorImageInfo();
 
                     sTmpImageInfos[currentDescriptorInfoIndex].imageLayout = static_cast<TextureView*>(bindingResourceView)->getCurrentVkImageLayout();
-
+                    
+                    // TODO(snowapril) : need to handle sampler
                     if (descriptorInfo._descriptorCategory == DescriptorCategory::CombinedImage)
                     {
                         sTmpImageInfos[currentDescriptorInfoIndex].sampler = _sampler->get();

@@ -1,9 +1,9 @@
 // Author : snowapril
 
-#include <GLFW/glfw3.h>
 #include <VoxFlow/Core/Utils/DeviceInputSubscriber.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
 #include <vector>
+#include <GLFW/glfw3.h>
 
 namespace
 {

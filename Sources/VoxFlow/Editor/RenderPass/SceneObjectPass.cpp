@@ -1,10 +1,12 @@
 // Author : snowapril
 
+#include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/FrameGraph/FrameGraph.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/GraphicsPipeline.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/PipelineStreamingContext.hpp>
+#include <VoxFlow/Core/Scene/SceneObjectLoader.hpp>
 #include <VoxFlow/Core/Resources/Buffer.hpp>
 #include <VoxFlow/Core/Resources/ResourceUploadContext.hpp>
 #include <VoxFlow/Core/Utils/Logger.hpp>
@@ -13,7 +15,7 @@
 namespace VoxFlow
 {
 
-SceneObjectPass::SceneObjectPass(LogicalDevice* logicalDevice) : _logicalDevice(logicalDevice)
+SceneObjectPass::SceneObjectPass(RenderDevice* renderDevice) : _renderDevice(renderDevice)
 {
 }
 
@@ -37,7 +39,9 @@ const std::vector<unsigned int> cubeIndices = {
 
 bool SceneObjectPass::initialize()
 {
-    _sceneObjectPipeline = _logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline({ "scene_object.vert", "scene_object.frag" });
+    LogicalDevice* logicalDevice = _renderDevice->getLogicalDevice(LogicalDeviceType::MainDevice);
+
+    _sceneObjectPipeline = logicalDevice->getPipelineStreamingContext()->createGraphicsPipeline({ "scene_object.vert", "scene_object.frag" });
 
     // Set pipeline state for SceneObjectPass pipeline
     GraphicsPipelineState pipelineState;
@@ -48,13 +52,21 @@ bool SceneObjectPass::initialize()
     pipelineState.depthStencil.setDepth(true, VK_COMPARE_OP_LESS_OR_EQUAL);
     _sceneObjectPipeline->setPipelineState(pipelineState);
 
-    _cubeVertexBuffer = std::make_unique<Buffer>("CubeVertexBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _cubeVertexBuffer = std::make_unique<Buffer>("CubeVertexBuffer", logicalDevice, logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeVertexBuffer->makeAllocationResident(
         BufferInfo{ ._size = cubeVertices.size() * sizeof(glm::vec3), ._usage = BufferUsage::VertexBuffer | BufferUsage::CopyDst });
 
-    _cubeIndexBuffer = std::make_unique<Buffer>("CubeIndexBuffer", _logicalDevice, _logicalDevice->getDeviceDefaultResourceMemoryPool());
+    _cubeIndexBuffer = std::make_unique<Buffer>("CubeIndexBuffer", logicalDevice, logicalDevice->getDeviceDefaultResourceMemoryPool());
     _cubeIndexBuffer->makeAllocationResident(
         BufferInfo{ ._size = cubeIndices.size() * sizeof(uint32_t), ._usage = BufferUsage::IndexBuffer | BufferUsage::CopyDst });
+
+    _sceneObjectCollection = std::make_unique<SceneObjectCollection>();
+
+    SceneObjectLoader loader;
+    loader.loadSceneObject(RESOURCES_DIR "/Scenes/Sponza/Sponza.gltf", _renderDevice->getResourceUploadContext(),
+                           logicalDevice->getCommandJobSystem()->getCommandStream(
+                               CommandStreamKey{ ._cmdStreamName = ASYNC_UPLOAD_STREAM_NAME, ._cmdStreamUsage = CommandStreamUsage::Transfer }),
+                           _sceneObjectCollection.get());
 
     return true;
 }

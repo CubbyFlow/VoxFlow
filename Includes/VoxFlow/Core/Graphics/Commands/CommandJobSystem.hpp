@@ -76,7 +76,7 @@ class CommandJobSystem final : private NonCopyable
     explicit CommandJobSystem(LogicalDevice* logicalDevice);
     ~CommandJobSystem() override;
 
-    void createCommandStream(const CommandStreamKey& streamKey, Queue* queue);
+    CommandStream* createCommandStream(const CommandStreamKey& streamKey, Queue* queue);
     CommandStream* getCommandStream(const CommandStreamKey& streamKey);
 
  private:

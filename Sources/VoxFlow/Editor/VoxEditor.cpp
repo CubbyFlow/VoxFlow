@@ -1,6 +1,5 @@
 // Author : snowapril
 
-#include <GLFW/glfw3.h>
 #include <VoxFlow/Core/Devices/LogicalDevice.hpp>
 #include <VoxFlow/Core/Devices/RenderDevice.hpp>
 #include <VoxFlow/Core/Devices/SwapChain.hpp>
@@ -10,6 +9,7 @@
 #include <VoxFlow/Editor/RenderPass/SceneObjectPass.hpp>
 #include <VoxFlow/Editor/VoxEditor.hpp>
 #include <chrono>
+#include <GLFW/glfw3.h>
 
 namespace VoxFlow
 {
@@ -20,7 +20,7 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
     {
         const char* glfwErrorMsg = nullptr;
         glfwGetError(&glfwErrorMsg);
-        VOX_ASSERT(false, "Failed to initialize GLWF. LastError : {}", glfwErrorMsg);
+        VOX_ASSERT(false, "Failed to initialize GLFW. LastError : {}", glfwErrorMsg);
         return;
     }
 
@@ -65,7 +65,7 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
     _inputRegistrator.registerDeviceKeyCallback(uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
 
     SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
-    _sceneObjectPass = sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>("SceneObjectPass", mainLogicalDevice);
+    _sceneObjectPass = sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>("SceneObjectPass", _renderDevice);
     _postProcessPass = sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>("PostProcessPass", mainLogicalDevice);
     _postProcessPass->addDependency("SceneObjectPass");
 
