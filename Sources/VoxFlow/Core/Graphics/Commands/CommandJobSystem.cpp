@@ -98,9 +98,12 @@ CommandJobSystem::~CommandJobSystem()
 {
 }
 
-void CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey, Queue* queue)
+CommandStream* CommandJobSystem::createCommandStream(const CommandStreamKey& streamKey, Queue* queue)
 {
-    _cmdStreams.emplace(streamKey, std::make_unique<CommandStream>(_logicalDevice, queue));
+    auto cmdStreamPtr = std::make_unique<CommandStream>(_logicalDevice, queue);
+    CommandStream* rawCmdStream = cmdStreamPtr.get();
+    _cmdStreams.emplace(streamKey, std::move(cmdStreamPtr));
+    return rawCmdStream;
 }
 
 CommandStream* CommandJobSystem::getCommandStream(const CommandStreamKey& streamKey)

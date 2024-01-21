@@ -6,6 +6,7 @@
 #include <VoxFlow/Core/Graphics/Commands/CommandBuffer.hpp>
 #include <VoxFlow/Core/Graphics/Commands/CommandJobSystem.hpp>
 #include <VoxFlow/Core/Graphics/Pipelines/ResourceBindingLayout.hpp>
+#include <VoxFlow/Core/Utils/Logger.hpp>
 #include <type_traits>
 
 namespace VoxFlow

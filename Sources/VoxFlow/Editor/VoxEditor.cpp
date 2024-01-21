@@ -65,7 +65,7 @@ VoxEditor::VoxEditor(cxxopts::ParseResult&& arguments)
     _inputRegistrator.registerDeviceKeyCallback(uint32_t(-1), std::bind(processKeyCallback, this, _1, _2));
 
     SceneRenderer* sceneRenderer = _renderDevice->getSceneRenderer();
-    _sceneObjectPass = sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>("SceneObjectPass", mainLogicalDevice);
+    _sceneObjectPass = sceneRenderer->getOrCreateSceneRenderPass<SceneObjectPass>("SceneObjectPass", _renderDevice);
     _postProcessPass = sceneRenderer->getOrCreateSceneRenderPass<PostProcessPass>("PostProcessPass", mainLogicalDevice);
     _postProcessPass->addDependency("SceneObjectPass");
 

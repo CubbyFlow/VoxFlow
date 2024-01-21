@@ -17,6 +17,7 @@ class SceneRenderer;
 class LogicalDevice;
 class CommandJobSystem;
 class SwapChain;
+class ResourceUploadContext;
 
 class RenderDevice final : private NonCopyable
 {

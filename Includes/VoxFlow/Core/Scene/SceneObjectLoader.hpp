@@ -11,6 +11,8 @@ namespace VoxFlow
 
 class SceneObjectCollection;
 class Texture;
+class CommandStream;
+class ResourceUploadContext;
 
 struct StaticMeshInfo
 {
@@ -23,6 +25,7 @@ struct TextureUploadInfo
     void* textureRawData = nullptr;
     glm::vec2 extent;
     int numChannels;
+    size_t numBytes;
 };
 
 class SceneObjectLoader
@@ -32,7 +35,8 @@ class SceneObjectLoader
     ~SceneObjectLoader() = default;
 
     // Blocking
-    bool loadSceneObject(const std::filesystem::path& gltfPath, SceneObjectCollection* outCollection);
+    bool loadSceneObject(const std::filesystem::path& gltfPath, ResourceUploadContext* asyncUploadContext, CommandStream* asyncCmdStream,
+                         SceneObjectCollection* outCollection);
 };
 
 }  // namespace VoxFlow

@@ -14,7 +14,7 @@ namespace VoxFlow
 class RenderDevice;
 class Buffer;
 class GraphicsPipeline;
-class LogicalDevice;
+class RenderDevice;
 
 namespace RenderGraph
 {
@@ -24,7 +24,7 @@ class FrameGraph;
 class SceneObjectPass : public SceneRenderPass
 {
  public:
-    SceneObjectPass(LogicalDevice* logicalDevice);
+    SceneObjectPass(RenderDevice* renderDevice);
     ~SceneObjectPass() override;
 
  public:
@@ -45,7 +45,7 @@ class SceneObjectPass : public SceneRenderPass
     std::unique_ptr<Buffer> _cubeVertexBuffer;
     std::unique_ptr<Buffer> _cubeIndexBuffer;
     std::unique_ptr<SceneObjectCollection> _sceneObjectCollection;
-    LogicalDevice* _logicalDevice = nullptr;
+    RenderDevice* _renderDevice = nullptr;
 };
 }  // namespace VoxFlow
 
